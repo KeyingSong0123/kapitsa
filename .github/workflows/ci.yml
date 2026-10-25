@@ -239,16 +239,73 @@ jobs:
             # sed, not head: head closing the pipe early would SIGPIPE sed and, under pipefail, fail the job
             sed -n '1,12p' "$RUNNER_TEMP/probe-$1.err" 2>/dev/null | sed 's/^/    /'
           }
+          # A compile error in the generated blob names base.metal:7287 - a line that exists in no file in the
+          # tree. The blob is written by cmake/embed_kernels.cmake, which puts every file behind a
+          # `// ---- <name> ----` marker and copies its lines one for one, so the file line is the blob line minus
+          # the marker's line. An error inside a macro is reported at the macro's use, with a note naming its
+          # definition: the definition is the line to open, because the bad token is there, not at the call.
+          # A mapping is printed only when the blob line and the source line it maps to are byte-identical, so a
+          # section this job cannot follow prints that it could not name the file instead of naming a wrong one.
+          section_line() { # blob file, blob line - "<file in src/kernels>\t<line>" if the line sits in a marked section
+            # The nearest header that names a real file either justifies the line or nothing does. Two things
+            # force that shape. Bodies carry comment lines in the marker's shape, so a header has to name a
+            # file in src/kernels to count - and scanning past a header whose own section fails the byte check
+            # would let a blank line or a brace in a later section match an earlier section at another
+            # offset, naming the wrong file with a line that verifies.
+            local at name
+            while IFS=$'\t' read -r at name; do
+              [ -f "src/kernels/$name" ] || continue
+              [ "$(sed -n "$(($2 - at))p" "src/kernels/$name")" = "$(sed -n "$2p" "$1")" ] || return 0
+              printf '%s\t%d' "$name" "$(($2 - at))"
+              return 0
+            done <<<"$(awk -v L="$2" '
+              /^\/\/ ---- / { s = $0; sub(/^\/\/ ---- /, "", s); sub(/ ----$/, "", s); if (NR < L) { at[++n] = NR; nm[n] = s } }
+              END { for (i = n; i >= 1; i--) printf "%d\t%s\n", at[i], nm[i] }
+            ' "$1")"
+            return 0
+          }
+          blame() { # blob file, compiler log - annotate the first error with the file a developer opens
+            local blob=$1 log=$2 rel err msg at lineno note hit src line
+            rel=$(basename "$blob")
+            err=$(grep -m1 -E "/$rel:[0-9]+:[0-9]+: error:" "$log") || return 0
+            msg=${err#*: error: }
+            at=${err#*"/$rel:"}
+            lineno=${at%%:*}
+            at=$(awk -v pat="$err" 'index($0, pat) { print NR; exit }' "$log")
+            if [ -n "$at" ]; then
+              # The window starts after the error line and stops at the next diagnostic: a later error or
+              # warning can carry its own `note: expanded from macro`, and taking that one would annotate a
+              # real line belonging to a different finding.
+              note=$(sed -n "$((at + 1)),$((at + 12))p" "$log" \
+                | awk '/: (error|warning|fatal error): / { exit } /note: expanded from macro/ { print; exit }' || true)
+              if [[ $note =~ (^|/)"$rel":([0-9]+):[0-9]+: ]]; then
+                lineno=${BASH_REMATCH[2]}
+              fi
+            fi
+            hit=$(section_line "$blob" "$lineno")
+            src=${hit%%$'\t'*}
+            line=${hit##*$'\t'}
+            if [ -n "$src" ] && [ "$(sed -n "${line}p" "src/kernels/$src")" = "$(sed -n "${lineno}p" "$blob")" ]; then
+              echo "::error file=src/kernels/$src,line=$line::$msg"
+            else
+              echo "the first error is at $rel:$lineno in the generated blob; it is not in a section that maps back to one source line, so this log does not name the file"
+            fi
+          }
           fail=0
           check() { # name, embed script, -std=, extra compiler flags
             local name=$1 script=$2 std=$3
             shift 3
             cmake -DOUT="$RUNNER_TEMP/$name.cpp" -DSRC_DIR="$PWD/src/kernels" -P "cmake/$script"
             python3 "$RUNNER_TEMP/extract.py" "$RUNNER_TEMP/$name.cpp" "$RUNNER_TEMP/$name.metal"
-            if xcrun -sdk macosx metal -std="$std" "$@" -I src/kernels -c "$RUNNER_TEMP/$name.metal" -o "$RUNNER_TEMP/$name.air"; then
+            if xcrun -sdk macosx metal -std="$std" "$@" -I src/kernels -c "$RUNNER_TEMP/$name.metal" -o "$RUNNER_TEMP/$name.air" \
+                 >"$RUNNER_TEMP/$name.log" 2>&1; then
               echo "ok: $name ($std, $(wc -c < "$RUNNER_TEMP/$name.metal") bytes)"
             else
               echo "::error file=cmake/$script::the $name Metal library does not compile offline ($std)"
+              blame "$RUNNER_TEMP/$name.metal" "$RUNNER_TEMP/$name.log"
+              echo "::group::compiler output for the $name library ($std)"
+              sed -n '1,12p' "$RUNNER_TEMP/$name.log" | sed 's/^/    /'
+              echo "::endgroup::"
               fail=1
             fi
           }
