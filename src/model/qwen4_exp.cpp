@@ -10,6 +10,7 @@
 #include <CoreFoundation/CoreFoundation.h>
 #include <dirent.h>
 #include <sys/sysctl.h>
+#include <unistd.h>
 
 #include <algorithm>
 #include <cmath>
@@ -712,6 +713,21 @@ int Qwen4Exp::layer_index(const Layer& L) const {
   return &L >= b && &L < b + layers_.size() ? int(&L - b) : -1;
 }
 
+namespace {
+// A wait length in milliseconds from the environment: a whole number that is not negative, or `def` with one warning.
+// A bare atoi would turn a typo ("10s", "abc") or an empty value into 0, which switches the wait off and brings back
+// the early sample this knob exists to undo, with nothing in the log.
+int env_ms(const char* name, int def) {
+  const char* v = getenv(name);
+  if (!v || !*v) return def;
+  char* end = nullptr;
+  const long x = strtol(v, &end, 10);
+  if (end != v && !*end && x >= 0 && x <= 600000) return int(x);
+  logi("%s=%s is not a wait of 0 or more milliseconds, ignored: using %d", name, v, def);
+  return def;
+}
+}  // namespace
+
 // The store over the deferred Q2_0 planes. Its size: NI_EXPERT_STORE=<GB> or all; by default what the budget leaves
 // after the weights and buffers allocated so far (and the room set apart below).
 void Qwen4Exp::init_store(const std::string& dir) {
@@ -776,7 +792,19 @@ void Qwen4Exp::init_store(const std::string& dir) {
     // the Mac to itself. `kapitsa doctor` prints the same reason before a load (doctor.cpp).
     q20::AutoStoreIn in;
     in.all = all, in.least = size_t(3) * E * lay.bytes, in.left = left, in.used = used, in.keep = keep;
-    in.ram = size_t(ram), in.avail = q20::available_memory();
+    in.ram = size_t(ram);
+    // NI_EXPERT_SETTLE_MS: how long the guard may wait in all for memory a process that just exited still holds
+    // (default 10000; 0 = one sample); it stops once 3 s pass without 0.5 GB more available
+    const int settle = env_ms("NI_EXPERT_SETTLE_MS", 10000);
+    const q20::SettledAvail sa = q20::settle_available(std::min(left, all), q20::auto_store_headroom(in.ram), settle, 250, 3000, size_t(500) << 20,
+                                                       [](int ms) {
+                                                         if (ms) usleep(useconds_t(ms) * 1000);
+                                                         return q20::available_memory();
+                                                       });
+    in.avail = sa.avail;
+    if (sa.waited_ms)
+      logi("expert store: the system's available memory %.1f GB at first, %.1f GB after %.2f s", double(sa.first) / 1e9,
+           double(sa.avail) / 1e9, sa.waited_ms / 1e3);
     in.cap = q20::auto_store_cap(Gpu::get().apple10());
     const q20::AutoStore st = q20::auto_store_size(in);
     o.bytes = st.bytes;
