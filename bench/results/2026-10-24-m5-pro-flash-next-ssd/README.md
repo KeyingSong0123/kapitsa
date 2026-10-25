@@ -117,3 +117,26 @@ level (Kapitsa's cold leg 13.9 s, llama.cpp 13.2 s; Kapitsa's second leg is warm
 | llama-cpumoe | pf4 | 2 | ok | 4132 | 142.8 | 28928 | 14.18 | 2.50 | - | 0 |
 | llama-gpu | pf4 | 2 | ok | 4132 | 567.5 | 7281 | 37.06 | 10.44 | - | 0 |
 
+
+## Erratum (2026-10-26)
+
+**What was wrong.** Kapitsa's decode legs above did not stop at the end of the turn (`ni_run` does not stop at
+`<|im_end|>`), and the 1K and 32K prompts have no assistant header. Kapitsa's first end-of-turn token comes at output
+index 2 (1K), 31 (4K) and 63 (32K), so the rest of the 128 timed tokens is text generated after the answer. At 16K
+Kapitsa stopped after 48 ids (its log reports "decode 47 tok") and llama.cpp decoded 128. This voids every decode
+comparison in this file, including the ledger line `dec decode: Kapitsa 40.5 vs llama.cpp 39.0 tok/s -> fastest: yes,
+by 4.0%` above.
+
+**Corrected value.** The decode column is not comparable. This run has no valid decode measurement, and a re-measure
+is pending. The prefill columns are unaffected.
+
+**Evidence.** The `ids:` line of each committed Kapitsa leg in `legs/` (248046 is `<|im_end|>`, 248044 is
+`<|endoftext|>`):
+
+| Legs | Ids | First 248046 | First 248044 |
+|---|---|---|---|
+| `kap_c1k_1.log`, `kap_c1k_2.log` | 128 | index 2 | none |
+| `kap_pf4_1.log`, `kap_pf4_2.log` | 128 | index 31 | none |
+| `kap_pf16_1.log`, `kap_pf16_2.log` | 48 | index 43 | index 45 |
+| `kap_c32k_1.log`, `kap_c32k_2.log` | 128 | index 63 | none |
+| `kap_dec_1.log`, `kap_dec_2.log`, `kap_dec_c1.log`, `kap_dec_c2.log` | 128 | none | none |
