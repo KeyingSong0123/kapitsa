@@ -1,25 +1,38 @@
 <picture>
   <source media="(max-width: 600px)" srcset="docs/assets/header-narrow.svg">
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/header-dark.svg">
-  <img alt="Kapitsa: a blazing fast Apple Silicon optimized inference engine built for Qwen, Nemotron and Flint. Writing speed in tokens per second for Qwen3.6 35B-A3B at 4-bit on a MacBook Pro (2026), M5 Max, 128 GB, the seven fastest of the nine engines measured: Kapitsa with KFlash 339, Splash with DFlash2 281, mlx-serve with MTP 238, oMLX with DFlash2 189, llama.cpp with MTP 171, Ollama with MTP 162, MLX with DFlash2 138." src="docs/assets/header-light.svg">
+  <img alt="Kapitsa: a blazing fast Apple Silicon optimized inference engine built for Qwen, Nemotron and Flint. Writing speed in tokens per second for Qwen3.6 35B-A3B at 4-bit on a MacBook Pro (2026), M5 Max, 128 GB, the seven fastest of the nine engines measured: Kapitsa with KFlash 339, Splash with DFlash2 281, mlx-serve with MTP 235, oMLX with DFlash2 189, llama.cpp with MTP 171, Ollama with MTP 162, MLX with DFlash2 138." src="docs/assets/header-light.svg">
 </picture>
 
 Kapitsa is an inference engine for Apple silicon that runs Qwen, Nemotron and Recursive's Flint models locally, built for coding agents. It starts opencode, Claude Code, Codex or pi on a local model, and serves OpenAI and Anthropic APIs.
 
-[Quickstart](#quickstart) · [CLI](#cli) · [Benchmarks](#benchmarks) · [Models](#models) · [How KFlash works](docs/kflash.md) · [Docs](docs/usage.md)
+[Benchmarks](#benchmarks) · [Quickstart](#quickstart) · [CLI](#cli) · [Models](#models) · [How KFlash works](docs/kflash.md) · [Docs](docs/usage.md)
+
+## Benchmarks
+
+Kapitsa has the fastest decode in 32 of the 37 model and Mac pairs measured against nine engines ([how each number was measured](docs/benchmarks.md#how-the-readme-poster-was-measured)).
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/benchmarks-dark.webp">
+  <img alt="Poster of prefill / decode speed for Kapitsa and nine other engines on a MacBook Pro M5 Max, M5 Pro, M4 Pro, M3 Pro and M1 Pro; the numbers are in the poster and in the Models section's tables" src="docs/assets/benchmarks-light.webp">
+</picture>
+
+<sub>**Each cell reads prefill / decode in tokens per second.** Prefill is a 4K-token prompt, decode a 512-token answer at T 0.6 (Flint at its card's T 1.0). × cannot run that model · — not measured. How these were measured, run dates and flags: [docs/benchmarks.md](docs/benchmarks.md#how-the-readme-poster-was-measured).</sub>
+
+The poster's numbers, and the models it leaves out, are in each Mac's table under [Models](#models). Every recorded run, with its Mac, model, prefill and decode speed, is in the [benchmark table](bench/README.md). Measure your Mac: `kapitsa bench --submit` adds it to the [community results](bench/community/RESULTS.md). Another engine faster on your Mac? `kapitsa bench compare` ranks every engine you have installed, and `--report` writes a Markdown report.
 
 ## 🔥 What's new
 
-- [2026/10] 🪶 **Flint on a 16 GB Mac: decodes at 61 tok/s vs llama.cpp's 43 on the same 2-bit GGUF.** `--model flint` takes unsloth's 2-bit GGUF on 16-24 GB Macs: its routed experts run as stored, the rest requantized to 3-6 bits. 61 tok/s decode on an M1 Pro, in 11.6 GB ([numbers](docs/benchmarks.md#recursive-flint-40b-a25b-with-2-bit-experts-m1-pro-16-gb-2026-10-22)).
-- [2026/10] 🪨 **Recursive's Flint 40B-A2.5B: Kapitsa reads prompts faster than Recursive's own engine and decodes faster than llama.cpp.** On the M4 Pro every Kapitsa run read 4K and 16K prompts faster than every run of rec 0.1.0. On the M5 Pro, since Flint's attention moved to the tensor units (#345), both runs read 4K and 16K prompts faster than rec's and llama.cpp's; earlier builds read slower, and both runs carry harness flags. On both Macs every Kapitsa run decodes faster than llama.cpp ([M4 Pro](docs/benchmarks.md#recursive-flint-40b-a25b-m4-pro-2026-10-22), [M5 Pro](docs/benchmarks.md#recursive-flint-40b-a25b-m5-pro-2026-10-22)).
-- [2026/10] 🚀 **KFlash: tree speculative decoding, up to 3.5× llama.cpp and 2.2× oMLX.** One verify pass checks a whole tree of the drafter's guesses ([how it works](docs/kflash.md)).
-- [2026/10] 🏆 **Kapitsa: the fastest decode in 33 of 37 model and Mac pairs** against nine engines, up to 3.0× MLX ([poster](#benchmarks)).
-- [2026/10] 🤝 **KFlash budget: subagents decode together.** Three requests at once share one verify pass, up to **+23% total throughput** on the 27B.
-- [2026/10] ⚡ **QMT prefill: read the prompt up to 1.5× faster on M5.** Metal 4 matrix units for the prompt (4B, M5 Pro).
-- [2026/10] 💾 **SSD prefix cache: restart the server, keep the conversation.** A 16K-token follow-up on the 35B starts in **0.16 s instead of 17 s**, about 100× (`--disk-cache`).
-- [2026/10] 🧠 **Prefix reuse: subagents start warm.** A new question over the shared system prompt answers in **0.06 s instead of 1.9 s** (4K prompt, 4B, M5 Pro).
-- [2026/10] 🧪 **Output check: speed has to prove it kept the answers.** A default changes only after its logits stay within twice the model's noise floor ([how](CONTRIBUTING.md#output-check)).
-- [2026/10] 📊 **`kapitsa bench compare`: see it on your own Mac.** The same test against every engine installed here, in one command.
+- [2026/10] 🪶 **Flint on a 16 GB Mac: 61 tok/s against llama.cpp's 43 on the same 2-bit GGUF** ([numbers](docs/benchmarks.md#recursive-flint-40b-a25b-with-2-bit-experts-m1-pro-16-gb-2026-10-22)).
+- [2026/10] 🪨 **Recursive's Flint 40B-A2.5B: decodes faster than llama.cpp, reads prompts faster than rec 0.1.0** ([M4 Pro](docs/benchmarks.md#recursive-flint-40b-a25b-m4-pro-2026-10-22), [M5 Pro](docs/benchmarks.md#recursive-flint-40b-a25b-m5-pro-2026-10-22)).
+- [2026/10] 🚀 **KFlash: tree speculative decoding, up to 3.5× llama.cpp and 2.2× oMLX** ([how it works](docs/kflash.md)).
+- [2026/10] 🏆 **The fastest decode in 32 of 37 model and Mac pairs** against nine engines, up to 2.9× MLX ([poster](#benchmarks)).
+- [2026/10] 🤝 **KFlash budget: three requests share one verify pass**, up to +23% total throughput on the 27B.
+- [2026/10] ⚡ **QMT prefill: prompts read up to 1.5× faster on M5** with the Metal 4 matrix units.
+- [2026/10] 💾 **SSD prefix cache: a 16K follow-up after a restart starts in 0.16 s instead of 17 s** (`--disk-cache`).
+- [2026/10] 🧠 **Prefix reuse: a new question over a shared 4K system prompt answers in 0.06 s instead of 1.9 s.**
+- [2026/10] 🧪 **Output check: a faster default must keep the answers** ([how](CONTRIBUTING.md#output-check)).
+- [2026/10] 📊 **`kapitsa bench compare`: every installed engine on your Mac, one command.**
 
 ## Quickstart
 
@@ -57,19 +70,6 @@ A Mac that cannot hold a model whole uses another Mac on the network that runs i
 Flash-Next pair to hold it in memory between them ([Several Macs](docs/usage.md#several-macs)); `--private` keeps a
 server to its own Mac. [Usage guide](docs/usage.md)</sub>
 
-## Benchmarks
-
-Kapitsa has the fastest decode in 33 of the 37 model and Mac pairs measured against nine engines ([how each number was measured](docs/benchmarks.md#how-the-readme-poster-was-measured)).
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/benchmarks-dark.webp">
-  <img alt="Poster of prefill / decode speed for Kapitsa and nine other engines on a MacBook Pro M5 Max, M5 Pro, M4 Pro, M3 Pro and M1 Pro; the numbers are in the poster and in the Models section's tables" src="docs/assets/benchmarks-light.webp">
-</picture>
-
-<sub>**Each cell reads prefill / decode in tokens per second.** Prefill is a 4K-token prompt, decode a 512-token answer at T 0.6 (Flint at its card's T 1.0). × cannot run that model · — not measured. How these were measured, run dates and flags: [docs/benchmarks.md](docs/benchmarks.md#how-the-readme-poster-was-measured).</sub>
-
-The poster's numbers, and the models it leaves out, are in each Mac's table under [Models](#models). Every recorded run, with its Mac, model, prefill and decode speed, is in the [benchmark table](bench/README.md). Measure your Mac: `kapitsa bench --submit` adds it to the [community results](bench/community/RESULTS.md). Another engine faster on your Mac? `kapitsa bench compare` ranks every engine you have installed, and `--report` writes a Markdown report.
-
 ## Models
 
 The catalog models measured on each Mac, against the engines that run them: one collapsed section per Mac, with a table for each model family. Decode is a 512-token coding answer at T 0.6 (Flint at its card's T 1.0), prefill a 4K-token prompt. Under each model's name are the weights Kapitsa ran; the other engines' weights and how each number was measured are in [docs/benchmarks.md](docs/benchmarks.md#the-readmes-tables). Flint's speed from 1K to 128K tokens of prompt on the M5 Pro, against llama.cpp: [bench/results/2026-10-24-flint-m5pro-context](bench/results/2026-10-24-flint-m5pro-context/README.md).
@@ -81,15 +81,15 @@ The catalog models measured on each Mac, against the engines that run them: one 
 
 **Qwen and Nemotron**
 
-| Model | <mark>**Kapitsa**</mark> | <sub>mlx‑serve<br>26.10.2 / 26.10.3</sub> | <sub>oMLX<br>0.7.1rc1 / 0.7.3.dev2</sub> | <sub>Splash<br>1.4.0</sub> | <sub>Ollama<br>0.40.5 / 0.40.11</sub> | <sub>MTPLX<br>2.12.2</sub> | <sub>MLX<br>mlx-vlm 0.7.8 / 0.7.10</sub> | <sub>llama.cpp<br>b11669</sub> | <sub>LM&nbsp;Studio<br>MLX runtime 1.13.1 (nax), llama.cpp runtime 2.60.0</sub> |
+| Model | <mark>**Kapitsa**</mark> | <sub>mlx‑serve<br>26.10.2 / 26.10.3</sub> | <sub>oMLX<br>0.7.1rc1 / 0.7.3.dev2</sub> | <sub>Splash<br>1.4.0</sub> | <sub>Ollama<br>0.40.5 / 0.40.11</sub> | <sub>MTPLX<br>2.12.2</sub> | <sub>MLX<br>mlx-vlm 0.7.8 / 0.7.10</sub> | <sub>llama.cpp<br>b11669 / b11871</sub> | <sub>LM&nbsp;Studio<br>MLX runtime 1.13.1 (nax), llama.cpp runtime 2.60.0</sub> |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| **Qwen3.8-27B** · `27b`<br><sub>dense · 4-bit, 20.2 GB</sub> | 🟩 805 / **147**<br><sub>KFlash · cd20dcc</sub> | 643 / 113<br><sub>DFlash2 · 26.10.3</sub> | 715 / 81<br><sub>DFlash2 · 0.7.3.dev2</sub> | 856 / 115<br><sub>DFlash2</sub> | 676 / 54<br><sub>MTP · 0.40.11, MLX runner</sub> | 666 / 61<br><sub>MTP</sub> | 673 / 49<br><sub>MTP · mlx-vlm 0.7.10</sub> | 516 / 51<br><sub>MTP</sub> | 616 / 31<br><sub>MLX runtime 1.13.1 (nax)</sub> |
-| **Qwen3.6-35B-A3B** · `35b`<br><sub>MoE, 3B active · 4-bit, 22.1 GB</sub> | 🟩 5963 / **339**<br><sub>KFlash · cd20dcc</sub> | 3101 / 238<br><sub>MTP · 26.10.3</sub> | 3005 / 189<br><sub>DFlash2 · 0.7.3.dev2</sub> | 6386 / 281<br><sub>DFlash2</sub> | 3077 / 162<br><sub>MTP · 0.40.11, MLX runner</sub> | 4291 / 130<br><sub>MTP</sub> | 4439 / 138<br><sub>DFlash2 · mlx-vlm 0.7.10</sub> | 2881 / 171<br><sub>MTP</sub> | 4672 / 136<br><sub>MLX runtime 1.13.1 (nax)</sub> |
-| **Qwen3.8-Flash-Next 180B-A7B** · `flash-next`<br><sub>MoE, 7B active · 4-bit, 105.9 GB</sub> | 1165 / 106<br><sub>KFlash · fd85910</sub> | 🟩 1720 / **108**<br><sub>26.10.2</sub> | 1260 / 107<br><sub>MTP · 0.7.1rc1</sub> | × | 60<br><sub>0.40.6</sub> | 1263 / 88<br><sub>MTP</sub> | 1030 / 77<br><sub>MTP · mlx-vlm 0.7.8</sub> | 842 / 96 | × |
-| **Nemotron Dory1.0 4B** · `dory`<br><sub>looped dense · NVFP4, 3.2 GB</sub> | 🟩 **119**<br><sub>KFlash · 039ddea</sub> | × | × | × | × | × | 76<br><sub>mlx-vlm 0.7.8</sub> | 9 | × |
-| **Nemotron 3.5 Lightning 30B-A3B** · `lightning`<br><sub>hybrid MoE, 3B active · NVFP4, 22.9 GB</sub> | 🟩 **267**<br><sub>KFlash · fd85910</sub> | 190<br><sub>26.10.2</sub> | 190<br><sub>0.7.1rc1</sub> | × | 153<br><sub>0.40.5</sub> | 131 | 139<br><sub>mlx-vlm 0.7.8</sub> | 159 | 110<br><sub>llama.cpp runtime 2.60.0</sub> |
-| **Nemotron 3.5 Bolt 74B-A9B** · `bolt`<br><sub>hybrid MoE, 9B active · 2/4/8-bit mix, 25.1 GB</sub> | 🟩 983 / **158**<br><sub>KFlash · cd20dcc</sub> | × | 749 / 55<br><sub>0.7.3.dev2</sub> | × | × | × | 814 / 68<br><sub>mlx-vlm 0.7.10</sub> | × | × |
-| **Nemotron 3.5 Super-VL 120B-A12B** · `super`<br><sub>hybrid MoE, 12B active · NVFP4, 76.4 GB</sub> | 🟩 **94**<br><sub>KFlash · fd85910</sub> | × | 52<br><sub>0.7.1rc1</sub> | × | 64<br><sub>0.40.5</sub> | 44 | 46<br><sub>mlx-vlm 0.7.8</sub> | 66 | 61<br><sub>llama.cpp runtime 2.60.0</sub> |
+| **Qwen3.8-27B** · `27b`<br><sub>dense · 4-bit, 20.2 GB</sub> | 🟩 907 / **133**<br><sub>KFlash · cd20dcc</sub> | 792 / **≈128**<br><sub>DFlash2 · 26.10.3</sub> | 902 / 92<br><sub>DFlash2 · 0.7.3.dev2</sub> | 1039 / 116<br><sub>DFlash2</sub> | 844 / 71<br><sub>MTP · 0.40.11, MLX runner</sub> | 848 / 73<br><sub>MTP</sub> | 856 / 56<br><sub>MTP · mlx-vlm 0.7.10</sub> | 578 / 48<br><sub>MTP · b11871</sub> | 918 / 33<br><sub>MLX runtime 1.13.1 (nax)</sub> |
+| **Qwen3.6-35B-A3B** · `35b`<br><sub>MoE, 3B active · 4-bit, 22.1 GB</sub> | 🟩 5963 / **339**<br><sub>KFlash · cd20dcc</sub> | 4622 / 235<br><sub>MTP · 26.10.3</sub> | 3005 / 189<br><sub>DFlash2 · 0.7.3.dev2</sub> | 6386 / 281<br><sub>DFlash2</sub> | 3077 / 162<br><sub>MTP · 0.40.11, MLX runner</sub> | 4291 / 130<br><sub>MTP</sub> | 4439 / 138<br><sub>DFlash2 · mlx-vlm 0.7.10</sub> | 2881 / 171<br><sub>MTP · b11669</sub> | 4672 / 136<br><sub>MLX runtime 1.13.1 (nax)</sub> |
+| **Qwen3.8-Flash-Next 180B-A7B** · `flash-next`<br><sub>MoE, 7B active · 4-bit, 105.9 GB</sub> | 1165 / 106<br><sub>KFlash · fd85910</sub> | 🟩 1720 / **108**<br><sub>26.10.2</sub> | 1260 / 107<br><sub>MTP · 0.7.1rc1</sub> | × | 60<br><sub>0.40.6</sub> | 1263 / 88<br><sub>MTP</sub> | 1030 / 77<br><sub>MTP · mlx-vlm 0.7.8</sub> | 842 / 96<br><sub>b11669</sub> | × |
+| **Nemotron Dory1.0 4B** · `dory`<br><sub>looped dense · NVFP4, 3.2 GB</sub> | 🟩 **119**<br><sub>KFlash · 039ddea</sub> | × | × | × | × | × | 76<br><sub>mlx-vlm 0.7.8</sub> | 9<br><sub>b11669</sub> | × |
+| **Nemotron 3.5 Lightning 30B-A3B** · `lightning`<br><sub>hybrid MoE, 3B active · NVFP4, 22.9 GB</sub> | 🟩 **267**<br><sub>KFlash · fd85910</sub> | 190<br><sub>26.10.2</sub> | 190<br><sub>0.7.1rc1</sub> | × | 153<br><sub>0.40.5</sub> | 131 | 139<br><sub>mlx-vlm 0.7.8</sub> | 159<br><sub>b11669</sub> | 110<br><sub>llama.cpp runtime 2.60.0</sub> |
+| **Nemotron 3.5 Bolt 74B-A9B** · `bolt`<br><sub>hybrid MoE, 9B active · 2/4/8-bit mix, 25.1 GB</sub> | 🟩 1038 / **160**<br><sub>KFlash · cd20dcc</sub> | × | 903 / 71<br><sub>0.7.3.dev2</sub> | × | × | × | 936 / 66<br><sub>mlx-vlm 0.7.10</sub> | × | × |
+| **Nemotron 3.5 Super-VL 120B-A12B** · `super`<br><sub>hybrid MoE, 12B active · NVFP4, 76.4 GB</sub> | 🟩 **94**<br><sub>KFlash · fd85910</sub> | × | 52<br><sub>0.7.1rc1</sub> | × | 64<br><sub>0.40.5</sub> | 44 | 46<br><sub>mlx-vlm 0.7.8</sub> | 66<br><sub>b11669</sub> | 61<br><sub>llama.cpp runtime 2.60.0</sub> |
 
 **Nanbeige**
 
@@ -97,7 +97,7 @@ The catalog models measured on each Mac, against the engines that run them: one 
 | --- | ---: | ---: | ---: | ---: | ---: |
 | **Nanbeige4.3-33B** · `nanbeige`<br><sub>dense · 4-bit AWQ (8-bit embedding and head), 19.8 GB</sub> | 🟩 532 / **29**<br><sub>KFlash</sub> | 766 / 28 | 503 / 26 | 705 / 28 | 496 / 26 |
 
-<sub>The 27B, 35B-A3B and Bolt rows are the 2026-10-25 session (Kapitsa main cd20dcc and each engine's latest release, macOS 26.4); llama.cpp's cells there, the Flash-Next row and the Nemotron rows are the 2026-10-18 to 10-22 runs, not yet re-measured. The build each cell ran is under its number; details in [bench/results/2026-10-25-m5-max](bench/results/2026-10-25-m5-max/README.md). The Nanbeige row is the 2026-10-25 harness run (Kapitsa 5bee92c, plain decoding; the GGUF engines on Q4_K_M) in [bench/results/2026-10-25-m5-max-nanbeige](bench/results/2026-10-25-m5-max-nanbeige/README.md).</sub>
+<sub>The 27B, 35B-A3B and Bolt rows are the 2026-10-25 session (Kapitsa main cd20dcc and each engine's latest release, macOS 26.4); llama.cpp's 35B-A3B cell, the Flash-Next row and the Lightning, Super-VL and Dory rows are the 2026-10-18 to 10-22 runs, not yet re-measured. The 27B and Bolt rows are each one block of the row on AC power in High Power mode. The build each cell ran is under its number; details in [bench/results/2026-10-25-m5-max](bench/results/2026-10-25-m5-max/README.md) and [its re-runs](bench/results/2026-10-25-m5-max/2026-10-26-reruns.md).</sub>
 
 </details>
 
@@ -106,7 +106,7 @@ The catalog models measured on each Mac, against the engines that run them: one 
 
 **Qwen and Nemotron**
 
-| Model | <mark>**Kapitsa**</mark> | <sub>mlx‑serve<br>26.10.2</sub> | <sub>oMLX<br>0.7.1rc1</sub> | <sub>Splash<br>1.4.0</sub> | <sub>Ollama<br>0.40.5 / 0.40.6</sub> | <sub>MTPLX<br>2.12.2</sub> | <sub>MLX<br>mlx-lm 0.32.2, mlx-vlm 0.7.8</sub> | <sub>llama.cpp<br>b11669</sub> | <sub>LM&nbsp;Studio<br>MLX runtime 1.13.1, llama.cpp runtime 2.60.0</sub> |
+| Model | <mark>**Kapitsa**</mark> | <sub>mlx‑serve<br>26.10.2</sub> | <sub>oMLX<br>0.7.1rc1</sub> | <sub>Splash<br>1.4.0</sub> | <sub>Ollama<br>0.40.5 / 0.40.6</sub> | <sub>MTPLX<br>2.12.2</sub> | <sub>MLX<br>mlx-lm 0.32.2, mlx-vlm 0.7.8</sub> | <sub>llama.cpp<br>b11669 / b11871</sub> | <sub>LM&nbsp;Studio<br>MLX runtime 1.13.1, llama.cpp runtime 2.60.0</sub> |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | **Qwen3.8-27B** · `27b`<br><sub>dense · 4-bit, 20.2 GB</sub> | 606 / 77<br><sub>KFlash</sub> | 🟩 464 / **78**<br><sub>DFlash2</sub> | 446 / 51<br><sub>DFlash2</sub> | 674 / 72<br><sub>DFlash2</sub> | 470 / 40<br><sub>MTP</sub> | 462 / 41<br><sub>MTP</sub> | 421 / 32<br><sub>MTP</sub> | 322 / 30<br><sub>MTP</sub> | 118 / 17 |
 | **Qwen3.6-35B-A3B** · `35b`<br><sub>MoE, 3B active · 4-bit, 22.1 GB</sub> | 🟩 2802 / **201**<br><sub>KFlash</sub> | 2494 / 156<br><sub>MTP</sub> | 1619 / 144<br><sub>DFlash2</sub> | 3514 / 181<br><sub>DFlash2</sub> | 1518 / 102<br><sub>MTP</sub> | 2569 / 89<br><sub>MTP</sub> | 2474 / 98<br><sub>DFlash2</sub> | 1755 / 107<br><sub>MTP</sub> | 997 / 96 |
@@ -129,7 +129,7 @@ The catalog models measured on each Mac, against the engines that run them: one 
 
 **Qwen and Nemotron**
 
-| Model | <mark>**Kapitsa**</mark> | <sub>mlx‑serve<br>26.10.2</sub> | <sub>oMLX<br>0.7.1rc1</sub> | <sub>Splash<br>1.4.0</sub> | <sub>Ollama<br>0.40.5 / 0.40.6</sub> | <sub>MTPLX<br>2.12.2</sub> | <sub>MLX<br>mlx-lm 0.32.2, mlx-vlm 0.7.8</sub> | <sub>llama.cpp<br>b11669</sub> | <sub>LM&nbsp;Studio<br>MLX runtime 1.13.1, llama.cpp runtime 2.60.0</sub> |
+| Model | <mark>**Kapitsa**</mark> | <sub>mlx‑serve<br>26.10.2</sub> | <sub>oMLX<br>0.7.1rc1</sub> | <sub>Splash<br>1.4.0</sub> | <sub>Ollama<br>0.40.5 / 0.40.6</sub> | <sub>MTPLX<br>2.12.2</sub> | <sub>MLX<br>mlx-lm 0.32.2, mlx-vlm 0.7.8</sub> | <sub>llama.cpp<br>b11669 / b11871</sub> | <sub>LM&nbsp;Studio<br>MLX runtime 1.13.1, llama.cpp runtime 2.60.0</sub> |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | **Qwen3.5-4B** · `4b`<br><sub>dense · 4-bit, 4.6 GB</sub> | 🟩 1930 / **201**<br><sub>KFlash</sub> | 874 / 137<br><sub>MTP</sub> | 803 / 102<br><sub>MTP</sub> | × | 758 / 109<br><sub>MTP</sub> | 780 / 104<br><sub>MTP</sub> | 843 / 88<br><sub>MTP</sub> | 650 / 70<br><sub>MTP</sub> | 801 / 81 |
 | **Qwen3.8-27B** · `27b`<br><sub>dense · 4-bit, 20.2 GB</sub> | 🟩 396 / **63**<br><sub>KFlash</sub> | 129 / 54<br><sub>DFlash2</sub> | 136 / 45<br><sub>DFlash2</sub> | 53<br><sub>DFlash2</sub> | 124 / 32<br><sub>MTP</sub> | 126 / 36<br><sub>MTP</sub> | 131 / 28<br><sub>MTP</sub> | 84 / 18<br><sub>MTP</sub> | 127 / 15 |
@@ -151,7 +151,7 @@ The catalog models measured on each Mac, against the engines that run them: one 
 
 **Qwen and Nemotron**
 
-| Model | <mark>**Kapitsa**</mark> | <sub>Ollama<br>0.40.8</sub> | <sub>MTPLX<br>2.12.2</sub> | <sub>MLX<br>mlx-lm 0.32.2, mlx-vlm 0.7.8</sub> | <sub>llama.cpp<br>b11669</sub> |
+| Model | <mark>**Kapitsa**</mark> | <sub>Ollama<br>0.40.8</sub> | <sub>MTPLX<br>2.12.2</sub> | <sub>MLX<br>mlx-lm 0.32.2, mlx-vlm 0.7.8</sub> | <sub>llama.cpp<br>b11669 / b11871</sub> |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | **Qwen3.5-4B** · `4b`<br><sub>dense · 4-bit, 4.6 GB</sub> | 🟩 703 / **120**<br><sub>KFlash</sub> | 600 / 67<br><sub>MTP</sub> | 612 / 64<br><sub>MTP</sub> | 642 / 56<br><sub>MTP</sub> | 512 / 50<br><sub>MTP · b11804</sub> |
 | **Qwen3.5-9B** · `9b`<br><sub>dense · 4-bit, 9.0 GB</sub> | 🟩 381 / **77**<br><sub>KFlash</sub> | — | — | 353 / 27 | 307 / 23<br><sub>b11804</sub> |
@@ -178,7 +178,7 @@ The catalog models measured on each Mac, against the engines that run them: one 
 
 **Qwen and Nemotron**
 
-| Model | <mark>**Kapitsa**</mark> | <sub>mlx‑serve<br>26.10.2</sub> | <sub>oMLX<br>0.7.1rc1</sub> | <sub>Ollama<br>0.40.5 / 0.40.6</sub> | <sub>MTPLX<br>2.12.2</sub> | <sub>MLX<br>mlx-lm 0.32.2, mlx-vlm 0.7.8</sub> | <sub>llama.cpp<br>b11669</sub> | <sub>LM&nbsp;Studio<br>MLX runtime 1.13.1, llama.cpp runtime 2.60.0</sub> |
+| Model | <mark>**Kapitsa**</mark> | <sub>mlx‑serve<br>26.10.2</sub> | <sub>oMLX<br>0.7.1rc1</sub> | <sub>Ollama<br>0.40.5 / 0.40.6</sub> | <sub>MTPLX<br>2.12.2</sub> | <sub>MLX<br>mlx-lm 0.32.2, mlx-vlm 0.7.8</sub> | <sub>llama.cpp<br>b11669 / b11871</sub> | <sub>LM&nbsp;Studio<br>MLX runtime 1.13.1, llama.cpp runtime 2.60.0</sub> |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | **Qwen3.5-4B** · `4b`<br><sub>dense · 4-bit, 4.6 GB</sub> | 🟩 401 / **97**<br><sub>KFlash</sub> | 286 / 62<br><sub>MTP</sub> | 281 / 55<br><sub>MTP</sub> | 298 / 55<br><sub>MTP</sub> | 305 / 42<br><sub>MTP</sub> | 308 / 46 | 315 / 38<br><sub>MTP</sub> | 308 / 47 |
 | **Qwen3.5-9B** · `9b`<br><sub>dense · 4-bit, 9.0 GB</sub> | 🟩 217 / **57**<br><sub>KFlash</sub> | 159 / 37<br><sub>MTP</sub> | — | — | — | 170 / 30 | — | — |

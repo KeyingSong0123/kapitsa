@@ -68,3 +68,29 @@ may no longer be each engine's best. They were not re-tuned.
 
 The server logs are in `logs/`. Local paths are replaced by placeholders: `~` for the home folder, `<repo>` for the
 Kapitsa checkout, `<run-root>` for the run directory, `<host>` for the host name.
+
+## Erratum (2026-10-26)
+
+Text above that this session's later runs supersede; it stays as published.
+
+- *"Fourteen runs carried more than 5% in a prefill phase … are being run again without the exemption."* They were
+  run again from 08:05 to 09:09; six of those repeats (08:44-09:12) drew **battery power** (High Power mode) and are
+  not cells. The cells now come from the later runs in [2026-10-26-reruns.md](2026-10-26-reruns.md).
+- *The Qwen3.8-27B rows of the table.* Every 27B cell is superseded by one block of the whole row (2026-10-25
+  20:44-22:06, AC power, High Power mode, the desktop app's GPU load at 0.5% or less in every phase): Kapitsa 907 / 133.2
+  (the median of three runs), mlx-serve DFlash2 792 / 127.9 (median of three), Splash 1,039 / 116.4 (median of three),
+  oMLX DFlash2 902 / 91.8, mlx-serve MTP 887 / 77.0, MTPLX 848 / 73.1, Ollama's MLX runner 844 / 71.4, mlx-vlm
+  856 / 56.3, LM Studio 918 / 32.9, mlx-lm 839 / 31.0, oMLX without speculation 882 / 31.0 (prefill 4K / decode T 0.6,
+  tok/s). Kapitsa's 805 / 146.7 above was contention-flagged; Splash's 856 / 115.0 and the others let the app's load
+  through.
+- *The Nemotron-3.5-Bolt rows.* Superseded by one block of the row (2026-10-25 21:54-22:02, AC power, High Power mode,
+  app load 0.2% or less): Kapitsa 1,038 / 159.5, oMLX 903 / 70.7, mlx-vlm 936 / 65.7. The published 983 / 157.5,
+  749 / 55.2 and 814 / 68.1 carried 7.0%, 11.9% and 21.9% of the app's load in a prefill phase.
+- *The Qwen3.6-35B-A3B mlx-serve rows* (3,101 / 238.1 MTP, 3,742 / 177.8 DFlash2) are superseded by their repeats on
+  AC power: 4,622 / 235.5 and 5,798 / 203.4. *oMLX (no speculation)*, 2,484 / 185.9: its repeat was on battery, so the
+  config has no current run; oMLX's 35B-A3B cell is its DFlash2 row above (3,005 / 188.7), unchanged.
+- *"on AC power"* (the header paragraph) holds for every run in the table above. Of the later runs, the six from 08:44
+  to 09:12 were on battery, and every run from about 12:55 on was on AC in High Power mode (`powermode 2`, Low Power
+  Mode off); [2026-10-26-reruns.md](2026-10-26-reruns.md) gives each run's power state.
+
+The raw records are in `results/` and the server logs in `logs/`, under each run's name.
