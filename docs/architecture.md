@@ -27,8 +27,8 @@ they decode.
    Qwen models a pass of at most 128 rows (a cached turn's message, the reply prefilled while idle, a draft read
    ahead) gives each row the same bits whatever the pass's length (`NI_SHORTPF_EXACT`), so splitting a short tail
    into passes changes no logit; longer passes run the large-prefill kernels, whose sums are ordered otherwise.
-4. **Draft and verify.** Qwen uses its block drafter when available (DFlash2 on the 35B and 27B, DFlash on the 4B),
-   otherwise its MTP head where supported. Nemotron uses a block drafter: LiLiCorr (Bolt, Super-VL) or DSpark
+4. **Draft and verify.** Qwen uses its block drafter when available (DFlash2 on the 35B and 27B, DFlash on the 4B
+   and 9B), otherwise its MTP head where supported. Nemotron uses a block drafter: LiLiCorr (Bolt, Super-VL) or DSpark
    (Lightning). The target verifies proposed tokens; accepted tokens advance the sequence, and rejected proposals do
    not become committed recurrent history. KFlash (every drafter by default; `NI_KFLASH=0` keeps chains, and
    `NI_DFLASH_CAP=<n>` opts the Qwen DFlash2 drafters into the F74 capped-depth chains — an opt-in cap that keeps
@@ -91,7 +91,7 @@ two candidates are within the batched pass's rounding of each other, and sampled
 | Recurrent layers | Gated DeltaNet | Mamba-2 | None: a shared block of 40 sublayers runs 1-4 times per token (looped) | None |
 | Other layers | Attention; dense FFN or MoE | Attention; LatentMoE (dense relu² MLP in Nemotron Nano 4B / 9B v2) | Sliding-window and full attention, dense MLP; normalized (nGPT) residuals | Sliding-window and full attention with learned sinks; MoE (2 dense layers first) |
 | Default speculation | DFlash2 on 35B/27B; DFlash on 4B and 9B | LiLiCorr block drafter (DSpark on Lightning); prompt lookup on Nemotron Nano 4B | None with last-loop KV; prompt lookup with per-loop KV | None on Recursive's Flint (prompt lookup with `--spec`); Nanbeige4.3, a dense Llama, drafts with its own DFlash2 drafter |
-| Checkpoints | MLX-format safetensors; supported GGUF imports | NVIDIA's safetensors checkpoint | NVIDIA's safetensors checkpoints | Recursive's MLX export; GGUF imports (unsloth's UD-IQ files) |
+| Checkpoints | MLX-format safetensors; supported GGUF imports | NVIDIA's safetensors checkpoint | NVIDIA's safetensors checkpoints | Recursive's MLX export; GGUF imports (unsloth's UD-IQ files); Nanbeige's MLX 4/8-bit packs and its bf16 checkpoint |
 | Weight formats | BF16 and supported affine quantizations | NVFP4, IQ2_XXS, Q8_0 and BF16 by tensor type | NVFP4 or BF16 (on the Nemotron-H kernels; the LM head 8-bit with NVFP4) | Affine 4-bit, 8-bit embedding, BF16 router; a GGUF import's routed experts in their IQ blocks |
 | Neural Engine prefill | Dense FFN portions | Mamba projections and shared-expert work | None | None |
 
