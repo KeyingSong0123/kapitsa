@@ -774,7 +774,16 @@ std::vector<ChatDelta> generate(const TmplModel& m, const std::string& text, boo
   OutputParser p(m.tok, m.tok.find("<think>"), m.tok.find("</think>"), m.tok.find("<tool_call>"), m.tok.find("</tool_call>"),
                  in_think, !tools.empty(), tools, true);
   std::vector<ChatDelta> out;
-  *ids = m.tok.encode(text);
+  // the reply continues its prompt: with a Metaspace tokenizer (Nanbeige 4.3's, prepend_scheme "first") no U+2581 goes
+  // before its first word, as encode() puts before a text's; encoded after an added token, the prompt's last, and
+  // without it
+  const int after = m.tok.find("<|im_start|>");
+  if (m.tok.strips_leading_space() && after >= 0) {
+    *ids = m.tok.encode("<|im_start|>" + text);
+    ids->erase(ids->begin());
+  } else {
+    *ids = m.tok.encode(text);
+  }
   for (int id : *ids) {
     ChatDelta d = p.push(id);
     if (!d.reasoning.empty() || !d.content.empty() || !d.tool_calls.empty()) out.push_back(d);
@@ -1618,16 +1627,18 @@ void template_checks(const TmplModel& m, const std::string& tag) {
                "this model can't read images]\nwhat?<|im_end|>") != std::string::npos &&
             p.find("<|vision_start|>") == std::string::npos,
         tag + "template: a later system message is a system turn in place; an image is a note", p.substr(p.size() > 400 ? p.size() - 400 : 0));
-  // with an image encoder: the image renders as the model's placeholder, without its data
+  // with an image encoder: the image renders as the model's placeholder, without its data (a model whose vocabulary has
+  // no image tokens, Nanbeige4.3's, has no encoder: never rendered with images)
   try {
     p = render_chat(*m.tmpl, r, true, true);
   } catch (const std::exception& e) {
     p = std::string("raised: ") + e.what();
   }
-  check(p.find("<|im_start|>user\nLook:<|vision_start|><|image_pad|><|vision_end|>what?<|im_end|>") != std::string::npos &&
-            p.find("base64") == std::string::npos,
-        tag + "template: with an image encoder, an image is the image placeholder (its data left out)",
-        p.substr(p.size() > 400 ? p.size() - 400 : 0));
+  if (m.tok.find("<|vision_start|>") >= 0)
+    check(p.find("<|im_start|>user\nLook:<|vision_start|><|image_pad|><|vision_end|>what?<|im_end|>") != std::string::npos &&
+              p.find("base64") == std::string::npos,
+          tag + "template: with an image encoder, an image is the image placeholder (its data left out)",
+          p.substr(p.size() > 400 ? p.size() - 400 : 0));
 }
 
 // Read ahead (Engine::draft, POST /v1/draft): what a draft reads is a prefix of the request's prompt once the message
@@ -1971,6 +1982,35 @@ bool exists(const std::string& p) {
 
 }  // namespace
 
+// a dense Llama's config.json (Nanbeige4.3's): what Kapitsa runs, and the loader's refusals that `kapitsa pull` gives too
+void llama_config_unit() {
+  const std::string ok = R"({"model_type": "llama", "hidden_size": 7168, "intermediate_size": 22016,
+    "num_hidden_layers": 52, "num_attention_heads": 56, "num_key_value_heads": 8, "head_dim": 128, "vocab_size": 166912,
+    "rope_theta": 120000000, "rope_scaling": null, "hidden_act": "silu", "tie_word_embeddings": false})";
+  check(Flint::llama_unsupported(ok).empty(), "llama config: Nanbeige4.3's runs", Flint::llama_unsupported(ok));
+  auto refused = [&](const std::string& from, const std::string& to, const std::string& want) {
+    std::string j = ok;
+    j.replace(j.find(from), from.size(), to);
+    const std::string why = Flint::llama_unsupported(j);
+    check(why.find(want) != std::string::npos, "llama config: refused, " + want, why);
+  };
+  refused(R"("rope_scaling": null)", R"("rope_scaling": {"rope_type": "llama3", "factor": 8.0})", "rope_scaling");
+  refused(R"("tie_word_embeddings": false)", R"("tie_word_embeddings": true)", "tied embeddings");
+  refused(R"("hidden_act": "silu")", R"("hidden_act": "gelu")", "activation gelu");
+  refused(R"("head_dim": 128)", R"("head_dim": 64)", "shape");
+  refused(R"("num_key_value_heads": 8)", R"("num_key_value_heads": 4)", "shape");  // 14 query heads per KV head
+  refused(R"("tie_word_embeddings": false)", R"("tie_word_embeddings": false, "quantization": {"bits": 3, "group_size": 64})",
+          "3-bit group 64");
+  check(!Flint::llama_unsupported("{not json").empty(), "llama config: a broken config.json is refused");
+  // the chat template: ChatML runs (Nanbeige4.3's), Llama 3's header markup is refused, and so is none
+  check(Flint::llama_template_unsupported("{{ '<|im_start|>' + message['role'] + '\\n' }}").empty(),
+        "llama template: ChatML runs");
+  check(Flint::llama_template_unsupported("{{ '<|start_header_id|>' + message['role'] + '<|end_header_id|>' }}")
+                .find("ChatML") != std::string::npos,
+        "llama template: Llama 3's is refused");
+  check(!Flint::llama_template_unsupported("").empty(), "llama template: none is refused");
+}
+
 int main(int argc, char** argv) {
   anthropic_mapping();
   responses_mapping();
@@ -1987,6 +2027,7 @@ int main(int argc, char** argv) {
   history_gate_unit();
   kflash_lookup_unit();
   unsupported_model_unit();
+  llama_config_unit();
   paren_call_postfix_unit();
   std::vector<std::string> dirs;
   for (int i = 1; i < argc; ++i) {
@@ -2005,7 +2046,10 @@ int main(int argc, char** argv) {
     TmplModel m;
     m.dir = dir;
     m.tok.load(dir + "/tokenizer.json");
-    m.tmpl = std::make_unique<minja::chat_template>(chat_template_source(dir), "", "<|im_end|>");
+    // (a dense Llama on Flint's backend, Nanbeige4.3: its template rewritten for minja, as the engine renders it)
+    std::string src = chat_template_source(dir);
+    if (Flint::is_model(dir)) src = flint_template(src);
+    m.tmpl = std::make_unique<minja::chat_template>(src, "", "<|im_end|>");
     const std::string tag = "[" + dir.substr(dir.find_last_of('/') + 1) + "] ";
     anthropic_round_trip(m, tag);
     reasoning_memory(m, tag);
