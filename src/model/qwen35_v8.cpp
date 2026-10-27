@@ -721,7 +721,7 @@ void Qwen35::enc_attn8(Encoder& e, const Seq& s, const Layer& L, const Buffer& k
     e.dispatch(nch, cfg_.hkv, (R + RB - 1) / RB, 32 * G * RB);
   }
   if (!fused) {
-    e.use(pipe8("attn_rows_reduce"));
+    e.use(pipe8(rp.nchunks >= 8 ? "attn_rows_reduce_shared" : "attn_rows_reduce"));
     e.buf(0, part_o_); e.buf(1, part_ml_); e.buf(2, qg_); e.buf(3, attn_out_);
     e.val(4, rp);
     if (v8w_R_) v8_disp(e, uint32_t(cfg_.hq), 1, 1, kV8wYrows, uint32_t(cfg_.head_dim));
@@ -1434,7 +1434,7 @@ void Qwen35::encode_verify_multi(Encoder& e, const std::vector<VerifyGroup>& gro
       e.group_end();
       e.group_begin();
       for (size_t g = 0; g < groups.size(); ++g) {
-        e.use(pipe8("attn_rows_reduce"));
+        e.use(pipe8(rp[g].nchunks >= 8 ? "attn_rows_reduce_shared" : "attn_rows_reduce"));
         e.buf(0, part(part_o_, g, size_t(cfg_.head_dim))); e.buf(1, part(part_ml_, g, 2));
         e.buf(2, rows(qg_, g, 2 * size_t(HD))); e.buf(3, rows(attn_out_, g, size_t(HD)));
         e.val(4, rp[g]);
