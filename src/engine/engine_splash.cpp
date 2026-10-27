@@ -5,6 +5,8 @@
 // or loads weights.
 #include "engine/engine.h"
 #include "engine/output_parser.h"
+#include "model/expert_store.h"
+#include "splash/plan.h"
 #include "splash/runtime.h"
 #include "util/json_file.h"
 #include "util/log.h"
@@ -18,7 +20,9 @@
 #include <algorithm>
 #include <cmath>
 #include <chrono>
+#include <climits>
 #include <condition_variable>
+#include <cstdlib>
 #include <deque>
 #include <fstream>
 #include <limits>
@@ -127,6 +131,23 @@ void Engine::init_splash() {
   splash::RuntimeOptions ro;
   ro.argv = {opts_.splash_binary, "serve-native", dir, opts_.context > 0 ? std::to_string(opts_.context) : "auto", "auto"};
   ro.argv.insert(ro.argv.end(), opts_.splash_args.begin(), opts_.splash_args.end());
+  {
+    std::string note;
+    const char* home = getenv("HOME");
+    // the real path of the model folder: a symlink or a trailing slash must not make the folder name another model's (or empty)
+    char resolved[PATH_MAX];
+    std::string trimmed = realpath(dir.c_str(), resolved) ? std::string(resolved) : dir;
+    while (trimmed.size() > 1 && trimmed.back() == '/') trimmed.pop_back();
+    const std::string folder = trimmed.substr(trimmed.find_last_of('/') == std::string::npos ? 0 : trimmed.find_last_of('/') + 1);
+    // <name>-<hash of the real path>: two folders with the same name elsewhere are other models and keep apart
+    char tag[17];
+    snprintf(tag, sizeof tag, "%016llx", (unsigned long long)splash::client_salt(trimmed).lo);
+    const std::string cache_dir = home && *home && !folder.empty() ? std::string(home) + "/Library/Caches/Kapitsa/splash-prefix-cache/" + folder + "-" + tag : "";
+    const auto extra = splash::default_engine_args(opts_.splash_args, q20::available_memory(), opts_.splash_persistent_cache,
+                                                   cache_dir, &note);
+    ro.argv.insert(ro.argv.end(), extra.begin(), extra.end());
+    if (!note.empty()) logi("splash: engine arguments added: %s", note.c_str());
+  }
   ro.log = [](const std::string& s) { logi("splash: %s", s.c_str()); };
   splash_ = std::make_unique<splash::Runtime>(std::move(ro));
   splash_->start();  // READY: the child has loaded and calibrated the model
@@ -143,6 +164,9 @@ ChatResult Engine::chat_splash(const ChatRequest& r, const std::function<bool(co
                                const std::function<bool(const ChatResult&)>& on_accepted) {
   if (!splash_) throw std::logic_error("Engine::chat_splash: this engine is not in Splash mode");
   ++requests_;
+  // No reasoning is put back into assistant turns the client sent without it (the native path does, to extend the KV it
+  // kept): Splash's engine caches a request's prompt blocks, not its output, so a longer prompt only costs prefill. Measured
+  // on a 4K two-turn chat it was slower than sending the history as is, as plain Splash does; the runs are in docs/splash-backend.md.
   // what Splash's native protocol carries here is text with sampling: the rest is refused before anything is queued
   if (r.grammar) return refuse("structured output is not supported by the Splash engine");
   if (!vision::image_sources(r.messages).empty()) return refuse("image input is not supported by the Splash engine");
@@ -155,6 +179,8 @@ ChatResult Engine::chat_splash(const ChatRequest& r, const std::function<bool(co
   if (!(r.frequency_penalty >= -2 && r.frequency_penalty <= 2)) return bad("frequency_penalty", "a number in [-2, 2]");
   if (!(r.repetition_penalty > 0 && std::isfinite(r.repetition_penalty))) return bad("repetition_penalty", "a positive number");
   if (!(r.min_p >= 0 && r.min_p <= 1)) return bad("min_p", "a number in [0, 1]");
+  if (!r.cache_salt.is_null() && !(r.cache_salt.is_string() && !r.cache_salt.get<std::string>().empty()))
+    return bad("cache_salt", "a non-empty string");
   if (r.top_k < -1) return bad("top_k", "0 or -1 (disabled) or a positive integer");
 
   ChatResult res;
@@ -198,6 +224,15 @@ ChatResult Engine::chat_splash(const ChatRequest& r, const std::function<bool(co
   q.sampling.repetition_penalty = r.repetition_penalty;
   q.sampling.min_p = r.min_p;
   if (r.ignore_eos) q.flags |= splash::kIgnoreEndOfSequence;
+  if (r.cache_salt.is_string()) {  // the client's own salt wins: it decides who shares cached prompts, as with plain Splash
+    const auto salt = splash::client_salt(r.cache_salt.get<std::string>());
+    q.cache_salt_lo = salt.lo;
+    q.cache_salt_hi = salt.hi;
+  } else if (opts_.splash_conversation_salt) {
+    const auto salt = splash::conversation_salt(r.messages);
+    q.cache_salt_lo = salt.lo;
+    q.cache_salt_hi = salt.hi;
+  }
   q.seed = r.seed ? r.seed : uint64_t(std::random_device{}());
   if (boundary > 0 && boundary < n) q.generation_prompt_tokens = uint32_t(n - boundary);
   if (think && r.thinking_budget > 0 && r.thinking_budget < max_new && think_close_ >= 0) {

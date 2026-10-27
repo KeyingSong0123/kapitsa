@@ -25,7 +25,7 @@ and the decode loop. This page records the shape and what the first version does
 | Server binding: `kapitsa serve --engine splash [--splash-binary P] [--splash-model DIR] [--splash-arg A]...` (skips memory planning, model pick, download, routing and the disk cache) | `src/server/main.cpp` | done |
 | Discovery: the binary and the model folder when the flags are not given, with an error that names what is missing | `src/splash/discover.*` | done, tested on a throwaway tree (`tools/splash_discover_test`) |
 | A/B against plain Splash: identity (text, and token ids through the tap) and speed | `tools/splash_ab.py`, `tools/splash_tap.py` | done; see Verification |
-| CPU test: `tests/test_splash_engine.py build/kapitsa` with `tests/fake_splash.py` (a protocol-v11 stand-in); with no Splash model folder it uses the stand-in `tests/fixtures/splash_model` | `tests/` | done; in `ci.yml` from the CI PR (#743), not before |
+| CPU test: `tests/test_splash_engine.py build/kapitsa` with `tests/fake_splash.py` (a protocol-v11 stand-in); without a Splash model folder it uses `tests/fixtures/splash_model` | `tests/` | done; run in `ci.yml` by this PR |
 
 ## Runtime contract
 
@@ -70,7 +70,7 @@ one server at a time under the GPU lock.
 
 - CPU: `splash_protocol_test`, `splash_runtime_test`, `splash_discover_test` and `tests/test_splash_engine.py` (the
   server against `tests/fake_splash.py`, with Splash's real tokenizer and template). No model or GPU.
-  They run locally (`ctest`, or the binaries in `build/`); CI runs the three C++ tests (`ci.yml`); `tests/test_splash_engine.py` starts running there when #743 lands.
+  They run locally (`ctest`, or the binaries in `build/`); CI runs the four C++ tests and `tests/test_splash_engine.py` (`ci.yml`).
 - Tokenizer (`tools/splash_tokenizer_check.py`): Kapitsa loading Splash's `tokenizer.json` gives the ids the `tokenizers`
   library gives, on 7 texts (Latin, Cyrillic, CJK, emoji, code with tabs, digits, URL, special-token text, NBSP and CR),
   0 mismatches.
@@ -98,6 +98,39 @@ one server at a time under the GPU lock.
 - Default memory plan (no `--expert-memory`; 33.0 GiB free and reclaimable at start; n=1 per size, so no comparison):
   engine up in 8.9 s, 1K TTFT 1.41 s (732 tok/s as prompt tokens / TTFT), decode 74.9 tok/s; 4K TTFT 3.17 s (1286 tok/s the same way), decode
   61.8 tok/s; the child's peak RSS 1.9 GiB.
+
+- Second turn on a ~4K chat (`tools/splash_ab.py --turn2`, 3 reps per side, Splash's default memory plan, M5 Pro, 27 Oct 2026).
+  Turn 1 is 4072 prompt tokens; turn 2 is the same chat plus the reply (content only, as clients send it) and a short
+  question. Plain Splash: turn-2 TTFT 0.26, 0.25, 0.19 s, 4064 cached tokens. An earlier version of `chat_splash` put the
+  reasoning back into the history, as the native path does: 0.38, 0.42, 0.32 s with the same 4064 cached tokens and prompts
+  of 4183 to 4257 tokens (plain Splash's: 4122 to 4131). Splash caches prompt blocks, not outputs, so the longer prompt only
+  cost prefill. `chat_splash` therefore sends the client's history as it is, as plain Splash does: turn-2 TTFT 0.26, 0.25,
+  0.20 s, prompts 4124, 4131, 4122 tokens, 4064 cached. One run of 3 reps per row; not a tool-call chat.
+  The turn-2 speed belongs to Splash's own prefix cache; Kapitsa's bridge only avoids breaking it. Turn-2 TTFT for both Splash arms
+  on a 4K tool-call chat: see `bench/results/2026-10-28-m5-pro-flash-next-engines` (#751). It does not reproduce the 0.2 s of
+  these three reps on a plain chat, and the gap was not isolated. Quote #751, not these three reps.
+
+## Options
+
+- `--splash-persistent-cache`: passes `--persistent-cache on` and `--cache-dir ~/Library/Caches/Kapitsa/splash-prefix-cache/<name>-<hash>`
+  (one directory per model: the model folder's real path, symlinks and a trailing slash resolved, gives the name and a 64-bit hash of the path, so two folders with the same name elsewhere do not share one) unless `--splash-arg --cache-dir` is given; a `--splash-arg --persistent-cache` (on or off) wins and the flag adds
+  nothing. It writes to the user's disk; off by default.
+- A request's own `cache_salt` (`/v1/chat/completions`; a string, else a 400 naming the field) is hashed as Splash's frontend does
+  (BLAKE2b, 16 bytes, person `splash-salt`, checked against Python's `hashlib` in `splash_plan_test`), so requests share cached
+  prompts only with the same salt, as with plain Splash, whatever the flags below. It wins over the conversation salt. The
+  other two endpoints do not read the field yet.
+- `--splash-conversation-salt`: a cache salt per conversation (hash of the messages up to the first user message), so
+  conversations stop sharing cached prompts such as a common system prompt, for requests that bring no `cache_salt`. Off by default, which is Splash's behaviour
+  without a `cache_salt`.
+- The child gets `--idle-release off` unless given, and, when free and reclaimable memory is between 22 and 38 GiB and no
+  `--expert-memory` is given, `--expert-memory` of free GiB minus 14 (at least 8). The formula rests on one measured pass
+  (16 GiB at 30.4 GiB free) and Splash's 2 GiB protected for macOS; it is not validated across memory states. At 33.0 GiB free the default plan started and ran without it (Verification), so
+  from 33 to 38 GiB this replaces a working default with a smaller expert cache, and no run compares the two. The 38 GiB bound is
+  a margin over one refusal seen at 35.2 GiB under a system pressure warning, not a measured need. In that window the forced `--expert-memory` turns Splash's own "not enough free
+  memory to start" refusal into an engine that starts and streams experts from the SSD, so it is slower than a full cache; pass
+  `--splash-arg --expert-memory <size>` to choose, or free memory first. Kept at 38 GiB on purpose: one default-plan start at
+  33.0 GiB and one refusal at 35.2 GiB mean the default plan does not reliably start above 33, and a failed start is worse than
+  an unmeasured slowdown. Follow-up: revisit with an A/B of the default plan against the forced cache at 33 to 38 GiB free.
 
 Splash refuses to start when the Mac has too little free and reclaimable memory. Its `not enough free memory to start ...`
 is the child's own line on stderr; `serve` then exits 1 with `the Splash engine did not start: engine_exited: the splash engine
