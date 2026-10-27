@@ -85,10 +85,11 @@ void parse4(const json& root, Qwen4ExpConfig& c) {
   c.eos = eos.is_array() ? eos[0].get<int>() : eos.get<int>();
 }
 
+// the MTP head's tensors: mtp.* (Nace AI's packs) or language_model.mtp.* (Sushi's)
+bool is_mtp(const std::string& n) { return n.rfind("mtp.", 0) == 0 || n.rfind("language_model.mtp.", 0) == 0; }
+
 // a trunk layer's routed experts (the MTP head's, mtp.layers.*, stay with the head)
-bool is_trunk_expert(const std::string& n) {
-  return n.find(".mlp.switch_mlp.") != std::string::npos && n.rfind("mtp.", 0) != 0;
-}
+bool is_trunk_expert(const std::string& n) { return n.find(".mlp.switch_mlp.") != std::string::npos && !is_mtp(n); }
 
 // The trunk layer a tensor belongs to ("[language_model.]model.layers.<i>.*"), -1 for the rest (embedding, head,
 // final mix, the MTP head's mtp.layers.*)
@@ -224,7 +225,7 @@ const Tensor* Qwen4Exp::norm32(const Tensor* t, float offset) {
 
 GatedRes Qwen4Exp::load_gr(const std::string& p, bool inject, const WeightStore*) {
   GatedRes g;
-  g.norm = norm32(&ws_.get(tname(p + ".hc_norm.weight")), 1.0f);
+  g.norm = norm32(&ws_.get(tname(p + ".hc_norm.weight")), norm1_);
   g.down = qlin(p + ".input_mix_weight_down");
   g.up = qlin(p + ".input_mix_weight_up");
   if (inject) g.inj = qlin(p + ".block_inject_weight");
@@ -283,8 +284,7 @@ void Qwen4Exp::load(const std::string& dir) {
       dir,
       [no_mtp, lo = lo_, hi = hi_](const std::string& n) {
         return n.find("vision_tower") == std::string::npos && n.find("visual.") == std::string::npos &&
-               n.find(".ngram_embedding.") == std::string::npos && !(no_mtp && n.rfind("mtp.", 0) == 0) &&
-               split_holds(n, lo, hi);
+               n.find(".ngram_embedding.") == std::string::npos && !(no_mtp && is_mtp(n)) && split_holds(n, lo, hi);
       },
       [no_mtp](const std::string& f) { return f != "ple.safetensors" && !(no_mtp && f == "mtp.safetensors"); },
       defer);
@@ -294,6 +294,36 @@ void Qwen4Exp::load(const std::string& dir) {
     if (ws_.has("language_model." + probe)) prefix_ = "language_model.";
     else if (ws_.has(probe)) prefix_ = "";
     else fatal("%s: unrecognized weight naming (expected the MLX qwen4_exp layout)", dir.c_str());
+  }
+  {
+    // The RMSNorm weights are Qwen's zero-centred ones (applied as 1 + w), or a converter added the 1 (Sushi's packs:
+    // the same weights + 1). The first attention layer's indexer q / k layernorms tell which, read from the files so
+    // every Mac of a split decides alike whatever layers it holds: their means are -0.08 to -0.02 in Nace AI's 4-bit
+    // pack and 0.92 to 0.98 in Sushi's, in every attention layer (the hyper-connection norms reach 0.77 in the 4-bit
+    // pack: too close to tell).
+    int a0 = 0;
+    while (a0 < cfg_.layers - 1 && cfg_.is_linear[size_t(a0)]) ++a0;
+    const std::string ix = tname("model.layers." + std::to_string(a0) + ".self_attn.indexer.");
+    const SafetensorsIndex idx(dir, [&](const std::string& n) { return n.rfind(ix, 0) != 0; });
+    double sum = 0;
+    size_t cnt = 0;
+    for (const char* w : {"q_layernorm.weight", "k_layernorm.weight"}) {
+      const SafetensorsIndex::Entry* t = idx.find(ix + w);
+      if (!t || (t->dtype != DType::BF16 && t->dtype != DType::F16)) continue;
+      std::vector<uint16_t> v(size_t(t->numel()));
+      idx.read(*t, 0, v.data(), v.size() * 2);
+      for (uint16_t h : v) {
+        _Float16 f;
+        memcpy(&f, &h, 2);
+        sum += t->dtype == DType::BF16 ? bf16_to_f32(h) : float(f);
+      }
+      cnt += v.size();
+    }
+    if (!cnt) fatal("qwen4_exp: no bf16 / f16 indexer layernorms in layer %d, which tell the RMSNorm convention", a0);
+    const double m = sum / double(cnt);
+    norm1_ = m > 0.5 ? 0.0f : 1.0f;
+    logi("RMSNorm weights %s (indexer norm mean %.2f): read as %s",
+         norm1_ ? "zero-centred" : "with the 1 added at conversion", m, norm1_ ? "1 + w" : "they are");
   }
   if (head) {
     embed_ = qlin("model.embed_tokens");
@@ -328,11 +358,11 @@ void Qwen4Exp::load(const std::string& dir) {
       L.k = qlin(a + "k_proj");
       L.v = qlin(a + "v_proj");
       L.o = qlin(a + "o_proj");
-      L.q_norm = bf16_copy(&ws_.get(tname(a + "q_norm.weight")), 1.0f);
-      L.k_norm = bf16_copy(&ws_.get(tname(a + "k_norm.weight")), 1.0f);
+      L.q_norm = bf16_copy(&ws_.get(tname(a + "q_norm.weight")), norm1_);
+      L.k_norm = bf16_copy(&ws_.get(tname(a + "k_norm.weight")), norm1_);
       F.iqk = qlin(a + "indexer.index_qk_proj");
-      F.iqn = norm32(&ws_.get(tname(a + "indexer.q_layernorm.weight")), 1.0f);
-      F.ikn = norm32(&ws_.get(tname(a + "indexer.k_layernorm.weight")), 1.0f);
+      F.iqn = norm32(&ws_.get(tname(a + "indexer.q_layernorm.weight")), norm1_);
+      F.ikn = norm32(&ws_.get(tname(a + "indexer.k_layernorm.weight")), norm1_);
       if (F.iqk.N != uint32_t((c4_.ix_heads + 1) * c4_.ix_dim)) fatal("%s: index_qk_proj shape", a.c_str());
     }
     const std::string m = p + "mlp.";
@@ -351,9 +381,9 @@ void Qwen4Exp::load(const std::string& dir) {
       const std::string q = p + "ple.";
       ple_key_ = qlin(q + "key_proj");
       ple_val_ = qlin(q + "value_proj");
-      ple_nk_ = norm32(&ws_.get(tname(q + "norm_key.weight")), 1.0f);
-      ple_nq_ = norm32(&ws_.get(tname(q + "norm_query.weight")), 1.0f);
-      ple_nc_ = norm32(&ws_.get(tname(q + "norm_conv.weight")), 1.0f);
+      ple_nk_ = norm32(&ws_.get(tname(q + "norm_key.weight")), norm1_);
+      ple_nq_ = norm32(&ws_.get(tname(q + "norm_query.weight")), norm1_);
+      ple_nc_ = norm32(&ws_.get(tname(q + "norm_conv.weight")), norm1_);
       ple_conv_ = param(q + "conv1d.weight");
       const Tensor& cw = ws_.get(tname(q + "conv1d.weight"));
       if (cw.shape.size() != 3 || cw.shape[1] != 4 || cw.shape[2] != 1) fatal("%s: conv1d is not [C, 4, 1]", q.c_str());
@@ -368,8 +398,8 @@ void Qwen4Exp::load(const std::string& dir) {
   check_shapes();
   check_formats();
 
-  // the n-gram table: ple.safetensors' row shards, or a GGUF's own table (ple.gguf: tools/qwen4_exp_q20.py --table
-  // gguf), mapped (never in GPU memory); the head's
+  // the n-gram table: ple.safetensors' row shards, a GGUF's own table (ple.gguf: tools/qwen4_exp_q20.py --table
+  // gguf) or Sushi's ngram_table.bin, mapped (never in GPU memory); the head's
   if (head && c4_.ple_layer >= 0) {
     hash_ = NgramHash::make(cfg_.vocab, c4_.seed, 0, c4_.ngram_base, c4_.per_ngram, c4_.ngram, c4_.eos);
     const std::string tp = prefix_ + "model.layers." + std::to_string(c4_.ple_layer) + ".ple.ple_embedding.";
@@ -381,9 +411,15 @@ void Qwen4Exp::load(const std::string& dir) {
       for (int i = 0; i < std::min<int>(hash_.heads, int(hs->numel())); ++i)
         if (hs->buf.as<int64_t>()[i] != hash_.mod[size_t(i)]) fatal("qwen4_exp: the n-gram head sizes differ from the config's");
     std::vector<NgramTable::Part> parts;
-    const std::string file = dir + "/ple.safetensors", gfile = dir + "/ple.gguf";
+    const std::string file = dir + "/ple.safetensors", gfile = dir + "/ple.gguf", merged = dir + "/ngram_table.bin";
     if (std::ifstream(gfile)) {
       table_.open_gguf(gfile, "per_layer_token_embd.weight", cfg_.hidden / hash_.heads);
+    } else if (!std::ifstream(file) && std::ifstream(merged)) {
+      // Sushi's packs: the table as one [rows, dim] tensor in a safetensors file of its own: affine (weight / scales /
+      // biases; mlx-serve's quantization of the released table) or bf16 (weight alone)
+      parts.push_back({merged, "weight", "scales", "biases"});
+      table_.open(parts, NgramTable::has_tensor(merged, "scales") ? NgramTable::Fmt::Affine : NgramTable::Fmt::BF16,
+                  cfg_.hidden / hash_.heads);
     } else {
       if (!std::ifstream(file)) fatal("%s: missing (the n-gram table)", file.c_str());
       for (int k = 0;; ++k) {
@@ -428,42 +464,46 @@ void Qwen4Exp::load(const std::string& dir) {
 }
 
 void Qwen4Exp::load_mtp4(const std::string& dir) {
-  if (!std::ifstream(dir + "/mtp.safetensors")) {
+  // the head's tensors: mtp.* in mtp.safetensors (Nace AI's packs), or language_model.mtp.* (Sushi's)
+  const std::string mp = ws_.has("language_model.mtp.fc_embedding.weight") ? "language_model.mtp." : "mtp.";
+  if (mp == "mtp." && !std::ifstream(dir + "/mtp.safetensors")) {
     logi("no MTP head in %s (mtp.safetensors); speculative decoding off", dir.c_str());
     return;
   }
-  if (!ws_.has("mtp.fc_embedding.weight")) {
+  if (!ws_.has(mp + "fc_embedding.weight")) {
     logi("mtp.safetensors without mtp.fc_embedding; speculative decoding off");
     return;
   }
   const double t0 = now_ms();
-  // the head's tensors are named mtp.* (no language_model. prefix)
+  // the names are whole (prefix_ applies to the trunk's)
   const std::string keep = prefix_;
   prefix_ = "";
   int lossy = 0;
   (void)lossy;
-  mtp_ne_ = norm32(&ws_.get("mtp.pre_fc_norm_embedding.weight"), 1.0f);
-  mtp_nh_ = norm32(&ws_.get("mtp.pre_fc_norm_hidden.weight"), 1.0f);
-  mtp_fce_ = qlin("mtp.fc_embedding");
-  mtp_fch_ = qlin("mtp.fc_hidden");
+  mtp_ne_ = norm32(&ws_.get(mp + "pre_fc_norm_embedding.weight"), norm1_);
+  mtp_nh_ = norm32(&ws_.get(mp + "pre_fc_norm_hidden.weight"), norm1_);
+  mtp_fce_ = qlin(mp + "fc_embedding");
+  mtp_fch_ = qlin(mp + "fc_hidden");
   mtp_fce_.mtp = mtp_fch_.mtp = true;
-  const std::string p = "mtp.layers.0.";
+  const std::string p = mp + "layers.0.";
   Layer& L = mtp_;
   L.linear = false;
   L.q = qlin(p + "self_attn.q_proj");
   L.k = qlin(p + "self_attn.k_proj");
   L.v = qlin(p + "self_attn.v_proj");
   L.o = qlin(p + "self_attn.o_proj");
-  L.q_norm = bf16_copy(&ws_.get(p + "self_attn.q_norm.weight"), 1.0f);
-  L.k_norm = bf16_copy(&ws_.get(p + "self_attn.k_norm.weight"), 1.0f);
+  L.q_norm = bf16_copy(&ws_.get(p + "self_attn.q_norm.weight"), norm1_);
+  L.k_norm = bf16_copy(&ws_.get(p + "self_attn.k_norm.weight"), norm1_);
   mtp4_.iqk = qlin(p + "self_attn.indexer.index_qk_proj");
-  mtp4_.iqn = norm32(&ws_.get(p + "self_attn.indexer.q_layernorm.weight"), 1.0f);
-  mtp4_.ikn = norm32(&ws_.get(p + "self_attn.indexer.k_layernorm.weight"), 1.0f);
+  mtp4_.iqn = norm32(&ws_.get(p + "self_attn.indexer.q_layernorm.weight"), norm1_);
+  mtp4_.ikn = norm32(&ws_.get(p + "self_attn.indexer.k_layernorm.weight"), norm1_);
   L.router = qlin(p + "mlp.gate");
   L.shared_gate = qlin(p + "mlp.shared_expert_gate");
-  L.eg = qlin(p + "mlp.switch_mlp.gate_proj");
-  L.eu = qlin(p + "mlp.switch_mlp.up_proj");
-  L.ed = qlin(p + "mlp.switch_mlp.down_proj");
+  // EXL3 experts (Sushi's head) are read as the trunk's
+  const bool tr = ws_.has(p + "mlp.switch_mlp.gate_proj.trellis");
+  L.eg = qlin(p + "mlp.switch_mlp.gate_proj", true, tr);
+  L.eu = qlin(p + "mlp.switch_mlp.up_proj", true, tr);
+  L.ed = qlin(p + "mlp.switch_mlp.down_proj", true, tr);
   L.sg = qlin(p + "mlp.shared_expert.gate_proj");
   L.su = qlin(p + "mlp.shared_expert.up_proj");
   L.sd = qlin(p + "mlp.shared_expert.down_proj");
@@ -471,10 +511,14 @@ void Qwen4Exp::load_mtp4(const std::string& dir) {
     q->mtp = true;
   mtp4_.ga = load_gr(p + "attn_hyper_connection", true);
   mtp4_.gm = load_gr(p + "mlp_hyper_connection", true);
-  mtp_mix_ = load_gr("mtp.hyper_connection_mixer", false);
+  mtp_mix_ = load_gr(mp + "hyper_connection_mixer", false);
   prefix_ = keep;
-  if (!L.eg.same_format(L.eu) || !L.eg.same_format(L.ed) || moe_rows_kernel(true, L.eg, L.sg).empty() ||
-      moe_rows_kernel(false, L.ed, L.sd, moe_wide()).empty())
+  std::string why;
+  if (L.eg.exl3) {
+    if (!L.eg.same_format(L.eu) || !L.eg.same_format(L.ed) || !exl3::shapes_ok(exl3_shape(), exl3_experts(L), &why))
+      fatal("MTP head: EXL3 experts: %s", why.empty() ? "gate/up/down differ in format" : why.c_str());
+  } else if (!L.eg.same_format(L.eu) || !L.eg.same_format(L.ed) || moe_rows_kernel(true, L.eg, L.sg).empty() ||
+             moe_rows_kernel(false, L.ed, L.sd, moe_wide()).empty())
     fatal("MTP head: no MoE kernels for %s experts with a %s shared expert", format_name(L.eg.bits, L.eg.gs).c_str(),
           format_name(L.sg.bits, L.sg.gs).c_str());
   // the draft head: the lowest 32768 token ids (BPE merge order, a frequency proxy) plus the added / special tokens
@@ -1446,8 +1490,14 @@ void Qwen4Exp::enc_attn4(Encoder& e, Seq& s, int li, const Layer& L, const Qwen4
 }
 
 // MoE of one row (u = the block input, fp32): router + shared gate, top-k, the fused 4-bit expert kernels (Q2_0
-// experts: q20::enc_decode); other formats take the per-row MoE (the verify path at one row; u must then be in xrn_).
+// experts: q20::enc_decode); EXL3 experts and other formats take the per-row MoE (the verify path at one row; u must
+// then be in xrn_).
 void Qwen4Exp::enc_moe4(Encoder& e, const Layer& L, const Buffer& u) {
+  if (L.eg.exl3) {
+    if (u.mtl != xrn_.mtl) fatal("enc_moe4: the input must be xrn_");
+    enc_moe_exl3_rows(e, L, 1);
+    return;
+  }
   const bool q20 = L.eg.q20;  // check_formats: all three Q2_0 and a 4-bit shared expert
   if (!q20 && !(L.eg.q4() && L.eu.q4() && L.ed.q4() && L.sg.q4() && L.su.q4() && L.sd.q4())) {
     if (u.mtl != xrn_.mtl) fatal("enc_moe4: the input must be xrn_");
@@ -1835,7 +1885,9 @@ std::string Qwen4Exp::formats_summary() const {
   auto add = [&](const QLinear& q) {
     if (q && q.q20)  // (streamed: deferred tensors, no buffers; their size as stored)
       bytes["Q2_0"] += size_t(q.w->numel()) * dtype_size(q.w->dtype) + size_t(q.s->numel()) * dtype_size(q.s->dtype);
-    else if (q) bytes[format_name(q.bits, q.gs)] += q.w->buf.size + (q.dense() ? 0 : q.s->buf.size + q.b->buf.size);
+    else if (q)
+      bytes[q.exl3 ? q.name() : format_name(q.bits, q.gs)] +=
+          q.w->buf.size + (q.dense() ? 0 : q.s->buf.size + q.b->buf.size);
   };
   add(embed_);
   add(lm_head_);
@@ -1890,14 +1942,14 @@ std::vector<Qwen4Exp::LayerBytes> Qwen4Exp::layer_bytes(const std::string& dir, 
       for (auto& [name, v] : j.items()) {
         if (name == "__metadata__" || name.find("vision_tower") != std::string::npos ||
             name.find("visual.") != std::string::npos || name.find(".ngram_embedding.") != std::string::npos ||
-            (!mtp && name.rfind("mtp.", 0) == 0))
+            (!mtp && is_mtp(name)))
           continue;
         const double b = double(v["data_offsets"][1].get<size_t>() - v["data_offsets"][0].get<size_t>());
         const int l = trunk_layer(name);
         LayerBytes& t = l >= 0 && l < c.layers ? out[size_t(l)] : *head;
         t.weights += b;
         if (is_trunk_expert(name)) t.experts += b;
-        if (name.find("embed_tokens") == std::string::npos && name.rfind("mtp.", 0) != 0)
+        if (name.find("embed_tokens") == std::string::npos && !is_mtp(name))
           t.decode += name.find("switch_mlp") != std::string::npos ? b * share : b;
       }
     }
@@ -1957,7 +2009,7 @@ MemPlan Qwen4Exp::plan(const std::string& dir, int chunk, const Split* split) {
       }
       if (!split_holds(name, lo, hi)) continue;
       const size_t al = (b + 255) / 256 * 256;
-      if (name.rfind("mtp.", 0) == 0) {
+      if (is_mtp(name)) {
         if (!getenv("NI_NO_MTP")) m.mtp += al;
         continue;
       }
