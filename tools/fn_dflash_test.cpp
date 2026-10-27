@@ -11,6 +11,7 @@
 #include "util/bf16.h"
 #include "util/log.h"
 
+#include <nlohmann/json.hpp>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -96,6 +97,31 @@ void run_cpu() {
   check(DFlash2::config_check(draft_config("none"), plain).empty() && DFlash2::config_check(draft_config(""), plain).empty(),
         "a target without streams + none or nothing: loads");
   check(!DFlash2::config_check("[1, 2]", flash).empty(), "not a config: refused");
+
+  std::printf("offline affine draft metadata (DFlash2 config checks)\n");
+  using json = nlohmann::json;
+  const json packed = {{"version", 1}, {"bits", 4}, {"group_size", 64}, {"round", "away"}};
+  auto packed_config = [&](const json& metadata) {
+    json c = json::parse(draft_config("none"));
+    c["kapitsa_draft_pack"] = metadata;
+    return DFlash2::config_check(c.dump(), plain);
+  };
+  for (int bits : {4, 8})
+    for (const char* round : {"away", "even"}) {
+      json p = packed;
+      p["bits"] = bits;
+      p["round"] = round;
+      check(packed_config(p).empty(), "supported packed bits and rounding: loads");
+    }
+  for (const json& p : {json(), json::array(), json("bad"), json(1), json::object()})
+    check(has(packed_config(p), "kapitsa_draft_pack"), "missing or non-object packed metadata: refused");
+  for (const auto& [field, invalid] : std::vector<std::pair<std::string, json>>{
+           {"version", 2}, {"version", 1.0}, {"bits", 3}, {"bits", "4"},
+           {"group_size", 32}, {"group_size", true}, {"round", "nearest"}, {"round", false}}) {
+    json p = packed;
+    p[field] = invalid;
+    check(has(packed_config(p), "kapitsa_draft_pack"), "unsupported packed " + field + ": refused");
+  }
 
   // The drafting block the memory plan reserves rows for: a pure decision on (target, slots, NI_DFLASH_BLOCK), asked
   // several times in one process here, as an --allow-switch server does (each model decides its own at its load).

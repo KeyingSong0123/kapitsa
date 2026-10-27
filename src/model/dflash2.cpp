@@ -54,6 +54,14 @@ static std::vector<std::string> config_problems(const json& c, const Qwen35Confi
   auto check = [&](bool ok, const char* what) {
     if (!ok) bad.push_back(what);
   };
+  if (c.contains("kapitsa_draft_pack")) {
+    const json& p = c["kapitsa_draft_pack"];
+    check(p.is_object() && p.contains("version") && p["version"].is_number_integer() && p["version"] == 1 &&
+              p.contains("group_size") && p["group_size"].is_number_integer() && p["group_size"] == 64 &&
+              p.contains("bits") && p["bits"].is_number_integer() && (p["bits"] == 4 || p["bits"] == 8) &&
+              p.contains("round") && p["round"].is_string() && (p["round"] == "away" || p["round"] == "even"),
+          "kapitsa_draft_pack version 1, affine 4/8-bit group 64, round away/even");
+  }
   const json dc = c.value("dflash_config", json::object());
   // How a target layer's output becomes the hidden row the draft reads, as it was trained (Splash 1.4.0's
   // dflash_config.target_hidden_reduction): a hyper-connected target's streams by their mean (stream_mean: Qwen3.8-
@@ -163,6 +171,10 @@ void DFlash2::load_config(const std::string& dir) {
     std::string s;
     for (auto& b : bad) s += " [" + b + "]";
     fatal("DFlash2: unsupported drafter config in %s:%s", dir.c_str(), s.c_str());
+  }
+  if (c.contains("kapitsa_draft_pack")) {
+    packed_bits_ = c["kapitsa_draft_pack"]["bits"];
+    packed_even_ = c["kapitsa_draft_pack"]["round"] == "even";
   }
   const json& dc = c["dflash_config"];
   cfg_.v1 = c.value("architectures", json::array()) == json::array({"DFlashDraftModel"});
@@ -294,11 +306,13 @@ void dfl_quantize_cpu(const std::vector<const uint16_t*>& rowp, uint32_t K, int 
 // round-half-away; scale/bias stored as bf16 RNE). MLX's CPU backend rounds halves to even
 // instead (NI_DFLASH_QROUND=even reproduces that one).
 QLinear DFlash2::quantize(const std::vector<const Tensor*>& parts, const char* label, const std::vector<uint32_t>& perm) {
-  const uint32_t K = uint32_t(parts[0]->shape[1]);
+  const uint32_t stored_k = uint32_t(parts[0]->shape[1]);
+  const uint32_t K = packed_bits_ ? stored_k * (32 / uint32_t(packed_bits_)) : stored_k;
   uint32_t N = 0;
   for (auto* t : parts) {
-    if (t->dtype != DType::BF16 || t->shape.size() != 2 || uint32_t(t->shape[1]) != K)
-      fatal("DFlash2 quantize: %s parts must be 2-D bf16 with equal K", label);
+    if (t->dtype != (packed_bits_ ? DType::U32 : DType::BF16) || t->shape.size() != 2 ||
+        uint32_t(t->shape[1]) != stored_k || (packed_bits_ && !packed_parts_.count(t)))
+      fatal("DFlash2 quantize: %s parts have an unexpected format or K", label);
     N += uint32_t(t->shape[0]);
   }
   if (K % 64 || N % 8) fatal("DFlash2 quantize: %s [%u, %u] not a multiple of (8, 64)", label, N, K);
@@ -308,18 +322,39 @@ QLinear DFlash2::quantize(const std::vector<const Tensor*>& parts, const char* l
   Buffer wq = g.alloc(size_t(N) * wpr * 4, label, false);
   Buffer sc = g.alloc(size_t(N) * gpr * 2, label, false);
   Buffer bi = g.alloc(size_t(N) * gpr * 2, label, false);
-  static const bool even = getenv("NI_DFLASH_QROUND") && std::string(getenv("NI_DFLASH_QROUND")) == "even";
-  std::vector<const uint16_t*> rowp(N);
-  {
-    uint32_t r = 0;
-    for (auto* t : parts)
-      for (int64_t i = 0; i < t->shape[0]; ++i) rowp[r++] = t->buf.as<uint16_t>() + size_t(i) * K;
+  if (packed_bits_) {
+    struct Row {
+      const uint32_t* w;
+      const uint16_t *s, *b;
+    };
+    std::vector<Row> rows;
+    rows.reserve(N);
+    for (auto* t : parts) {
+      const auto& [s, b] = packed_parts_.at(t);
+      for (int64_t i = 0; i < t->shape[0]; ++i)
+        rows.push_back({t->buf.as<uint32_t>() + size_t(i) * wpr, s->buf.as<uint16_t>() + size_t(i) * gpr,
+                        b->buf.as<uint16_t>() + size_t(i) * gpr});
+    }
+    for (uint32_t i = 0; i < N; ++i) {
+      const Row& row = rows[perm.empty() ? i : perm[i]];
+      memcpy(wq.as<uint32_t>() + size_t(i) * wpr, row.w, size_t(wpr) * 4);
+      memcpy(sc.as<uint16_t>() + size_t(i) * gpr, row.s, size_t(gpr) * 2);
+      memcpy(bi.as<uint16_t>() + size_t(i) * gpr, row.b, size_t(gpr) * 2);
+    }
+  } else {
+    static const bool even = getenv("NI_DFLASH_QROUND") && std::string(getenv("NI_DFLASH_QROUND")) == "even";
+    std::vector<const uint16_t*> rowp(N);
+    {
+      uint32_t r = 0;
+      for (auto* t : parts)
+        for (int64_t i = 0; i < t->shape[0]; ++i) rowp[r++] = t->buf.as<uint16_t>() + size_t(i) * K;
+    }
+    if (!perm.empty()) {  // stored row i = source row perm[i]
+      std::vector<const uint16_t*> src = rowp;
+      for (uint32_t i = 0; i < N; ++i) rowp[i] = src[perm[i]];
+    }
+    dfl_quantize_cpu(rowp, K, bits, even, wq.as<uint32_t>(), sc.as<uint16_t>(), bi.as<uint16_t>());
   }
-  if (!perm.empty()) {  // stored row i = source row perm[i]
-    std::vector<const uint16_t*> src = rowp;
-    for (uint32_t i = 0; i < N; ++i) rowp[i] = src[perm[i]];
-  }
-  dfl_quantize_cpu(rowp, K, bits, even, wq.as<uint32_t>(), sc.as<uint16_t>(), bi.as<uint16_t>());
   owned_bufs_.push_back(wq);
   owned_bufs_.push_back(sc);
   owned_bufs_.push_back(bi);
@@ -412,17 +447,41 @@ bool DFlash2::rows16_auto_ok() const {
 
 DFlash2::DFlash2(Qwen35& target, const std::string& dir, int bits, bool rows16) : tg_(target), dir_(dir) {
   const double t0 = now_ms(), fp0 = footprint_gb();
-  bits_ = bits ? bits : (getenv("NI_DFLASH_BITS") ? atoi(getenv("NI_DFLASH_BITS")) : 4);
-  if (bits_ != 4 && bits_ != 8) fatal("DFlash2: bits must be 4 or 8 (got %d)", bits_);
   load_config(dir);
+  bits_ = bits ? bits : (getenv("NI_DFLASH_BITS") ? atoi(getenv("NI_DFLASH_BITS")) : packed_bits_ ? packed_bits_ : 4);
+  if (bits_ != 4 && bits_ != 8) fatal("DFlash2: bits must be 4 or 8 (got %d)", bits_);
+  if (packed_bits_) {
+    if (bits_ != packed_bits_) fatal("DFlash2: requested bits differ from this prepacked checkpoint");
+    if (const char* round = getenv("NI_DFLASH_QROUND"); round && (std::string(round) == "even") != packed_even_)
+      fatal("DFlash2: requested rounding differs from this prepacked checkpoint");
+    logi("DFlash2: prepacked affine %d-bit group 64 (%s); copying codes/scales/biases without requantizing",
+         packed_bits_, packed_even_ ? "round even" : "round away");
+  }
   if (!supports(tg_)) fatal("DFlash2: the target's embedding / LM head format is not supported");
   {
-    WeightStore w;  // bf16 checkpoint, released after quantization
+    WeightStore w;  // released after quantizing bf16 or copying prepacked projections
     w.open_dir(dir);
     auto get = [&](const std::string& n) -> const Tensor& { return w.get(n); };
     auto expect = [&](const std::string& n, std::vector<int64_t> shape) -> const Tensor& {
       const Tensor& t = get(n);
-      if (t.dtype != DType::BF16 || t.shape != shape) fatal("DFlash2: %s has an unexpected dtype/shape", n.c_str());
+      if (packed_bits_ && shape.size() == 2 && n.ends_with(".weight")) {
+        if (shape[0] % 8 || shape[1] % 64 || t.dtype != DType::U32 ||
+            t.shape != std::vector<int64_t>{shape[0], shape[1] * packed_bits_ / 32})
+          fatal("DFlash2: %s has an unexpected packed dtype/shape", n.c_str());
+        const std::string prefix = n.substr(0, n.size() - 7);
+        const Tensor& s = get(prefix + ".scales");
+        const Tensor& b = get(prefix + ".biases");
+        const std::vector<int64_t> grouped{shape[0], shape[1] / 64};
+        const size_t grouped_bytes = size_t(shape[0]) * size_t(shape[1] / 64) * 2;
+        if (s.dtype != DType::BF16 || b.dtype != DType::BF16 || s.shape != grouped || b.shape != grouped ||
+            s.buf.size != grouped_bytes || b.buf.size != grouped_bytes)
+          fatal("DFlash2: %s has an unexpected scale/bias dtype/shape", n.c_str());
+        packed_parts_[&t] = {&s, &b};
+      } else if (t.dtype != DType::BF16 || t.shape != shape) {
+        fatal("DFlash2: %s has an unexpected dtype/shape", n.c_str());
+      }
+      if (packed_bits_ && t.buf.size != size_t(t.numel()) * dtype_size(t.dtype))
+        fatal("DFlash2: %s byte extent does not match its packed checkpoint shape", n.c_str());
       return t;
     };
     const int64_t H = cfg_.H, I = cfg_.I, V = cfg_.vocab, G4 = 4 * (cfg_.H / cfg_.conv_gs);
@@ -481,6 +540,7 @@ DFlash2::DFlash2(Qwen35& target, const std::string& dir, int bits, bool rows16) 
       L.down = quantize({&expect(p + "mlp.down_proj.weight", {H, I})}, "dfl_down");
       L.kv = row_view(kv_all_, uint32_t(l) * 2048, 2048);
     }
+    packed_parts_.clear();
   }
   // RoPE inverse frequencies in fp32 as HF computes them: 1 / theta^(2i/128).
   inv_freq_ = Gpu::get().alloc(64 * 4, "dfl_inv_freq", false);
@@ -915,7 +975,11 @@ size_t DFlash2::plan_bytes(const std::string& dir, const Qwen35Config& target, s
   const size_t H = c.value("hidden_size", 2048), NL = c.value("num_hidden_layers", 5), I = c.value("intermediate_size", 6144),
                V = c.value("vocab_size", 248320), nT = dc.contains("target_layer_ids") ? dc["target_layer_ids"].size() : 5,
                gs = dc.value("conv_group_size", 16);
-  const size_t bits = getenv("NI_DFLASH_BITS") ? size_t(atoi(getenv("NI_DFLASH_BITS"))) : 4;
+  const json packed = c.contains("kapitsa_draft_pack") ? c["kapitsa_draft_pack"] : json();
+  const size_t packed_bits =
+      packed.is_object() && packed.contains("bits") && packed["bits"].is_number_integer() &&
+              (packed["bits"] == 4 || packed["bits"] == 8) ? packed["bits"].get<size_t>() : 0;
+  const size_t bits = getenv("NI_DFLASH_BITS") ? size_t(atoi(getenv("NI_DFLASH_BITS"))) : packed_bits ? packed_bits : 4;
   auto ends = [](const std::string& a, const char* b) {
     const size_t n = strlen(b);
     return a.size() >= n && a.compare(a.size() - n, n, b) == 0;
@@ -939,8 +1003,11 @@ size_t DFlash2::plan_bytes(const std::string& dir, const Qwen35Config& target, s
     for (auto& [name, v] : j.items()) {
       if (name == "__metadata__" || !v.contains("shape")) continue;
       const auto& sh = v["shape"];
-      if (sh.size() == 2 && (ends(name, "_proj.weight") || name == "fc.weight" || ends(name, "kernel_projection.weight"))) {
-        const size_t N = sh[0], K = sh[1];
+      if (sh.size() == 2 && (ends(name, "_proj.weight") || name == "fc.weight" || ends(name, "kernel_projection.weight") ||
+                            name == "candidate_selector.hidden_projection.weight")) {
+        const size_t N = sh[0], stored_k = sh[1];
+        const size_t K = packed_bits && (packed_bits == 4 || packed_bits == 8) && v.value("dtype", "") == "U32"
+                             ? stored_k * (32 / packed_bits) : stored_k;
         w += N * K * bits / 8 + 2 * N * (K / 64) * 2;
       } else if (name.find("norm.weight") != std::string::npos || name.find("codebook") != std::string::npos ||
                  name.find("base_kernel") != std::string::npos) {

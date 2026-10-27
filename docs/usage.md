@@ -311,6 +311,24 @@ loaded: the server sends its requests there ([Several Macs](#several-macs)). In 
 | `--verbose` | off | In a terminal, show the engine's log on screen too. |
 | `--yes` | off | In a terminal without `--model`, start the best model for this Mac instead of asking ([Which model](#which-model)). |
 
+### Prepacking a DFlash drafter
+
+`build/draft_pack` saves the existing CPU affine quantizer's results once. Loading its output folder reads the
+packed projections directly, avoiding repeated conversion of the larger bf16 checkpoint at each start. The target
+model and the inference kernels stay the same.
+
+```bash
+cmake --build build -j --target draft_pack
+build/draft_pack /path/to/dflash2 /path/to/dflash-af4 4 away
+build/kapitsa serve --model /path/to/model --dflash /path/to/dflash-af4
+```
+
+The destination must be a new directory; the source stays intact. The last arguments select `4` or `8` bits and
+round-half-`away` or `even` (defaults `4 away`, as the bf16 loader). Norms and codebooks are copied unchanged.
+The output records its format and rounding in `config.json`; the loader rejects incompatible shapes, coefficient layouts,
+or `NI_DFLASH_BITS` / `NI_DFLASH_QROUND` overrides. The default drafter selection and downloads are unchanged.
+This is a loading optimization; conversion is a separate, one-time CPU step and takes the model lock.
+
 ### Context
 
 `--context` sets how long one conversation can get: its prompt, its history and the reply share it. Without it, `kapitsa

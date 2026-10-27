@@ -129,7 +129,7 @@ jobs:
         if: steps.changes.outputs.code == 'true'
         run: |
           cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-          cmake --build build -j"$(sysctl -n hw.ncpu)" --target kapitsa systemone api_test bench_test update_test prefix_cache_test grammar_test structured_check fn_store_test fn_dflash_test dflash_accept_test tokenizer_test iq_layout_test vision_pixels_test tree_reduce_test remote_test cluster_test split_place_test json_file_test execution_session_test http_stream_test logit_dump
+          cmake --build build -j"$(sysctl -n hw.ncpu)" --target kapitsa systemone api_test bench_test update_test prefix_cache_test grammar_test structured_check fn_store_test fn_dflash_test dflash_accept_test tokenizer_test iq_layout_test vision_pixels_test tree_reduce_test remote_test cluster_test split_place_test json_file_test execution_session_test http_stream_test logit_dump draft_pack
       - name: Python environment
         if: steps.changes.outputs.code == 'true'
         run: |
@@ -186,6 +186,9 @@ jobs:
       - name: test_sidecar
         if: steps.changes.outputs.code == 'true' && !cancelled()
         run: $RUNNER_TEMP/venv/bin/python tests/test_sidecar.py build/kapitsa
+      - name: test_draft_pack
+        if: steps.changes.outputs.code == 'true' && !cancelled()
+        run: $RUNNER_TEMP/venv/bin/python tests/test_draft_pack.py build/draft_pack
       - name: test_update
         if: steps.changes.outputs.code == 'true' && !cancelled()
         run: $RUNNER_TEMP/venv/bin/python tests/test_update.py build

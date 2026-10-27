@@ -1,6 +1,6 @@
 // DFlash2 block drafter: loads a DFlash2DraftModel
-// checkpoint (bf16 safetensors), quantizes its projections to MLX affine 4-bit (or 8-bit) g64 at
-// load, keeps the per-sequence context K/V ring fed from the target's captured hidden states, and
+// checkpoint (bf16 safetensors, or an offline draft_pack affine checkpoint). Quantizes bf16 projections
+// at load, copies prepacked codes/scales/biases, keeps the context K/V ring fed from the target's hidden states, and
 // encodes one drafting pass (anchor + 7 mask rows -> 7 proposals) into a command buffer.
 // Opt-in: nothing here is constructed unless a drafter directory is given.
 #pragma once
@@ -91,9 +91,9 @@ class DFlash2 {
   static constexpr uint32_t kGpuChunk = 256;  // context positions per attention split, GPU-driven passes
   // default reduced draft head rows: from a ranked id list (NI_DFLASH_HEAD_IDS), and in id order (the default)
   static constexpr int kHeadRows = 65536, kHeadRowsIdOrder = 98304;
-  // bits: 4 or 8 (0: NI_DFLASH_BITS, default 4). rows16: draft a 16-row block where this target, the drafter's
-  // projections and the knobs allow it and NI_DFLASH_BLOCK says nothing (Engine passes slots == 1: a 16-row block has
-  // no batched cycle to lose, Engine::batch_rows).
+  // bits: 4 or 8 (0: NI_DFLASH_BITS, else the packed checkpoint bits or 4 for bf16). rows16: draft a 16-row block
+  // where this target, the drafter's projections and the knobs allow it and NI_DFLASH_BLOCK says nothing (Engine
+  // passes slots == 1: a 16-row block has no batched cycle to lose, Engine::batch_rows).
   DFlash2(Qwen35& target, const std::string& dir, int bits = 0, bool rows16 = false);
   const DFlash2Config& config() const { return cfg_; }
   int bits() const { return bits_; }
@@ -107,8 +107,8 @@ class DFlash2 {
   // The longest name match wins.
   static std::string find(const std::string& model_dir, const Qwen35Config& target);
   // Memory a drafter takes, from its config.json and safetensors headers only (the engine's fit check): what the
-  // constructor allocates (projections quantized to NI_DFLASH_BITS, default 4; norms, codebooks and conv kernels
-  // as stored; buffers; the reduced draft head, rows of the target's LM head of head_row_bytes each), the target's
+  // constructor allocates (projections at the requested or stored bits, default 4 for bf16; norms, codebooks and
+  // conv kernels as stored; buffers; the reduced draft head, rows of the target's LM head of head_row_bytes each), the target's
   // 8-row verify scratch and the prompt-capture buffers of the first prefill (*at_prefill, included); *per_slot:
   // one context ring (a slot holds three: the live state and its two checkpoints' snapshots).
   // The drafting block the engine will load for `target` with `slots` slots: NI_DFLASH_BLOCK if it names 8 or 16, else
@@ -367,6 +367,10 @@ class DFlash2 {
   std::string dir_;
   DFlash2Config cfg_;
   int bits_ = 4;
+  int packed_bits_ = 0;  // versioned, offline affine checkpoint; 0 is the original bf16 loader
+  bool packed_even_ = false;
+  // The constructor's weight store owns these tensors until all projections have been copied.
+  std::map<const Tensor*, std::pair<const Tensor*, const Tensor*>> packed_parts_;
   int block_ = kB;         // kB, or 16 (the ctor picks it before anything is sized)
   int vdepth_ = kB - 1;    // proposals verified per cycle: verify_depth() (the ctor re-reads the env)
   size_t resident_ = 0;
