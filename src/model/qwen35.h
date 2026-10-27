@@ -239,6 +239,9 @@ class Qwen35 : public Model {
   // as 1 + w: a mean below 0.5 and at least one negative value (MLX's are ~1 and all positive). False for no values, a
   // vector wider than 65,536 (not a norm) or another dtype, where the caller keeps its own answer.
   static bool zero_centred_norm(const void* data, DType dtype, size_t n);
+  // A tensor of the MTP head: mtp.* (Hugging Face checkpoints, mtp.safetensors) or language_model.mtp.* (MLX packs of
+  // the vision-language checkpoints that keep the head, as Jundot's oQ "-mtp" packs)
+  static bool is_mtp(const std::string& n) { return n.rfind("mtp.", 0) == 0 || n.rfind("language_model.mtp.", 0) == 0; }
   // The Neural Engine split this Mac would build for the model (dense FFN): its share in units of 512 channels
   // (0 = none), where it comes from, and its memory (surfaces + the engine's rerun checkpoint), as init_ane decides.
   struct AnePlan {
@@ -496,8 +499,11 @@ class Qwen35 : public Model {
   static std::vector<ActBuf> act_layout(const Qwen35Config& c, int T, int max_verify, bool mtp, size_t hgu_rows);
   size_t dense_hgu_rows() const;
   void ensure_hgu(size_t bytes);
-  // q20_ok: the linear may be Q2_0 or EXL3 (routed experts of Qwen4Exp, whose MoE paths have their kernels)
-  QLinear qlin(const std::string& name, bool required = true, bool q20_ok = false);
+  // q20_ok: the linear may be Q2_0 or EXL3 (routed experts of Qwen4Exp, whose MoE paths have their kernels); `from`:
+  // another store than the trunk's, `name` then in full (an MLX pack's own MTP head, read as the trunk's linears are)
+  QLinear qlin(const std::string& name, bool required = true, bool q20_ok = false, const WeightStore* from = nullptr);
+  // config.json's quantization of a module (the default, then entries keyed by its full or canonical name)
+  void quant_of(const std::string& full, const std::string& name, int& bits, int& gs, std::string& mode) const;
   // A layer's EXL3 routed experts and the MoE's shapes for their kernels (src/model/moe_exl3.h)
   exl3::Experts exl3_experts(const Layer& L) const;
   exl3::Shape exl3_shape() const;
@@ -617,6 +623,10 @@ class Qwen35 : public Model {
   // speculative decoding helpers (qwen35_spec.cpp)
   void load_mtp(const std::string& dir);
   QLinear quantize8(const Tensor& w, int bits = 8);
+  // what quantize8 reads: a 2-D bf16, f16 or f32 matrix
+  static bool quantizable(const Tensor& t) {
+    return t.shape.size() == 2 && (t.dtype == DType::BF16 || t.dtype == DType::F16 || t.dtype == DType::F32);
+  }
   // rows [r0, r0 + n) of a linear in any format -> an owned 4-bit group-64 copy (CPU, MLX rounding)
   QLinear quantize_rows4(const QLinear& src, uint32_t r0, uint32_t n);
   const Tensor* own_copy(const Tensor& t);

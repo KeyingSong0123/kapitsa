@@ -668,20 +668,35 @@ static uint32_t iq_mode(const std::string& full, const std::string& name) {
   return 0;
 }
 
-QLinear Qwen35::qlin(const std::string& name, bool required, bool q20_ok) {
+void Qwen35::quant_of(const std::string& full, const std::string& name, int& bits, int& gs, std::string& mode) const {
+  bits = quant_cfg_.value("bits", 4);
+  gs = quant_cfg_.value("group_size", 64);
+  mode = quant_cfg_.value("mode", std::string("affine"));
+  // per-module overrides are keyed by the module path without ".weight"
+  for (auto key : {full, name}) {
+    if (quant_cfg_.contains(key) && quant_cfg_[key].is_object()) {
+      bits = quant_cfg_[key].value("bits", bits);
+      gs = quant_cfg_[key].value("group_size", gs);
+      mode = quant_cfg_[key].value("mode", mode);
+    }
+  }
+}
+
+QLinear Qwen35::qlin(const std::string& name, bool required, bool q20_ok, const WeightStore* from) {
   QLinear L;
-  const std::string full = tname(name);
-  L.w = ws_.find(full + ".weight");
+  const std::string full = from ? name : tname(name);
+  const WeightStore& ws = from ? *from : ws_;
+  L.w = ws.find(full + ".weight");
   if (!L.w && q20_ok) {
     // EXL3 trellises (src/model/moe_exl3.h): .trellis uint16 [E, K/16, N/16, n], .suh f16 [E, K], .svh f16 [E, N]
-    if (const Tensor* t = ws_.find(full + ".trellis")) {
+    if (const Tensor* t = ws.find(full + ".trellis")) {
       const std::string fmt = expert_quant_.value("format", std::string());
       const std::string cb = expert_quant_.value("codebook", std::string());
       if (fmt != "exl3" || cb != "mcg")
         fatal("%s: EXL3 experts with config.json's expert_quant format \"%s\", codebook \"%s\": Kapitsa decodes the "
               "MCG codebook (format exl3; Sushi's Qwen3.8-Flash-Next-Sushi-2bpw and -4bpw), not the STQ codebooks "
               "(std1, spec1, pair1)", full.c_str(), fmt.c_str(), cb.c_str());
-      const Tensor *suh = ws_.find(full + ".suh"), *svh = ws_.find(full + ".svh");
+      const Tensor *suh = ws.find(full + ".suh"), *svh = ws.find(full + ".svh");
       const uint32_t n = exl3::rate_of(t->shape);
       if (t->dtype != DType::U16 || !suh || !svh || suh->dtype != DType::F16 || svh->dtype != DType::F16 || !n ||
           suh->shape.size() != 2 || svh->shape.size() != 2 || suh->shape[0] != t->shape[0] ||
@@ -726,8 +741,8 @@ QLinear Qwen35::qlin(const std::string& name, bool required, bool q20_ok) {
     iq_src_[L.w] = full + ".weight";
     return L;
   }
-  L.s = ws_.find(full + ".scales");
-  L.b = ws_.find(full + ".biases");
+  L.s = ws.find(full + ".scales");
+  L.b = ws.find(full + ".biases");
   if (!L.s && !L.b) {
     // unquantized: bf16 weights (f16 / f32 ones get a bf16 copy)
     if (L.w->shape.size() != 2) fatal("%s.weight: expected a 2-D matrix", full.c_str());
@@ -743,16 +758,9 @@ QLinear Qwen35::qlin(const std::string& name, bool required, bool q20_ok) {
     if (L.K % 64) fatal("%s: input width %u is not a multiple of 64", full.c_str(), L.K);
     return L;
   }
-  int bits = quant_cfg_.value("bits", 4), gs = quant_cfg_.value("group_size", 64);
-  std::string mode = quant_cfg_.value("mode", std::string("affine"));
-  // per-module overrides are keyed by the module path without ".weight"
-  for (auto key : {full, name}) {
-    if (quant_cfg_.contains(key) && quant_cfg_[key].is_object()) {
-      bits = quant_cfg_[key].value("bits", bits);
-      gs = quant_cfg_[key].value("group_size", gs);
-      mode = quant_cfg_[key].value("mode", mode);
-    }
-  }
+  int bits = 0, gs = 0;
+  std::string mode;
+  quant_of(full, name, bits, gs, mode);
   if (mode == "q2_0") {
     // ggml Q2_0 (src/model/moe_q20.h): codes [.., N, K/16] uint32 in MLX's 2-bit order, fp16 d [.., N, K/64], no biases
     if (!q20_ok) fatal("%s: Q2_0 weights are supported for Qwen3.8-Flash-Next's routed experts only", full.c_str());
@@ -852,8 +860,7 @@ Qwen35::Qwen35(const std::string& dir, int prefill_chunk) : dir_(dir), tmax_(pre
   ws_.open_dir(
       dir,
       [](const std::string& n) {
-        return n.find("vision_tower") == std::string::npos && n.find("visual.") == std::string::npos &&
-               n.rfind("mtp.", 0) != 0;
+        return n.find("vision_tower") == std::string::npos && n.find("visual.") == std::string::npos && !is_mtp(n);
       },
       nullptr, defer);
   if (ws_.has("language_model.model.embed_tokens.weight")) prefix_ = "language_model.";
@@ -1179,11 +1186,12 @@ static size_t st_bytes(const std::string& path, bool mtp, double expert_share = 
   size_t total = 0;
   for (auto& [name, v] : j.items()) {
     if (name == "__metadata__") continue;
-    const bool is_mtp = name.rfind("mtp.", 0) == 0;
-    if (mtp != is_mtp || name.find("vision_tower") != std::string::npos || name.find("visual.") != std::string::npos)
+    if (mtp != Qwen35::is_mtp(name) || name.find("vision_tower") != std::string::npos ||
+        name.find("visual.") != std::string::npos)
       continue;
     size_t b = v["data_offsets"][1].get<size_t>() - v["data_offsets"][0].get<size_t>();
-    if (mtp && v["dtype"] == "BF16" && v["shape"].size() == 2 && name.size() > 7 &&
+    if (mtp && (v["dtype"] == "BF16" || v["dtype"] == "F16" || v["dtype"] == "F32") && v["shape"].size() == 2 &&
+        name.size() > 7 &&
         name.compare(name.size() - 7, 7, ".weight") == 0 && name.find("norm") == std::string::npos) {
       const size_t N = v["shape"][0], K = v["shape"][1];
       b = N * K * size_t(mtp_bits) / 8 + 2 * (N * K / 64) * 2;  // quantized at load: codes + bf16 scales and biases
@@ -1227,13 +1235,14 @@ Qwen35::MemPlan Qwen35::plan(const std::string& dir, int chunk, bool rows16) {
   size_t embed = 0;  // tied models read the embedding table as their output layer
   size_t lm_head = 0;
   std::map<std::string, TensorMeta> metas;
+  // the MTP head: mtp.safetensors, else the one in the checkpoint's own shards (load_mtp reads the same)
+  const bool sidecar = std::find(files.begin(), files.end(), "mtp.safetensors") != files.end();
   for (const std::string& f : files) {
     m.weights += st_bytes(dir + "/" + f, false, share, &m.decode_bytes, &lm_head, &metas);
-    if (f == "mtp.safetensors" && !getenv("NI_NO_MTP")) {
-      m.mtp = st_bytes(dir + "/" + f, true, -1, nullptr, nullptr, nullptr, mtp_head_bits(c.moe));
-      has_mtp = m.mtp > 0;
-    }
+    if ((f == "mtp.safetensors" || !sidecar) && !getenv("NI_NO_MTP"))
+      m.mtp += st_bytes(dir + "/" + f, true, -1, nullptr, nullptr, nullptr, mtp_head_bits(c.moe));
   }
+  has_mtp = m.mtp > 0;
   m.dense = !c.moe;
   m.hidden = c.hidden;
   m.layers = c.layers;

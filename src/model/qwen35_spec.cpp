@@ -61,10 +61,10 @@ const Tensor* Qwen35::bf16_param(const Tensor* t, int& lossy) {
   return &owned_.back();
 }
 
-// bf16 [N, K] -> MLX affine 8-bit (near lossless; halves the bytes the head reads) or 4-bit (NI_MTP_BITS=4: a
-// quarter), group 64, min/max per group.
+// bf16 (or f16 / f32) [N, K] -> MLX affine 8-bit (near lossless; halves the bytes the head reads) or 4-bit
+// (NI_MTP_BITS=4: a quarter), group 64, min/max per group.
 QLinear Qwen35::quantize8(const Tensor& w, int bits) {
-  if (w.dtype != DType::BF16 || w.shape.size() != 2) fatal("quantize8: expected a 2-D bf16 tensor");
+  if (!quantizable(w)) fatal("quantize8: expected a 2-D float tensor");
   if (bits != 8 && bits != 4) fatal("quantize8: %d bits", bits);
   const uint32_t N = uint32_t(w.shape[0]), K = uint32_t(w.shape[1]);
   if (K % 64) fatal("quantize8: K=%u not a multiple of 64", K);
@@ -73,7 +73,11 @@ QLinear Qwen35::quantize8(const Tensor& w, int bits) {
   Buffer wq = g.alloc(size_t(N) * K * bits / 8, bits == 8 ? "mtp_q8" : "mtp_q4", false);
   Buffer sc = g.alloc(size_t(N) * K / 64 * 2, "mtp_q8s", false);
   Buffer bi = g.alloc(size_t(N) * K / 64 * 2, "mtp_q8b", false);
-  const uint16_t* src = w.buf.as<uint16_t>();
+  auto at = [&](size_t i) {
+    return w.dtype == DType::BF16  ? bf16_to_f32(w.buf.as<uint16_t>()[i])
+           : w.dtype == DType::F16 ? float(w.buf.as<_Float16>()[i])
+                                   : w.buf.as<float>()[i];
+  };
   uint8_t* q = wq.as<uint8_t>();  // value k of a row at bits [bits*k, bits*k + bits) of the little-endian stream
   if (bits == 4) memset(q, 0, wq.size);
   uint16_t* s = sc.as<uint16_t>();
@@ -82,7 +86,7 @@ QLinear Qwen35::quantize8(const Tensor& w, int bits) {
     for (uint32_t g0 = 0; g0 < K; g0 += 64) {
       float lo = INFINITY, hi = -INFINITY;
       for (uint32_t k = 0; k < 64; ++k) {
-        float v = bf16_to_f32(src[size_t(n) * K + g0 + k]);
+        float v = at(size_t(n) * K + g0 + k);
         lo = std::min(lo, v);
         hi = std::max(hi, v);
       }
@@ -93,7 +97,7 @@ QLinear Qwen35::quantize8(const Tensor& w, int bits) {
       s[size_t(n) * (K / 64) + g0 / 64] = sb;
       b[size_t(n) * (K / 64) + g0 / 64] = bb;
       for (uint32_t k = 0; k < 64; ++k) {
-        float v = bf16_to_f32(src[size_t(n) * K + g0 + k]);
+        float v = at(size_t(n) * K + g0 + k);
         long qv = std::lround((v - br) / sr);
         const uint8_t c = uint8_t(std::clamp(qv, 0L, long(qmax)));
         const size_t i = size_t(n) * K + g0 + k;
@@ -201,23 +205,27 @@ QLinear Qwen35::stack_experts(const WeightStore& w, const std::string& prefix, c
 void Qwen35::load_mtp(const std::string& dir) {
   WeightStore w;
   // Kapitsa's sidecar (mtp.safetensors next to the model: MLX conventions), else the head inside the checkpoint's
-  // own shards (the official Hugging Face checkpoints keep it there, norms zero-centred)
+  // own shards: the official Hugging Face checkpoints keep it there (mtp.*, norms zero-centred), and so do MLX packs
+  // that keep it (language_model.mtp.*, quantized as config.json says, norms with MLX's 1 added: Jundot's oQ "-mtp")
   bool in_shards = false;
   {
     std::ifstream sidecar(dir + "/mtp.safetensors");
     if (sidecar) {
       w.open_dir(dir, nullptr, [](const std::string& f) { return f == "mtp.safetensors"; });
     } else {
-      w.open_dir(dir, [](const std::string& n) { return n.rfind("mtp.", 0) == 0; });
+      w.open_dir(dir, is_mtp);
       in_shards = true;
     }
   }
-  if (!w.has("mtp.fc.weight")) {
+  const std::string mp = !w.has("mtp.fc.weight") && w.has("language_model.mtp.fc.weight") ? "language_model." : "";
+  if (!w.has(mp + "mtp.fc.weight")) {
     logi("no MTP head in %s; speculative decoding off", dir.c_str());
     return;
   }
-  if (cfg_.moe && !w.has("mtp.layers.0.mlp.experts.0.gate_proj.weight")) {
-    logi("MTP head in %s: experts not in the per-expert layout Kapitsa reads (fused Hugging Face experts?); "
+  const std::string p = mp + "mtp.layers.0.";
+  const bool switch_mlp = w.has(p + "mlp.switch_mlp.gate_proj.weight");  // stacked experts, as the trunk's (MLX)
+  if (cfg_.moe && !switch_mlp && !w.has(p + "mlp.experts.0.gate_proj.weight")) {
+    logi("MTP head in %s: experts not in a layout Kapitsa reads (fused Hugging Face experts?); "
          "speculative decoding with the MTP head off", dir.c_str());
     return;
   }
@@ -254,31 +262,70 @@ void Qwen35::load_mtp(const std::string& dir) {
         }
       }
     }
-    // a head read from a Hugging Face checkpoint's shards: the official models feed it the final-norm hidden
-    if (variant.empty() && in_shards && hf_norms_) variant = "post_norm";
+    // a head read from the checkpoint's own shards is Qwen's (a Hugging Face checkpoint, or an MLX pack that kept it):
+    // the official models feed it the final-norm hidden
+    if (variant.empty() && in_shards) variant = "post_norm";
     if (const char* v = getenv("NI_MTP_HIDDEN"); v && *v) variant = std::string(v) + "_norm";  // pre | post
     mtp_post_norm_hidden_ = variant == "post_norm";
   }
   // bf16 linears of the head (Hugging Face checkpoints, tools/mtp_sidecar.py) are quantized here (mtp_head_bits).
   const int mtp_bits = mtp_head_bits(cfg_.moe);
-  auto lin = [&](const std::string& n) {  // quantized in the file, or bf16 -> 4-bit here
-    QLinear L = w.has(n + ".scales") ? own_qlin(w, n) : quantize8(get(n + ".weight"), mtp_bits);
+  // An MLX pack's head that the kernels cannot read is left off (`off` says why) and the model loads without it: an
+  // unquantized tensor that is not a float matrix (unquantized stacked experts), or a module whose config.json format
+  // qlin() would refuse (checked here first: qlin's refusals end the load)
+  std::string off;
+  auto lin = [&](const std::string& n) {  // quantized in the file, or bf16 (f16, f32) -> 4-bit here
+    QLinear L;
+    if (!off.empty()) return L;
+    if (!w.has(n + ".scales")) {
+      if (in_shards && !quantizable(get(n + ".weight"))) {
+        off = n + " is unquantized and not a 2-D float matrix";
+        return L;
+      }
+      L = quantize8(get(n + ".weight"), mtp_bits);
+    } else if (!in_shards) {
+      L = own_qlin(w, n);
+    } else {  // an MLX pack's own head: the module's format in config.json, read as the trunk's; copied out of `w`
+      int bits = 0, gs = 0;
+      std::string mode;
+      quant_of(n, n, bits, gs, mode);
+      const Tensor &q = get(n + ".weight"), &sc = get(n + ".scales");
+      const Tensor* bi = w.find(n + ".biases");
+      const int64_t K = bits > 0 ? q.shape.back() * 32 / bits : 0;
+      // (qlin reads 8-bit group 128 as group 64: each scale and bias twice)
+      if (mode != "affine" || !bi || q.dtype != DType::U32 || sc.dtype != DType::BF16 || bi->dtype != DType::BF16 ||
+          gs <= 0 || K % gs || K / gs != sc.shape.back() || !format_supported(bits, bits == 8 && gs == 128 ? 64 : gs)) {
+        off = n + " is " + (mode == "affine" ? format_name(bits, gs) : mode) + " with " +
+              (bi && bi->dtype == DType::BF16 && sc.dtype == DType::BF16 ? "bf16" : "other") +
+              " scales and biases, not a format the kernels read";
+        return L;
+      }
+      L = qlin(n, true, false, &w);
+      const Tensor** t[3] = {&L.w, &L.s, &L.b};
+      const char* part[3] = {".weight", ".scales", ".biases"};
+      for (int i = 0; i < 3; ++i)
+        if (*t[i] == w.find(n + part[i])) *t[i] = own_copy(**t[i]);
+    }
     L.mtp = true;
     return L;
   };
-  // norms: the kernels read bf16 (an f32/f16 file gets an owned bf16 copy)
+  // norms: the kernels read bf16 (an f32/f16 file gets an owned bf16 copy). Zero-centred (1 + w): a Hugging Face
+  // checkpoint's head, or one whose own first norm reads so (a raw head beside an MLX trunk: the trunk's rule)
   int lossy = 0;
-  const bool zc = in_shards && hf_norms_;  // zero-centred norms (Hugging Face): 1 + w
+  bool zc = false;
+  if (in_shards) {
+    const Tensor& n0 = get(p + "input_layernorm.weight");
+    zc = hf_norms_ || zero_centred_norm(n0.buf.ptr(), n0.dtype, size_t(n0.numel()));
+  }
   auto norm = [&](const std::string& n) {
     const Tensor& t = get(n);
     if (zc) return bf16_copy(&t, 1.0f);
     return t.dtype == DType::BF16 ? own_copy(t) : bf16_param(&t, lossy);
   };
-  mtp_pre_e_ = norm("mtp.pre_fc_norm_embedding.weight");
-  mtp_pre_h_ = norm("mtp.pre_fc_norm_hidden.weight");
-  mtp_norm_ = norm("mtp.norm.weight");
-  mtp_fc_ = lin("mtp.fc");
-  const std::string p = "mtp.layers.0.";
+  mtp_pre_e_ = norm(mp + "mtp.pre_fc_norm_embedding.weight");
+  mtp_pre_h_ = norm(mp + "mtp.pre_fc_norm_hidden.weight");
+  mtp_norm_ = norm(mp + "mtp.norm.weight");
+  mtp_fc_ = lin(mp + "mtp.fc");
   Layer& L = mtp_;
   L.linear = false;
   L.in_norm = norm(p + "input_layernorm.weight");
@@ -295,14 +342,31 @@ void Qwen35::load_mtp(const std::string& dir) {
     L.sg = lin(p + "mlp.shared_expert.gate_proj");
     L.su = lin(p + "mlp.shared_expert.up_proj");
     L.sd = lin(p + "mlp.shared_expert.down_proj");
-    L.eg = stack_experts(w, p + "mlp.experts.", "gate_proj");
-    L.eu = stack_experts(w, p + "mlp.experts.", "up_proj");
-    L.ed = stack_experts(w, p + "mlp.experts.", "down_proj");
-    if (L.eg.gs != 32 && L.eg.gs != 64) fatal("MTP experts: group size %d unsupported", L.eg.gs);
+    if (switch_mlp) {
+      L.eg = lin(p + "mlp.switch_mlp.gate_proj");
+      L.eu = lin(p + "mlp.switch_mlp.up_proj");
+      L.ed = lin(p + "mlp.switch_mlp.down_proj");
+    } else {
+      L.eg = stack_experts(w, p + "mlp.experts.", "gate_proj");
+      L.eu = stack_experts(w, p + "mlp.experts.", "up_proj");
+      L.ed = stack_experts(w, p + "mlp.experts.", "down_proj");
+      if (L.eg.gs != 32 && L.eg.gs != 64) fatal("MTP experts: group size %d unsupported", L.eg.gs);
+    }
   } else {
     L.mg = lin(p + "mlp.gate_proj");
     L.mu = lin(p + "mlp.up_proj");
     L.md = lin(p + "mlp.down_proj");
+  }
+  // an MLX pack's head in formats the trunk's kernels do not pair (check_formats refuses such a trunk layer): only the
+  // head is left off
+  if (off.empty() && in_shards &&
+      (cfg_.moe ? !L.eg.same_format(L.eu) || !L.eg.same_format(L.ed) || !L.sg.same_format(L.su) ||
+                      moe_rows_kernel(true, L.eg, L.sg).empty() || moe_rows_kernel(false, L.ed, L.sd, moe_wide()).empty()
+                : !L.mg.same_format(L.mu)))
+    off = "its MLP's formats (" + (cfg_.moe ? L.eg : L.mg).name() + ") have no kernels here";
+  if (!off.empty()) {
+    logi("MTP head in %s: %s; speculative decoding with the MTP head off", dir.c_str(), off.c_str());
+    return;
   }
 
   // Draft head: the 32768 lowest token ids (byte-level BPE ids are roughly in merge order, i.e.
