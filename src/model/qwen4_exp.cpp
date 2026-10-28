@@ -183,8 +183,10 @@ static bool hc_precomb(bool q20_pack) {
 // after env_rows.
 static int prefill_group_env();
 
-Qwen4Exp::Qwen4Exp(const std::string& dir, int prefill_chunk, size_t mem_budget, const Split* split)
-    : Qwen35(dir, prefill_chunk, NoLoad{}), mem_budget_arg_(mem_budget) {
+Qwen4Exp::Qwen4Exp(const std::string& dir, int prefill_chunk, size_t mem_budget, const Split* split, int planned_ctx,
+                   int planned_slots)
+    : Qwen35(dir, prefill_chunk, NoLoad{}), mem_budget_arg_(mem_budget), planned_ctx_(planned_ctx),
+      planned_slots_(planned_slots) {
   const Split& sp = split ? *split : process_split();
   lo_ = sp.lo;
   hi_ = sp.hi;  // (-1: load_config's, every layer)
@@ -891,10 +893,16 @@ void Qwen4Exp::init_store(const std::string& dir) {
     q20::AutoStoreIn in;
     in.all = all, in.least = size_t(3) * E * lay.bytes, in.left = left, in.used = used, in.keep = keep;
     in.ram = size_t(ram);
+    // The guard also reserves the KV caches the conversations to come allocate out of the same available memory
+    // (STOREFIX: a 26-28 GB store beside 30-32 GB available aborted, max_pressure=4, once a 32K window's KV and the
+    // tree's RSS grew into the 4 GB headroom): the engine's start plan gives the positions — min(planned context, the
+    // budget's 32K keep window) times the slots (q20::auto_store_kv); a tool without a plan takes the default budget's
+    // keep window, 16384 of one conversation; NI_EXPERT_KV_POS overrides, 0 = the pre-fix size.
+    in.kv = q20::auto_store_kv(kv_bytes_per_pos(), planned_ctx_, planned_slots_);
     // NI_EXPERT_SETTLE_MS: how long the guard may wait in all for memory a process that just exited still holds
     // (default 10000; 0 = one sample); it stops once 3 s pass without 0.5 GB more available
     const int settle = env_ms("NI_EXPERT_SETTLE_MS", 10000);
-    const q20::SettledAvail sa = q20::settle_available(std::min(left, all), q20::auto_store_headroom(in.ram), settle, 250, 3000, size_t(500) << 20,
+    const q20::SettledAvail sa = q20::settle_available(std::min(left, all), q20::auto_store_headroom(in.ram) + in.kv, settle, 250, 3000, size_t(500) << 20,
                                                        [](int ms) {
                                                          if (ms) usleep(useconds_t(ms) * 1000);
                                                          return q20::available_memory();

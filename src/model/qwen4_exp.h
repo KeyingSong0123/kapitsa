@@ -65,9 +65,12 @@ class Qwen4Exp : public Qwen35 {
   // mem_budget: the GPU memory the model may hold, its KV caches and slots' state set apart (0: the default budget as
   // default_mem_budget(), less a 16K-token cache); a pack with Q2_0 routed experts keeps as many of them in memory
   // as that leaves room for and streams the rest (NI_EXPERT_STORE=<GB>|all|off sets it). split: this model's, instead
-  // of the process's (tools that hold a whole model beside a split one)
+  // of the process's (tools that hold a whole model beside a split one). planned_ctx / planned_slots: the engine's
+  // start plan (its context and conversations); the store's avail guard reserves every slot's KV, up to the budget's
+  // 32K keep window, against the available memory it sizes the store on (q20::auto_store_kv) — 0 (a tool without a
+  // plan): the default budget's keep window
   explicit Qwen4Exp(const std::string& model_dir, int prefill_chunk = 2048, size_t mem_budget = 0,
-                    const Split* split = nullptr);
+                    const Split* split = nullptr, int planned_ctx = 0, int planned_slots = 0);
   ~Qwen4Exp() override;
   // config.json's (text_config's) model_type is qwen4_exp_text / qwen4_exp
   static bool is_model(const std::string& model_dir);
@@ -237,6 +240,9 @@ class Qwen4Exp : public Qwen35 {
   int group_floor_ = -1;
   bool group_inner_ = false;
   bool in_group_ = false;
+  // the engine's start plan (context and slots; 0 = none, a tool that builds the model directly), which the
+  // store's available-memory guard reserves KV for: min(context, q20::kAutoKvCtxCap) positions per slot
+  int planned_ctx_ = 0, planned_slots_ = 0;
   // DFlash2 capture of layer `layer`'s output rows [pos0, pos0 + R): their 4 streams' mean (stream_mean)
   void enc_capture4(Encoder& e, int layer, int pos0, int R);
   // whether layer `layer`'s enc_capture4 skips (its early-returns exactly): the NI_HC_PRECOMB fold gate

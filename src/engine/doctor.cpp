@@ -51,6 +51,7 @@ uint64_t ram_bytes() {
   return m;
 }
 
+
 }  // namespace
 
 double bandwidth_gbs(const std::string& chip, int cores) {
@@ -494,6 +495,7 @@ int run_doctor(int argc, char** argv) {
                  {"group_slot_bytes", gw.charge},
                  {"budget_leaves_bytes", in.left},
                  {"available_memory_bytes", in.avail},
+                 {"kv_reserve_bytes", in.kv},
                  {"ram_share_cap", in.cap},
                  {"text", store_line}};
     }

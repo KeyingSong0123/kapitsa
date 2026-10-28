@@ -315,6 +315,49 @@ void case_auto_size() {
   r = auto_store_size(in);
   CHECK(r.headroom == (size_t(128) << 30) / 12 && r.why == AutoStoreWhy::Avail, "auto: 128 GB headroom %zu why %d",
         r.headroom, int(r.why));
+  // the KV reserve (STOREFIX): the avail guard also keeps room for the KV caches the conversations to come allocate
+  // out of the same available memory — a 26-28 GB store beside 30-32 GB available aborted (max_pressure=4) once a
+  // 32K window's KV and the tree's RSS grew into the 4 GB headroom
+  in = AutoStoreIn{};
+  in.all = 24576 * slot, in.least = 3 * 512 * slot, in.left = size_t(29.9 * GB), in.used = size_t(5.3 * GB);
+  in.keep = size_t(1.5 * GB), in.ram = ram, in.cap = 0, in.avail = size_t(32 * GB);
+  const size_t per = 65536;  // a KV position's bytes (Flash-Next's scale)
+  in.kv = per * 4096;  // a 4K window
+  r = auto_store_size(in);
+  CHECK(r.why == AutoStoreWhy::Avail && r.bytes == in.avail - (size_t(4) << 30) - in.kv &&
+            r.bytes <= in.avail - (size_t(4) << 30) - in.kv,
+        "auto: kv w4k %zu", r.bytes);
+  in.kv = per * 32768;  // a 32K window
+  r = auto_store_size(in);
+  CHECK(r.why == AutoStoreWhy::Avail && r.bytes == in.avail - (size_t(4) << 30) - in.kv &&
+            r.bytes <= in.avail - (size_t(4) << 30) - in.kv,
+        "auto: kv w32k %zu", r.bytes);
+  in.kv = size_t(40 * GB);  // a reserve beyond the sample: no less than three layers' experts
+  r = auto_store_size(in);
+  CHECK(r.why == AutoStoreWhy::Avail && r.bytes == in.least, "auto: kv least %zu", r.bytes);
+  // the reserve's positions: the plan's — min(planned context, the 32K keep window) times the slots — and, without a
+  // plan, the default budget's keep window; NI_EXPERT_KV_POS overrides with an explicit total, 0 = the pre-fix size,
+  // a bad value warned and ignored (the planned count kept)
+  unsetenv("NI_EXPERT_KV_POS");
+  CHECK(auto_store_kv(1000, 0, 0) == 1000 * 16384, "auto: kv positions no plan");
+  CHECK(auto_store_kv(1000, 4096, 1) == 1000 * 4096, "auto: kv positions planned 4k");
+  CHECK(auto_store_kv(1000, 32768, 2) == 1000 * 32768 * 2, "auto: kv positions planned 32k two slots");
+  CHECK(auto_store_kv(1000, 131072, 1) == 1000 * 32768, "auto: kv positions planned past the window");
+  setenv("NI_EXPERT_KV_POS", "32768", 1);
+  CHECK(auto_store_kv(1000, 4096, 2) == 1000 * 32768, "auto: kv positions 32768 overrides the plan");
+  setenv("NI_EXPERT_KV_POS", "0", 1);
+  CHECK(auto_store_kv(1000, 32768, 2) == 0, "auto: kv positions 0");
+  setenv("NI_EXPERT_KV_POS", "-3", 1);
+  CHECK(auto_store_kv(1000, 4096, 1) == 1000 * 4096, "auto: kv positions negative ignored");
+  unsetenv("NI_EXPERT_KV_POS");
+  // the share path (src/cluster/stage.cpp load_share): a stage holds two 32K-token conversations and builds its
+  // Qwen4Exp on that plan (planned context 32768, two slots), so on a Mac where the system's available memory binds
+  // before the budget the guard reserves the KV term `keep` subtracts from the budget as well
+  in.kv = auto_store_kv(per, 32768, 2);
+  CHECK(in.kv == per * 65536, "auto: share kv %zu", in.kv);
+  r = auto_store_size(in);
+  CHECK(r.why == AutoStoreWhy::Avail && r.bytes == in.avail - (size_t(4) << 30) - in.kv, "auto: share avail %zu",
+        r.bytes);
   // the reason line (the engine's log and kapitsa doctor print it) and its JSON name, one per reason
   in = AutoStoreIn{};
   in.all = 24576 * slot, in.least = 3 * 512 * slot, in.left = size_t(29.9 * GB), in.used = size_t(5.3 * GB);
@@ -334,6 +377,11 @@ void case_auto_size() {
              "headroom: other processes hold the rest)" &&
             !strcmp(auto_store_why_name(r.why), "available_memory"),
         "auto: avail text '%s'", t.c_str());
+  in.kv = size_t(2.1 * GB), r = auto_store_size(in), t = auto_store_reason(r, in);
+  CHECK(t == "6.6 GB rather than the 29.9 GB the budget leaves (the system's available memory 13.0 GB less 4.3 GB "
+             "headroom and 2.1 GB of KV caches to come: other processes hold the rest)",
+        "auto: kv text '%s'", t.c_str());
+  in.kv = 0;
   in.avail = 0, in.left = size_t(60 * GB), r = auto_store_size(in), t = auto_store_reason(r, in);
   CHECK(t == "all 34.2 GB of experts fit the 60.0 GB the budget leaves: resident, no SSD reads" &&
             !strcmp(auto_store_why_name(r.why), "all"),
@@ -345,6 +393,10 @@ void case_auto_size() {
   in.left = size_t(29.9 * GB), in.avail = size_t(13 * GB), r = auto_store_size(in), t = auto_store_short(r, in);
   CHECK(t == "8.7 GB, not the 29.9 GB the budget leaves: 13.0 GB available less 4.3 headroom", "auto: avail short '%s'",
         t.c_str());
+  in.kv = size_t(2.1 * GB), r = auto_store_size(in), t = auto_store_short(r, in);
+  CHECK(t == "6.6 GB, not the 29.9 GB the budget leaves: 13.0 GB available less 4.3 headroom and 2.1 KV",
+        "auto: kv short '%s'", t.c_str());
+  in.kv = 0;
   for (AutoStoreWhy w : {AutoStoreWhy::All, AutoStoreWhy::Budget, AutoStoreWhy::Avail, AutoStoreWhy::Cap,
                          AutoStoreWhy::Pinned}) {
     AutoStoreIn big;
