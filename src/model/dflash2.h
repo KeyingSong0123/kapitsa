@@ -408,6 +408,8 @@ class DFlash2 {
   int tree_cap_ = kB;      // the verify capacity of the cycle being drafted (tree_rows_ unless the context is short)
   static std::string r_list(uint32_t allowed);
   Buffer tree_buf_, kf_clq_, kf_tok_, kf_next_, kf_live_;
+  int lookup_min_ = 0;  // NI_DFLASH_LOOKUP: 0 off, 4..32 matched history tokens; v1 dense 8-row trees at T=0
+  bool lookup_trace_ = false;
   std::unique_ptr<KfBudget> kf_budget_;
   std::unique_ptr<KfBatch> kf_batch_;  // batched decode's rows (the same key + "-batch")
   // T > 0: the walk samples its chain at T_q = walk_tf_ * T (NI_DFLASH_QT; 0 = argmax chain with one-hot q)

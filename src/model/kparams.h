@@ -275,6 +275,10 @@ struct KfAccept {
   uint32_t P, R, gst, pad;
 };
 
+struct DflLookup {
+  uint32_t P, min_match, scan, cap;
+};
+
 struct KvTree {
   uint32_t pos, Hkv, D, max_seq;
 };

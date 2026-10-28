@@ -668,6 +668,20 @@ DFlash2::DFlash2(Qwen35& target, const std::string& dir, int bits, bool rows16) 
   }
   if (dyn_tau_ > 0 && !tree_)
     logi("DFlash2: dynamic verify depth, tau %.3f (T = 0) / %.3f (T > 0)", dyn_tau_, dyn_tau_t_);
+  if (const char* v = getenv("NI_DFLASH_LOOKUP"); v && *v) {
+    char* end = nullptr;
+    const long n = strtol(v, &end, 10);
+    if (!end || *end || (n != 0 && (n < 4 || n > 32)))
+      fatal("NI_DFLASH_LOOKUP=%s: 0 (off) or a match length from 4 to 32", v);
+    if (n && cfg_.v1 && !tg_.config().moe && tree_ && tree_rows_ == kB) {
+      lookup_min_ = int(n);
+      logi("DFlash2: experimental prompt lookup, suffix >= %d tokens, greedy 8-row trees; target verification retained",
+           lookup_min_);
+    } else if (n) {
+      logi("DFlash2: NI_DFLASH_LOOKUP ignored (needs a dense v1 drafter and 8-row KFlash trees)");
+    }
+  }
+  lookup_trace_ = getenv("NI_DFLASH_LOOKUP_TRACE") && atoi(getenv("NI_DFLASH_LOOKUP_TRACE")) != 0;
   if (cfg_.v1)
     logi("DFlash drafter (v1) %s: blocks of %d rows (trained %d), context window %d positions (trained %d)",
          dir.c_str(), kB, cfg_.trained_block, kCtxKeep, cfg_.trained_window);
@@ -744,6 +758,7 @@ void DFlash2::alloc_buffers() {
     memcpy(kf_next_.ptr(), nx.data(), nx.size() * 4);
   }
   kf_live_ = g.alloc(16, "dfl_kf_live");
+  memset(kf_live_.ptr(), 0, kf_live_.size);
   kf_live_.as<uint32_t>()[0] = uint32_t(B);
   kdyn_ = g.alloc(16, "dfl_kdyn");
   kdyn_.as<uint32_t>()[0] = uint32_t(D);
@@ -1461,6 +1476,11 @@ void DFlash2::set_tree(bool on) {
 }
 
 void DFlash2::observe(double ms) {
+  if (lookup_min_ && kf_live_.as<uint32_t>()[2]) {
+    if (lookup_trace_)
+      logi("dfl_lookup: matched %u, accepted %d of 7", kf_live_.as<uint32_t>()[2], accepted());
+    return;  // lookup proposals must not train the neural drafter's probability calibration
+  }
   if (tree_ && kf_budget_) kf_budget_->observe(tree_buf_.as<int32_t>(), ms);
 }
 
@@ -1852,6 +1872,12 @@ void DFlash2::encode_draft_impl(Encoder& e, Seq& s, DFlashSeq& d, int P, const S
       e.val(7, bp);
       if (gpu) e.buf(8, gst_);
       e.dispatch(1, 1, 1, 32);
+      if (lookup_min_) {
+        const kp::DflLookup lp{Pk, sp.temperature == 0 ? uint32_t(lookup_min_) : 0u, 32768u, uint32_t(s.cap)};
+        e.use(dpipe("dfl_lookup_tree"));
+        e.buf(0, s.tok); e.buf(1, tree_buf_); e.buf(2, kf_live_); e.val(3, lp); e.buf(4, gst_);
+        e.dispatch(1, 1, 1, 128);
+      }
       return;
     }
     kp::DflSelect p{Pk, sp.temperature, sp.seed, uint32_t(P + 1), sp.temperature * walk_tf_};
@@ -1923,6 +1949,11 @@ void DFlash2::encode_cycle_verify(Encoder& e, Seq& s, int P, int K, const Sampli
     e.val(4, ap);
     e.buf(5, kf_live_); e.buf(6, s.pend_path); e.buf(7, gst_);
     e.dispatch(1, 1, 1, 32);
+    if (lookup_min_) {
+      e.use(dpipe("dfl_lookup_record"));
+      e.buf(0, kf_live_);
+      e.dispatch(1, 1, 1, 32);
+    }
     tg_.encode_kv_tree_compact(e, s, P, tree_buf_);
     s.pend_tree = true;
     gst_tree_ = true;
