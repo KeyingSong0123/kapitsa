@@ -6,7 +6,7 @@
 
 Kapitsa is an inference engine for Apple silicon that runs Qwen, Nemotron and Recursive's Flint models locally, built for coding agents. It starts opencode, Claude Code, Codex or pi on a local model, and serves OpenAI and Anthropic APIs.
 
-[Benchmarks](#benchmarks) · [Quickstart](#quickstart) · [CLI](#cli) · [Models](#models) · [How KFlash works](docs/kflash.md) · [Docs](docs/usage.md)
+[Benchmarks](#benchmarks) · [Quickstart](#quickstart) · [CLI](#cli) · [Splash's engine](#splashs-engine) · [Models](#models) · [How KFlash works](docs/kflash.md) · [Docs](docs/usage.md)
 
 ## Benchmarks
 
@@ -54,6 +54,7 @@ kapitsa opencode --model 35b    # also: claude, codex, pi
 
 ```bash
 kapitsa serve                   # chat + OpenAI/Anthropic APIs at http://127.0.0.1:8000
+kapitsa serve --engine splash   # the same server, with Splash's engine running the model
 kapitsa claude                  # Claude Code on Kapitsa
 kapitsa doctor                  # this Mac's GPU and memory, and which models fit it
 kapitsa cluster                 # the Macs on this network that run Kapitsa, and their models
@@ -70,6 +71,31 @@ kapitsa update                  # update now (it also updates itself)
 A Mac that cannot hold a model whole uses another Mac on the network that runs it, and two Macs that would each stream
 Flash-Next pair to hold it in memory between them ([Several Macs](docs/usage.md#several-macs)); `--private` keeps a
 server to its own Mac. [Usage guide](docs/usage.md)</sub>
+
+## Splash's engine
+
+`kapitsa serve --engine splash` runs Inco's [Splash](https://github.com/incoai/splash) as the engine and Kapitsa as
+the server: Splash keeps the weights, the GPU and the decode loop; Kapitsa keeps the HTTP server, the chat page,
+the OpenAI and Anthropic APIs and streaming, and renders the prompt with Splash's own tokenizer and chat template, so
+the model, the prompt and the tokens are Splash's. Splash's model folder is the model, and `--splash-model` picks one
+by family (`flash-next`) or by the start of its folder name when Splash has several resolved, and `--check` says what would
+run without starting it. One command:
+
+```bash
+kapitsa serve --engine splash
+```
+
+On an M5 Pro 48 GB, in one run with a forced memory plan (a 16 GiB expert cache on both Splash arms, `NI_EXPERT_STORE=24`
+on Kapitsa's own engine) and other sessions sharing the Mac, Qwen3.8-Flash-Next Q2_0 decoded at 55.9 tok/s through this
+mode and 55.5 tok/s in plain Splash, and the second turn of a 4K chat took 0.56 s and 0.57 s to first token; Kapitsa's own
+engine took 0.26 s, and no engine leads every row ([bench/results/2026-10-28-m5-pro-flash-next-engines](bench/results/2026-10-28-m5-pro-flash-next-engines/README.md), with the
+table and its caveats in [docs/usage.md#splashs-engine](docs/usage.md#splashs-engine)).
+
+<sub>Text chat only: an image, structured output or a loop count is refused, never answered by the other engine.
+Splash's SSD cache stays off unless `--splash-persistent-cache` is given, and Kapitsa sizes Splash's expert cache for
+the memory this Mac has. Kapitsa links neither Splash's engine nor its library; Splash is Apache 2.0, and the Metal kernels adapted from it
+keep their file headers ([Third-party notices](THIRD_PARTY_NOTICES)). Flags, the failures that are not refusals and
+the measurements against plain Splash and Kapitsa's own engine: [docs/usage.md#splashs-engine](docs/usage.md#splashs-engine).</sub>
 
 ## Models
 
