@@ -31,7 +31,7 @@ for extra in (["--model", "x"], ["--allow-switch"], ["--split", "127.0.0.1:1"]):
 # no flags: the binary and the model are looked for where Splash installs them, and what is missing is named
 with tempfile.TemporaryDirectory() as home:
     env = {k: v for k, v in os.environ.items() if k != "SPLASH_HOME"}
-    env.update(HOME=home, PATH="/usr/bin:/bin")
+    env.update(HOME=home, KAPITSA_HOME=home + "/kapitsa", PATH="/usr/bin:/bin")
     r = subprocess.run([CLI, "serve", "--engine", "splash", "--private", "--port", str(free_port())], capture_output=True, text=True, timeout=60, env=env)
     if not os.path.isfile("/Applications/Splash/engine/splash"):  # a system-wide install is looked at too, and HOME= does not hide it
         check(r.returncode != 0 and "no Splash engine binary found" in r.stderr and "SPLASH_HOME" in r.stderr, "no binary: %r" % r.stderr[-300:])
@@ -79,7 +79,7 @@ class Server:
                "--port", str(self.port), *extra_serve, "--splash-arg", "--prompt-log", "--splash-arg", self.log,
                "--splash-arg", "--pid-file", "--splash-arg", self.pid_file]
         for a in fake_args: cmd += ["--splash-arg", a]
-        env = dict(os.environ, HOME=self.tmp.name)
+        env = dict(os.environ, HOME=self.tmp.name, KAPITSA_HOME=self.tmp.name + "/kapitsa")  # (splash.json goes under it, not into the developer's)
         self.proc = subprocess.Popen(cmd, env=env, cwd=cwd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
         for _ in range(100):
             if self.proc.poll() is not None: raise SystemExit("server exited: " + self.proc.stderr.read().decode()[-2000:])
@@ -229,14 +229,33 @@ finally:
     s.close()
 
 # an engine that cannot start ends the server with its reason and a plain exit status, not an abort
-r = subprocess.run([CLI, "serve", "--engine", "splash", "--splash-binary", "/nonexistent/splash", "--splash-model", MODEL,
-                    "--private", "--port", str(free_port())], capture_output=True, text=True, timeout=60)
-check(r.returncode == 1 and "did not start" in r.stderr + r.stdout, "start failure: %d %r" % (r.returncode, (r.stderr + r.stdout)[-300:]))
+with tempfile.TemporaryDirectory() as d:
+    bad = d + "/splash"
+    open(bad, "w").write("#!/bin/sh\nexit 3\n")
+    os.chmod(bad, 0o755)
+    r = subprocess.run([CLI, "serve", "--engine", "splash", "--splash-binary", bad, "--splash-model", MODEL,
+                        "--private", "--port", str(free_port())], capture_output=True, text=True, timeout=60)
+    check(r.returncode == 1 and "did not start" in r.stderr + r.stdout, "start failure: %d %r" % (r.returncode, (r.stderr + r.stdout)[-300:]))
+    # a --splash-binary that is missing or not executable: serve and --check refuse it with the same words, before anything starts
+    plain = d + "/plain"
+    open(plain, "w").write("x")
+    for path, words in (("/nonexistent/splash", "no such file"), (plain, "not an executable file")):
+        out = []
+        for extra in ([], ["--check"]):
+            r = subprocess.run([CLI, "serve", "--engine", "splash", "--splash-binary", path, "--splash-model", MODEL, *extra,
+                                "--private", "--port", str(free_port())], capture_output=True, text=True, timeout=60)
+            out.append(r)
+            check(r.returncode != 0 and "--splash-binary " + path + ": " + words in r.stderr + r.stdout,
+                  "--splash-binary %s %s: %d %r" % (path, extra, r.returncode, (r.stderr + r.stdout)[-300:]))
+            check("did not start" not in r.stderr + r.stdout, "refused before starting: %s %s" % (path, extra))
 
-# a model name is no folder: refused at once, nothing looked up or downloaded
-r = subprocess.run([CLI, "serve", "--engine", "splash", "--splash-binary", FAKE, "--splash-model", "/nonexistent/qwen3.5-35b-a3b",
-                    "--private", "--port", str(free_port())], capture_output=True, text=True, timeout=60)
-check(r.returncode != 0 and "is not a folder" in r.stderr + r.stdout, "model name refused: %d %r" % (r.returncode, (r.stderr + r.stdout)[-300:]))
+# a name that matches no resolved model is refused at once, naming it; nothing is downloaded
+with tempfile.TemporaryDirectory() as home:
+    env = dict(os.environ, HOME=home, KAPITSA_HOME=home + "/kapitsa")
+    r = subprocess.run([CLI, "serve", "--engine", "splash", "--splash-binary", FAKE, "--splash-model", "/nonexistent/qwen3.5-35b-a3b",
+                        "--private", "--port", str(free_port())], capture_output=True, text=True, timeout=60, env=env)
+    check(r.returncode != 0 and "no Splash model found" in r.stderr + r.stdout,
+          "model name refused: %d %r" % (r.returncode, (r.stderr + r.stdout)[-300:]))
 
 # turn 2 is what plain Splash sends: the client's own history, no reasoning put back (it only lengthens the prompt: Splash's
 # engine caches prompt blocks, not outputs)
@@ -324,6 +343,63 @@ try:
     check(len(s.prompts()) == 4, "a refused request reaches no engine")
 finally:
     s.close()
+# several resolved models and no --splash-model: it still starts, on the one Splash resolved last, and says which
+with tempfile.TemporaryDirectory() as home:
+    models = home + "/Library/Application Support/Splash/models"
+    for i, (name, family, age) in enumerate([("aaaaaa1111", "Qwen3.8-27B", 30), ("bbbbbb2222", "Qwen3.8-Flash-Next", 10), ("cccccc3333", "Qwen3.6-35B-A3B", 20)]):
+        d = "%s/.resolved/%s" % (models, name)
+        os.makedirs(d)
+        for e in os.listdir(MODEL):
+            if e != "model.json": os.symlink(os.path.join(MODEL, e), os.path.join(d, e))
+        json.dump({"family": family}, open(d + "/model.json", "w"))
+        os.makedirs(models + "/.selections", exist_ok=True)
+        link = "%s/.selections/sel%d" % (models, i)
+        os.symlink(d, link)
+        os.utime(link, (time.time() - age * 3600,) * 2, follow_symlinks=False)
+    os.makedirs(home + "/Applications/Splash/engine")
+    os.symlink(FAKE, home + "/Applications/Splash/engine/splash")
+    env = {k: v for k, v in os.environ.items() if k != "SPLASH_HOME"}
+    env.update(HOME=home, KAPITSA_HOME=home + "/kapitsa", PATH="/usr/bin:/bin")
+    port = free_port()
+    proc = subprocess.Popen([CLI, "serve", "--engine", "splash", "--private", "--port", str(port)], env=env,
+                            stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+    up = False
+    for _ in range(100):
+        if proc.poll() is not None: break
+        try:
+            urllib.request.urlopen("http://127.0.0.1:%d/v1/models" % port, timeout=1).read(); up = True; break
+        except Exception: time.sleep(0.1)
+    proc.terminate()
+    try: err = proc.communicate(timeout=15)[1].decode()
+    except subprocess.TimeoutExpired: proc.kill(); err = proc.communicate()[1].decode()
+    check(up, "several models, no --splash-model: started: %r" % err[-400:])
+    check("Splash model: Qwen3.8-Flash-Next bbbbbb2222" in err and "--splash-model" in err, "several models: says which: %r" % err[-400:])
+    # a started run remembers its binary and model (splash.json, under KAPITSA_HOME)
+    try: saved = json.load(open(home + "/kapitsa/splash.json"))
+    except Exception: saved = {}
+    check(saved.get("binary", "").endswith("Applications/Splash/engine/splash") and saved.get("model", "").endswith("/bbbbbb2222"),
+          "splash.json after a started run: %r" % saved)
+    # --check: says what would run, exit 0 when ready and 1 when not, and writes nothing (not splash.json either)
+    os.remove(home + "/kapitsa/splash.json")
+    r = subprocess.run([CLI, "serve", "--engine", "splash", "--check"], capture_output=True, text=True, timeout=60, env=env)
+    check(r.returncode == 0 and "Ready" in r.stdout and "bbbbbb2222" in r.stdout, "--check ready: %d %r" % (r.returncode, r.stdout[-300:]))
+    r2 = subprocess.run([CLI, "serve", "--engine", "splash", "--check", "--splash-model", "no-such-model"], capture_output=True, text=True, timeout=60, env=env)
+    check(r2.returncode == 1 and "NOT DECIDED" in r2.stdout and "Ready" not in r2.stdout, "--check not ready: %d %r" % (r2.returncode, r2.stdout[-300:]))
+    check(not os.path.exists(home + "/kapitsa/splash.json"), "--check wrote splash.json")
+    # a --splash-model that cannot be looked at (a file, a name too long for the file system, a path under a folder that cannot be
+    # searched) is no folder: --check says NOT DECIDED and exits 1, it does not abort on a filesystem_error
+    afile = home + "/not-a-folder"
+    open(afile, "w").close()
+    locked = home + "/locked"
+    os.makedirs(locked, exist_ok=True)
+    os.chmod(locked, 0)
+    try:
+        for label, bad in (("a file", afile), ("5000 characters", "x" * 5000), ("under an unsearchable folder", locked + "/model")):
+            rb = subprocess.run([CLI, "serve", "--engine", "splash", "--check", "--splash-model", bad], capture_output=True, text=True, timeout=60, env=env)
+            check(rb.returncode == 1 and "NOT DECIDED" in rb.stdout and "Ready" not in rb.stdout,
+                  "--check with a --splash-model that is %s: %d %r %r" % (label, rb.returncode, rb.stdout[-200:], rb.stderr[-200:]))
+    finally:
+        os.chmod(locked, 0o700)
 
 print("test_splash_engine: %s" % ("ok" if not failures else "%d FAILED" % failures))
 sys.exit(1 if failures else 0)
