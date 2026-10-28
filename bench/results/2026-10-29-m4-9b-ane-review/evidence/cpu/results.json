@@ -1,0 +1,349 @@
+[
+  {
+    "name": "vk-cpu-tests",
+    "command": [
+      ".dsh/skills/verify-kapitsa/scripts/vk",
+      "cpu-tests"
+    ],
+    "returncode": 0,
+    "started_utc": "2026-10-28T16:05:30.650846+00:00",
+    "seconds": 757.6967668533325
+  },
+  {
+    "name": "execution_session_test",
+    "command": [
+      "build/execution_session_test"
+    ],
+    "returncode": 0,
+    "started_utc": "2026-10-28T16:18:08.348306+00:00",
+    "seconds": 0.1291790008544922
+  },
+  {
+    "name": "http_stream_test",
+    "command": [
+      "build/http_stream_test"
+    ],
+    "returncode": 0,
+    "started_utc": "2026-10-28T16:18:08.478135+00:00",
+    "seconds": 1.060107946395874
+  },
+  {
+    "name": "json_file_test",
+    "command": [
+      "build/json_file_test"
+    ],
+    "returncode": 0,
+    "started_utc": "2026-10-28T16:18:09.540455+00:00",
+    "seconds": 1.132601022720337
+  },
+  {
+    "name": "exl3_test",
+    "command": [
+      "build/exl3_test"
+    ],
+    "returncode": 0,
+    "started_utc": "2026-10-28T16:18:10.673828+00:00",
+    "seconds": 0.45131707191467285
+  },
+  {
+    "name": "splash_protocol_test",
+    "command": [
+      "build/splash_protocol_test"
+    ],
+    "returncode": 0,
+    "started_utc": "2026-10-28T16:18:11.126094+00:00",
+    "seconds": 0.014400005340576172
+  },
+  {
+    "name": "splash_runtime_test",
+    "command": [
+      "build/splash_runtime_test"
+    ],
+    "returncode": 0,
+    "started_utc": "2026-10-28T16:18:11.141516+00:00",
+    "seconds": 4.337522983551025
+  },
+  {
+    "name": "splash_discover_test",
+    "command": [
+      "build/splash_discover_test"
+    ],
+    "returncode": 0,
+    "started_utc": "2026-10-28T16:18:15.480177+00:00",
+    "seconds": 0.13152098655700684
+  },
+  {
+    "name": "splash_plan_test",
+    "command": [
+      "build/splash_plan_test"
+    ],
+    "returncode": 0,
+    "started_utc": "2026-10-28T16:18:15.612373+00:00",
+    "seconds": 0.010749101638793945
+  },
+  {
+    "name": "ane_segment_check",
+    "command": [
+      "build/ane_segment_check"
+    ],
+    "returncode": 0,
+    "started_utc": "2026-10-28T16:18:15.623615+00:00",
+    "seconds": 0.3864278793334961
+  },
+  {
+    "name": "logit-dump-cli",
+    "command": [
+      "$VENV/bin/python",
+      "tests/test_logit_dump.py",
+      "build"
+    ],
+    "returncode": 0,
+    "started_utc": "2026-10-28T16:18:16.011137+00:00",
+    "seconds": 0.539423942565918
+  },
+  {
+    "name": "structured-tokenizer",
+    "command": [
+      "$VENV/bin/python",
+      "tests/test_structured.py",
+      "--cli",
+      "build",
+      "$MODELS/qwen3.5-4b-4bit"
+    ],
+    "returncode": 0,
+    "started_utc": "2026-10-28T16:18:16.551307+00:00",
+    "seconds": 20.504810094833374
+  },
+  {
+    "name": "parser-4b",
+    "command": [
+      "build/parser_test",
+      "$MODELS/qwen3.5-4b-4bit"
+    ],
+    "returncode": 0,
+    "started_utc": "2026-10-28T16:18:37.056867+00:00",
+    "seconds": 0.7755529880523682
+  },
+  {
+    "name": "parser-9b",
+    "command": [
+      "build/parser_test",
+      "$MODELS/qwen3.5-9b-4bit"
+    ],
+    "returncode": 0,
+    "started_utc": "2026-10-28T16:18:37.833132+00:00",
+    "seconds": 0.4444730281829834
+  },
+  {
+    "name": "prek",
+    "command": [
+      "$USER_ROOT/.local/bin/prek",
+      "run",
+      "--all-files"
+    ],
+    "returncode": 0,
+    "started_utc": "2026-10-28T16:18:38.278433+00:00",
+    "seconds": 0.5075247287750244
+  },
+  {
+    "name": "diff-check",
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "returncode": 0,
+    "started_utc": "2026-10-28T16:18:38.786641+00:00",
+    "seconds": 0.023672103881835938
+  },
+  {
+    "name": "dflash-accept-cpu",
+    "command": [
+      "build/dflash_accept_test",
+      "--cpu"
+    ],
+    "returncode": 0,
+    "started_utc": "2026-10-28T16:18:38.810885+00:00",
+    "seconds": 0.6040008068084717
+  },
+  {
+    "name": "vision-pixels-cpu",
+    "command": [
+      "build/vision_pixels_test"
+    ],
+    "returncode": 0,
+    "started_utc": "2026-10-28T16:18:39.416143+00:00",
+    "seconds": 0.4046788215637207
+  },
+  {
+    "name": "splash-engine-fake",
+    "command": [
+      "$VENV/bin/python",
+      "tests/test_splash_engine.py",
+      "build/kapitsa"
+    ],
+    "returncode": 0,
+    "started_utc": "2026-10-28T16:18:39.821970+00:00",
+    "seconds": 14.426392078399658
+  },
+  {
+    "name": "gpu-lock-held",
+    "command": [
+      "$VENV/bin/python",
+      "tests/test_gpu_lock_held.py"
+    ],
+    "returncode": 0,
+    "started_utc": "2026-10-28T16:18:54.249104+00:00",
+    "seconds": 15.102495431900024
+  },
+  {
+    "name": "compare-cli",
+    "command": [
+      "$VENV/bin/python",
+      "tests/test_compare.py",
+      "build"
+    ],
+    "returncode": 0,
+    "started_utc": "2026-10-28T16:19:09.352805+00:00",
+    "seconds": 21.476679801940918
+  },
+  {
+    "name": "agentic-metrics",
+    "command": [
+      "$VENV/bin/python",
+      "tests/test_agentic.py"
+    ],
+    "returncode": 0,
+    "started_utc": "2026-10-28T16:19:30.830393+00:00",
+    "seconds": 13.632311820983887
+  },
+  {
+    "name": "gen-readme-tests",
+    "command": [
+      "$VENV/bin/python",
+      "tests/test_gen_readme.py"
+    ],
+    "returncode": 0,
+    "started_utc": "2026-10-28T16:19:44.464989+00:00",
+    "seconds": 0.08079886436462402
+  },
+  {
+    "name": "readme-images-tests",
+    "command": [
+      "$VENV/bin/python",
+      "tests/test_readme_images.py"
+    ],
+    "returncode": 0,
+    "started_utc": "2026-10-28T16:19:44.546573+00:00",
+    "seconds": 0.12275075912475586
+  },
+  {
+    "name": "bench-table",
+    "command": [
+      "$VENV/bin/python",
+      "bench/gen_readme.py",
+      "--check"
+    ],
+    "returncode": 0,
+    "started_utc": "2026-10-28T16:19:44.670100+00:00",
+    "seconds": 1.43914794921875
+  },
+  {
+    "name": "readme-tables",
+    "command": [
+      "$VENV/bin/python",
+      "tools/readme_images/readme_images.py",
+      "--tables",
+      "--check"
+    ],
+    "returncode": 0,
+    "started_utc": "2026-10-28T16:19:46.110132+00:00",
+    "seconds": 0.18298697471618652
+  },
+  {
+    "name": "community-table",
+    "command": [
+      "$VENV/bin/python",
+      "tools/community_table.py",
+      "--check"
+    ],
+    "returncode": 0,
+    "started_utc": "2026-10-28T16:19:46.293857+00:00",
+    "seconds": 0.12063789367675781
+  },
+  {
+    "name": "docs-links",
+    "command": [
+      "$VENV/bin/python",
+      "tests/test_docs_links.py"
+    ],
+    "returncode": 0,
+    "started_utc": "2026-10-28T16:19:46.415283+00:00",
+    "seconds": 0.0717921257019043
+  },
+  {
+    "name": "fp4-requant-cpu",
+    "command": [
+      "$VENV/bin/python",
+      "tests/test_nh_fp4_requant.py"
+    ],
+    "returncode": 0,
+    "started_utc": "2026-10-28T16:19:46.487882+00:00",
+    "seconds": 2.1776351928710938
+  },
+  {
+    "name": "sdk-configure",
+    "command": [
+      "cmake",
+      "-S",
+      "$REPO",
+      "-B",
+      "$RUN/sdk-build",
+      "-DCMAKE_BUILD_TYPE=Release",
+      "-DKAPITSA_BUILD_SDK=ON"
+    ],
+    "returncode": 0,
+    "started_utc": "2026-10-28T16:19:48.666328+00:00",
+    "seconds": 1.6396610736846924
+  },
+  {
+    "name": "sdk-build",
+    "command": [
+      "cmake",
+      "--build",
+      "$RUN/sdk-build",
+      "-j",
+      "6",
+      "--target",
+      "sdk_contract_test",
+      "sdk_model_test"
+    ],
+    "returncode": 0,
+    "started_utc": "2026-10-28T16:19:50.306390+00:00",
+    "seconds": 38.236533880233765
+  },
+  {
+    "name": "sdk-contract",
+    "command": [
+      "ctest",
+      "--test-dir",
+      "$RUN/sdk-build",
+      "-R",
+      "^sdk_contract_test$",
+      "--output-on-failure"
+    ],
+    "returncode": 0,
+    "started_utc": "2026-10-28T16:20:28.544300+00:00",
+    "seconds": 2.470970869064331
+  },
+  {
+    "name": "sdk-exports",
+    "command": [
+      "$VENV/bin/python",
+      "$RUN/scripts/check_sdk_exports.py"
+    ],
+    "returncode": 0,
+    "started_utc": "2026-10-28T16:20:31.016574+00:00",
+    "seconds": 0.5126042366027832
+  }
+]

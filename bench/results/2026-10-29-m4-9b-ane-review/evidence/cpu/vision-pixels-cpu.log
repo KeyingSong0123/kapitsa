@@ -1,0 +1,7 @@
+ok   pixel addresses are page aligned, including non-page-sized images
+ok   mapped lengths cover the image and padding, without another full page
+ok   Prepared copies own their pixels independently
+ok   Prepared moves keep the address; metadata-only reset releases storage
+ok   vector reallocation preserves alignment and contents
+ok   page rounding rejects size overflow
+ok   every bicubic resize branch writes directly into aligned pixel storage

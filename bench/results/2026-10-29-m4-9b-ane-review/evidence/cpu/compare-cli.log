@@ -1,0 +1,94 @@
+PASS the arguments reach kbench.py
+PASS the exit code is forwarded
+PASS KAPITSA_BIN names this binary
+PASS no harness: says how to get it, downloads nothing, starts nothing
+PASS an installed layout: share/kapitsa/bench/harness beside the binary is found, with no env var
+PASS an unpacked release: bench/harness in the binary's own folder is found, with no env var
+PASS another engine already running: refuses, names it, measures nothing
+PASS --list picks the tuned variant (best) of an engine
+PASS a missing binary reads 'not installed'
+PASS and says how to get it
+     (run took 16s)
+PASS a run with one engine failing still succeeds
+PASS the table names the engines
+PASS the failed engine is reported
+PASS statuses
+PASS the tuned variants ran
+PASS cached TTFT was measured
+PASS --quick: one prefill size
+PASS the Markdown report has its parts
+PASS --json prints one document
+PASS a missing engine is in `skipped` with its reason
+PASS the report holds no path of this Mac
+PASS --json with --report to stdout is refused
+PASS an unknown engine is refused
+PASS an unknown model names the choices
+PASS a harness copy with no checkout names its release in reports
+PASS colour only when asked for; the plain render has no escape codes
+PASS a verdict line per measure says where Kapitsa stands
+PASS the verdict names the engine and the factor; the table marks Kapitsa and draws bars
+PASS bars have eighth-block resolution
+PASS 4b kapitsa: no control config is a candidate
+PASS 4b kapitsa: tuned first
+PASS 4b omlx: no control config is a candidate
+PASS 4b omlx: tuned first
+PASS 4b mlx-serve: no control config is a candidate
+PASS 4b mlx-serve: tuned first
+PASS 4b mlx-lm: no control config is a candidate
+PASS 4b mlx-lm: tuned first
+PASS 4b llama.cpp: no control config is a candidate
+PASS 4b llama.cpp: tuned first
+PASS 4b ollama: no control config is a candidate
+PASS 4b ollama: tuned first
+PASS 4b lmstudio: no control config is a candidate
+PASS 4b lmstudio: tuned first
+PASS 4b mtplx: no control config is a candidate
+PASS 4b mtplx: tuned first
+PASS 4b rapid-mlx: no control config is a candidate
+PASS 4b rapid-mlx: tuned first
+PASS 4b mlx-vlm: no control config is a candidate
+PASS 4b mlx-vlm: tuned first
+PASS 27b kapitsa: no control config is a candidate
+PASS 27b kapitsa: tuned first
+PASS 27b omlx: no control config is a candidate
+PASS 27b omlx: tuned first
+PASS 27b mlx-serve: no control config is a candidate
+PASS 27b mlx-serve: tuned first
+PASS 27b mlx-lm: no control config is a candidate
+PASS 27b mlx-lm: tuned first
+PASS 27b llama.cpp: no control config is a candidate
+PASS 27b llama.cpp: tuned first
+PASS 27b ollama: no control config is a candidate
+PASS 27b ollama: tuned first
+PASS 27b lmstudio: no control config is a candidate
+PASS 27b lmstudio: tuned first
+PASS 27b mtplx: no control config is a candidate
+PASS 27b mtplx: tuned first
+PASS 27b rapid-mlx: no control config is a candidate
+PASS 27b rapid-mlx: tuned first
+PASS 27b mlx-vlm: no control config is a candidate
+PASS 27b mlx-vlm: tuned first
+PASS 35b kapitsa: no control config is a candidate
+PASS 35b kapitsa: tuned first
+PASS 35b omlx: no control config is a candidate
+PASS 35b omlx: tuned first
+PASS 35b mlx-serve: no control config is a candidate
+PASS 35b mlx-serve: tuned first
+PASS 35b mlx-lm: no control config is a candidate
+PASS 35b mlx-lm: tuned first
+PASS 35b llama.cpp: no control config is a candidate
+PASS 35b llama.cpp: tuned first
+PASS 35b ollama: no control config is a candidate
+PASS 35b ollama: tuned first
+PASS 35b lmstudio: no control config is a candidate
+PASS 35b lmstudio: tuned first
+PASS 35b mtplx: no control config is a candidate
+PASS 35b mtplx: tuned first
+PASS 35b rapid-mlx: no control config is a candidate
+PASS 35b rapid-mlx: tuned first
+PASS 35b mlx-vlm: no control config is a candidate
+PASS 35b mlx-vlm: tuned first
+PASS oMLX has a tuned 4B variant
+PASS Kapitsa as pulled: its folder, no drafter named
+
+all passed

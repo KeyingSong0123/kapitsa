@@ -1,0 +1,14 @@
+{
+  "label": "logit-4b-base-default",
+  "returncode": 0,
+  "wall_seconds": 25.339488744735718,
+  "foreign_mean_pct": 0.0,
+  "foreign_peak_pct": 0,
+  "thermal_states": [
+    "nominal"
+  ],
+  "swapouts_delta": 0,
+  "samples": 26,
+  "user_activity_observed": false,
+  "summaries": []
+}

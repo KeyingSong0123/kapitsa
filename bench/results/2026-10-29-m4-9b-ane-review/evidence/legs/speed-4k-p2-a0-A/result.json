@@ -1,0 +1,14 @@
+{
+  "label": "speed-4k-p2-a0-A",
+  "returncode": 0,
+  "wall_seconds": 85.41941213607788,
+  "foreign_mean_pct": 0.36915259334240136,
+  "foreign_peak_pct": 26.19252880383531,
+  "thermal_states": [
+    "nominal"
+  ],
+  "swapouts_delta": 0,
+  "samples": 85,
+  "user_activity_observed": false,
+  "summaries": []
+}

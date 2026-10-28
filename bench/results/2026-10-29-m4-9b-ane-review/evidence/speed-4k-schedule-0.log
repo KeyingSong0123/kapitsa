@@ -1,0 +1,342 @@
+START speed-4k-p0-a0-A
+speed-4k-p0-a0-A: waiting for GPU lock
+speed-4k-p0-a0-A: GPU quiet, running
+{"label": "speed-4k-p0-a0-A", "returncode": 0, "wall_seconds": 86.91473484039307, "foreign_mean_pct": 0.35552504821714864, "foreign_peak_pct": 26.473394105663655, "thermal_states": ["nominal"], "swapouts_delta": 0, "samples": 87, "user_activity_observed": false, "summaries": []}
+{"label": "speed-4k-p0-a0-A", "requests": {"code-scheduler-4096": {"ttft_s": 17.6475825, "total_s": 27.136715125, "ttft_valid": false, "reasons": ["other GPU including desktop mean above1%", "other GPU including desktop peak above2%"]}, "prose-zh-4096": {"ttft_s": 17.759655333, "total_s": 37.475273833, "ttft_valid": true, "reasons": []}}}
+START speed-4k-p0-a0-B
+speed-4k-p0-a0-B: waiting for GPU lock
+speed-4k-p0-a0-B: GPU quiet, running
+{"label": "speed-4k-p0-a0-B", "returncode": 0, "wall_seconds": 57.24074411392212, "foreign_mean_pct": 0.07177644585618789, "foreign_peak_pct": 2.273348730002006, "thermal_states": ["nominal"], "swapouts_delta": 0, "samples": 57, "user_activity_observed": false, "summaries": []}
+{"label": "speed-4k-p0-a0-B", "requests": {"code-scheduler-4096": {"ttft_s": 6.498963417, "total_s": 16.510348708, "ttft_valid": true, "reasons": []}, "prose-zh-4096": {"ttft_s": 6.5886745, "total_s": 25.725957417, "ttft_valid": true, "reasons": []}}}
+START speed-4k-p0-a1-A
+speed-4k-p0-a1-A: waiting for GPU lock
+speed-4k-p0-a1-A: GPU quiet, running
+{"label": "speed-4k-p0-a1-A", "returncode": 0, "wall_seconds": 48.91725277900696, "foreign_mean_pct": 0.0436323484789803, "foreign_peak_pct": 1.355363982779227, "thermal_states": ["nominal"], "swapouts_delta": 0, "samples": 49, "user_activity_observed": false, "summaries": []}
+{"label": "speed-4k-p0-a1-A", "requests": {"code-scheduler-4096": {"ttft_s": 17.733989542, "total_s": 27.084397833, "ttft_valid": true, "reasons": []}}}
+START speed-4k-p0-a1-B
+speed-4k-p0-a1-B: waiting for GPU lock
+speed-4k-p0-a1-B: GPU quiet, running
+{"label": "speed-4k-p0-a1-B", "returncode": 0, "wall_seconds": 29.189360857009888, "foreign_mean_pct": 0.0, "foreign_peak_pct": 0, "thermal_states": ["nominal"], "swapouts_delta": 0, "samples": 29, "user_activity_observed": false, "summaries": []}
+{"label": "speed-4k-p0-a1-B", "requests": {"code-scheduler-4096": {"ttft_s": 6.437022, "total_s": 15.735291625, "ttft_valid": true, "reasons": []}}}
+START speed-4k-p1-a0-B
+speed-4k-p1-a0-B: waiting for GPU lock
+speed-4k-p1-a0-B: GPU quiet, running
+{"label": "speed-4k-p1-a0-B", "returncode": 0, "wall_seconds": 54.41741228103638, "foreign_mean_pct": 0.272223866388508, "foreign_peak_pct": 7.704280136193854, "thermal_states": ["nominal"], "swapouts_delta": 0, "samples": 55, "user_activity_observed": false, "summaries": []}
+{"label": "speed-4k-p1-a0-B", "requests": {"code-scheduler-4096": {"ttft_s": 6.455660709, "total_s": 15.873347167, "ttft_valid": true, "reasons": []}, "prose-zh-4096": {"ttft_s": 6.438248583, "total_s": 24.95955025, "ttft_valid": true, "reasons": []}}}
+START speed-4k-p1-a0-A
+speed-4k-p1-a0-A: waiting for GPU lock
+speed-4k-p1-a0-A: GPU quiet, running
+{"label": "speed-4k-p1-a0-A", "returncode": 0, "wall_seconds": 87.52055978775024, "foreign_mean_pct": 0.9667237904788546, "foreign_peak_pct": 35.89378497399355, "thermal_states": ["nominal"], "swapouts_delta": 0, "samples": 88, "user_activity_observed": false, "summaries": []}
+{"label": "speed-4k-p1-a0-A", "requests": {"code-scheduler-4096": {"ttft_s": 17.753747084, "total_s": 27.802469625, "ttft_valid": true, "reasons": []}, "prose-zh-4096": {"ttft_s": 18.315806208, "total_s": 37.695187208, "ttft_valid": false, "reasons": ["other GPU including desktop mean above1%", "other GPU including desktop peak above2%"]}}}
+START speed-4k-p1-a1-B
+speed-4k-p1-a1-B: waiting for GPU lock
+speed-4k-p1-a1-B: GPU quiet, running
+{"label": "speed-4k-p1-a1-B", "returncode": 0, "wall_seconds": 40.022315979003906, "foreign_mean_pct": 0.07362529589528946, "foreign_peak_pct": 2.3295615287820435, "thermal_states": ["nominal"], "swapouts_delta": 0, "samples": 40, "user_activity_observed": false, "summaries": []}
+{"label": "speed-4k-p1-a1-B", "requests": {"prose-zh-4096": {"ttft_s": 6.390043375, "total_s": 25.339594583, "ttft_valid": true, "reasons": []}}}
+START speed-4k-p1-a1-A
+speed-4k-p1-a1-A: waiting for GPU lock
+speed-4k-p1-a1-A: GPU quiet, running
+{"label": "speed-4k-p1-a1-A", "returncode": 0, "wall_seconds": 57.78631925582886, "foreign_mean_pct": 0.04351305923919374, "foreign_peak_pct": 1.667840486452345, "thermal_states": ["nominal"], "swapouts_delta": 0, "samples": 58, "user_activity_observed": false, "summaries": []}
+{"label": "speed-4k-p1-a1-A", "requests": {"prose-zh-4096": {"ttft_s": 17.589733791, "total_s": 36.695331125, "ttft_valid": true, "reasons": []}}}
+START speed-4k-p2-a0-A
+speed-4k-p2-a0-A: waiting for GPU lock
+speed-4k-p2-a0-A: GPU quiet, running
+{"label": "speed-4k-p2-a0-A", "returncode": 0, "wall_seconds": 85.41941213607788, "foreign_mean_pct": 0.36915259334240136, "foreign_peak_pct": 26.19252880383531, "thermal_states": ["nominal"], "swapouts_delta": 0, "samples": 85, "user_activity_observed": false, "summaries": []}
+{"label": "speed-4k-p2-a0-A", "requests": {"code-scheduler-4096": {"ttft_s": 17.538487834, "total_s": 27.123821292, "ttft_valid": false, "reasons": ["other GPU including desktop mean above1%", "other GPU including desktop peak above2%"]}, "prose-zh-4096": {"ttft_s": 17.7321495, "total_s": 36.936678083, "ttft_valid": true, "reasons": []}}}
+START speed-4k-p2-a0-B
+speed-4k-p2-a0-B: waiting for GPU lock
+speed-4k-p2-a0-B: GPU quiet, running
+{"label": "speed-4k-p2-a0-B", "returncode": 0, "wall_seconds": 55.154645919799805, "foreign_mean_pct": 0.053327908632177616, "foreign_peak_pct": 1.4114792831063614, "thermal_states": ["nominal"], "swapouts_delta": 0, "samples": 55, "user_activity_observed": false, "summaries": []}
+{"label": "speed-4k-p2-a0-B", "requests": {"code-scheduler-4096": {"ttft_s": 6.37788275, "total_s": 15.783966041, "ttft_valid": true, "reasons": []}, "prose-zh-4096": {"ttft_s": 6.443784458, "total_s": 24.910916166, "ttft_valid": true, "reasons": []}}}
+START speed-4k-p2-a1-A
+speed-4k-p2-a1-A: waiting for GPU lock
+speed-4k-p2-a1-A: GPU quiet, running
+{"label": "speed-4k-p2-a1-A", "returncode": 0, "wall_seconds": 48.18397903442383, "foreign_mean_pct": 0.0, "foreign_peak_pct": 0, "thermal_states": ["nominal"], "swapouts_delta": 0, "samples": 48, "user_activity_observed": false, "summaries": []}
+{"label": "speed-4k-p2-a1-A", "requests": {"code-scheduler-4096": {"ttft_s": 17.534944292, "total_s": 26.893417709, "ttft_valid": true, "reasons": []}}}
+START speed-4k-p2-a1-B
+speed-4k-p2-a1-B: waiting for GPU lock
+speed-4k-p2-a1-B: GPU quiet, running
+{"label": "speed-4k-p2-a1-B", "returncode": 0, "wall_seconds": 30.24407410621643, "foreign_mean_pct": 0.0, "foreign_peak_pct": 0, "thermal_states": ["nominal"], "swapouts_delta": 0, "samples": 31, "user_activity_observed": false, "summaries": []}
+{"label": "speed-4k-p2-a1-B", "requests": {"code-scheduler-4096": {"ttft_s": 6.3501655, "total_s": 15.839510875, "ttft_valid": true, "reasons": []}}}
+START speed-4k-p3-a0-B
+speed-4k-p3-a0-B: waiting for GPU lock
+speed-4k-p3-a0-B: GPU quiet, running
+{"label": "speed-4k-p3-a0-B", "returncode": 0, "wall_seconds": 54.77919602394104, "foreign_mean_pct": 0.29455046548726305, "foreign_peak_pct": 9.658690033545152, "thermal_states": ["nominal"], "swapouts_delta": 0, "samples": 55, "user_activity_observed": false, "summaries": []}
+{"label": "speed-4k-p3-a0-B", "requests": {"code-scheduler-4096": {"ttft_s": 6.352376041, "total_s": 15.759948291, "ttft_valid": true, "reasons": []}, "prose-zh-4096": {"ttft_s": 6.462439166, "total_s": 24.740686791, "ttft_valid": true, "reasons": []}}}
+START speed-4k-p3-a0-A
+speed-4k-p3-a0-A: waiting for GPU lock
+speed-4k-p3-a0-A: GPU quiet, running
+{"label": "speed-4k-p3-a0-A", "returncode": 0, "wall_seconds": 84.38221883773804, "foreign_mean_pct": 0.5188303552429882, "foreign_peak_pct": 29.142716376687588, "thermal_states": ["nominal"], "swapouts_delta": 0, "samples": 84, "user_activity_observed": false, "summaries": []}
+{"label": "speed-4k-p3-a0-A", "requests": {"code-scheduler-4096": {"ttft_s": 17.748409167, "total_s": 27.114425333, "ttft_valid": true, "reasons": []}, "prose-zh-4096": {"ttft_s": 17.742790667, "total_s": 36.942679458, "ttft_valid": true, "reasons": []}}}
+{
+  "confirmed": true,
+  "workloads": {
+    "code-scheduler-4096": {
+      "primary_ttft": {
+        "pairs": 4,
+        "ratios_A_over_B": [
+          2.7549990573280625,
+          2.7501053547081638,
+          2.761336581227686,
+          2.793979615256848
+        ],
+        "geometric_speed_ratio": 2.7650522439698473,
+        "time_reduction_pct": 63.83431806104765,
+        "A_seconds": [
+          17.733989542,
+          17.753747084,
+          17.534944292,
+          17.748409167
+        ],
+        "B_seconds": [
+          6.437022,
+          6.455660709,
+          6.3501655,
+          6.352376041
+        ],
+        "ci95_ratio": [
+          2.733832496445194,
+          2.7966285139357145
+        ]
+      },
+      "primary_confirmed": true,
+      "complete_http_on_selected_pairs": {
+        "pairs": 4,
+        "ratios_A_over_B": [
+          1.7212517237347358,
+          1.7515190295087937,
+          1.697869203236997,
+          1.7204641051064982
+        ],
+        "geometric_speed_ratio": 1.7226707268024493,
+        "time_reduction_pct": 41.950601212330405,
+        "A_seconds": [
+          27.084397833,
+          27.802469625,
+          26.893417709,
+          27.114425333
+        ],
+        "B_seconds": [
+          15.735291625,
+          15.873347167,
+          15.839510875,
+          15.759948291
+        ],
+        "ci95_ratio": [
+          1.6880469027183127,
+          1.7580047261739424
+        ]
+      },
+      "complete_http_with_whole_request_telemetry": {
+        "pairs": 4,
+        "ratios_A_over_B": [
+          1.7212517237347358,
+          1.7515190295087937,
+          1.697869203236997,
+          1.7204641051064982
+        ],
+        "geometric_speed_ratio": 1.7226707268024493,
+        "time_reduction_pct": 41.950601212330405,
+        "A_seconds": [
+          27.084397833,
+          27.802469625,
+          26.893417709,
+          27.114425333
+        ],
+        "B_seconds": [
+          15.735291625,
+          15.873347167,
+          15.839510875,
+          15.759948291
+        ],
+        "ci95_ratio": [
+          1.6880469027183127,
+          1.7580047261739424
+        ]
+      },
+      "first_attempts_ttft_sensitivity": {
+        "pairs": 4,
+        "ratios_A_over_B": [
+          2.7154457361365387,
+          2.7501053547081638,
+          2.7498918561963217,
+          2.793979615256848
+        ],
+        "geometric_speed_ratio": 2.752214807170997,
+        "time_reduction_pct": 63.66562677468113,
+        "A_seconds": [
+          17.6475825,
+          17.753747084,
+          17.538487834,
+          17.748409167
+        ],
+        "B_seconds": [
+          6.498963417,
+          6.455660709,
+          6.37788275,
+          6.352376041
+        ],
+        "ci95_ratio": [
+          2.701550325707879,
+          2.8038294429427353
+        ]
+      },
+      "first_attempts_http_sensitivity": {
+        "pairs": 4,
+        "ratios_A_over_B": [
+          1.6436185331355875,
+          1.7515190295087937,
+          1.7184414374399881,
+          1.7204641051064982
+        ],
+        "geometric_speed_ratio": 1.708044025426198,
+        "time_reduction_pct": 41.453499727533305,
+        "A_seconds": [
+          27.136715125,
+          27.802469625,
+          27.123821292,
+          27.114425333
+        ],
+        "B_seconds": [
+          16.510348708,
+          15.873347167,
+          15.783966041,
+          15.759948291
+        ],
+        "ci95_ratio": [
+          1.6360168456294788,
+          1.7832422695327548
+        ]
+      },
+      "identical_replies_in_selected_pairs": 4,
+      "selected_reply_pairs": 4
+    },
+    "prose-zh-4096": {
+      "primary_ttft": {
+        "pairs": 4,
+        "ratios_A_over_B": [
+          2.695482275380276,
+          2.752678308854202,
+          2.7518222584222882,
+          2.7455253676271125
+        ],
+        "geometric_speed_ratio": 2.7362731269543565,
+        "time_reduction_pct": 63.453940684895635,
+        "A_seconds": [
+          17.759655333,
+          17.589733791,
+          17.7321495,
+          17.742790667
+        ],
+        "B_seconds": [
+          6.5886745,
+          6.390043375,
+          6.443784458,
+          6.462439166
+        ],
+        "ci95_ratio": [
+          2.6927342079395915,
+          2.7805160283612134
+        ]
+      },
+      "primary_confirmed": true,
+      "complete_http_on_selected_pairs": {
+        "pairs": 4,
+        "ratios_A_over_B": [
+          1.4567105599046013,
+          1.4481419978841499,
+          1.482750687966006,
+          1.4931953898482218
+        ],
+        "geometric_speed_ratio": 1.470084497959382,
+        "time_reduction_pct": 31.97669920415487,
+        "A_seconds": [
+          37.475273833,
+          36.695331125,
+          36.936678083,
+          36.942679458
+        ],
+        "B_seconds": [
+          25.725957417,
+          25.339594583,
+          24.910916166,
+          24.740686791
+        ],
+        "ci95_ratio": [
+          1.4366633559772783,
+          1.5042831169521855
+        ]
+      },
+      "complete_http_with_whole_request_telemetry": {
+        "pairs": 1,
+        "ratios_A_over_B": [
+          1.482750687966006
+        ],
+        "geometric_speed_ratio": 1.482750687966006,
+        "time_reduction_pct": 32.55777872059053,
+        "A_seconds": [
+          36.936678083
+        ],
+        "B_seconds": [
+          24.910916166
+        ]
+      },
+      "first_attempts_ttft_sensitivity": {
+        "pairs": 4,
+        "ratios_A_over_B": [
+          2.695482275380276,
+          2.8448429680646896,
+          2.7518222584222882,
+          2.7455253676271125
+        ],
+        "geometric_speed_ratio": 2.758894890083159,
+        "time_reduction_pct": 63.753602806888445,
+        "A_seconds": [
+          17.759655333,
+          18.315806208,
+          17.7321495,
+          17.742790667
+        ],
+        "B_seconds": [
+          6.5886745,
+          6.438248583,
+          6.443784458,
+          6.462439166
+        ],
+        "ci95_ratio": [
+          2.6620784728924276,
+          2.8592323975546976
+        ]
+      },
+      "first_attempts_http_sensitivity": {
+        "pairs": 4,
+        "ratios_A_over_B": [
+          1.4567105599046013,
+          1.5102510594316498,
+          1.482750687966006,
+          1.4931953898482218
+        ],
+        "geometric_speed_ratio": 1.4855996829311375,
+        "time_reduction_pct": 32.68711541274922,
+        "A_seconds": [
+          37.475273833,
+          37.695187208,
+          36.936678083,
+          36.942679458
+        ],
+        "B_seconds": [
+          25.725957417,
+          24.95955025,
+          24.910916166,
+          24.740686791
+        ],
+        "ci95_ratio": [
+          1.450275260881913,
+          1.5217845035728008
+        ]
+      },
+      "identical_replies_in_selected_pairs": 0,
+      "selected_reply_pairs": 4
+    }
+  }
+}

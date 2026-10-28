@@ -1,0 +1,14 @@
+{
+  "label": "head-9b-abort",
+  "returncode": 0,
+  "wall_seconds": 34.03594493865967,
+  "foreign_mean_pct": 0.09142505432276463,
+  "foreign_peak_pct": 2.3287911438066096,
+  "thermal_states": [
+    "nominal"
+  ],
+  "swapouts_delta": 0,
+  "samples": 34,
+  "user_activity_observed": false,
+  "summaries": []
+}

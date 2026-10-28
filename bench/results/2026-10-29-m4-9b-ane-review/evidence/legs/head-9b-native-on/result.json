@@ -1,0 +1,14 @@
+{
+  "label": "head-9b-native-on",
+  "returncode": 0,
+  "wall_seconds": 232.77265310287476,
+  "foreign_mean_pct": 0.08333427517910573,
+  "foreign_peak_pct": 7.160121455538825,
+  "thermal_states": [
+    "nominal"
+  ],
+  "swapouts_delta": 0,
+  "samples": 232,
+  "user_activity_observed": false,
+  "summaries": []
+}

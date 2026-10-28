@@ -1,0 +1,10 @@
+{
+  "argv": [
+    "git",
+    "switch",
+    "codex/ane-9b-pr775-final-20261028"
+  ],
+  "commit": "82e9b9e834e82df15b9cefa1926f3f06aa253451",
+  "returncode": 0,
+  "seconds": 0.21212196350097656
+}

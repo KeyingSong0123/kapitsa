@@ -1,0 +1,44 @@
+[  0%] Building CXX object CMakeFiles/naceinfer.dir/src/bench/monitor.cpp.o
+[  0%] Building CXX object CMakeFiles/naceinfer.dir/src/ane/ffn_split.cpp.o
+[  0%] Building CXX object CMakeFiles/naceinfer.dir/src/bench/submit.cpp.o
+[  2%] Building CXX object CMakeFiles/naceinfer.dir/src/bench/protocol.cpp.o
+[  2%] Building CXX object CMakeFiles/naceinfer.dir/src/bench/result.cpp.o
+[  5%] Building OBJCXX object CMakeFiles/naceinfer.dir/src/bench/system.mm.o
+[  8%] Building CXX object CMakeFiles/naceinfer.dir/src/engine/doctor.cpp.o
+[  8%] Building CXX object CMakeFiles/naceinfer.dir/src/model/nemotron_h.cpp.o
+[  8%] Building CXX object CMakeFiles/naceinfer.dir/src/model/qwen35.cpp.o
+[ 11%] Building CXX object CMakeFiles/naceinfer.dir/src/model/qwen35_ane.cpp.o
+$REPO/src/model/nemotron_h.cpp:476:10: warning: __builtin_available does not guard availability here; use if (__builtin_available) instead [-Wunsupported-availability-guard]
+  476 |     if (!__builtin_available(macOS 15.0, *)) return true;
+      |          ^
+1 warning generated.
+[ 14%] Linking CXX static library libnaceinfer.a
+[ 85%] Built target naceinfer
+[ 88%] Building CXX object CMakeFiles/kapitsa.dir/src/server/native_execution.cpp.o
+[ 88%] Building CXX object CMakeFiles/kapitsa.dir/src/server/main.cpp.o
+[ 88%] Building CXX object CMakeFiles/kapitsa.dir/src/server/http_stream.cpp.o
+[ 88%] Building CXX object CMakeFiles/kapitsa.dir/src/server/launch.cpp.o
+[ 91%] Building CXX object CMakeFiles/kapitsa.dir/src/server/beam.cpp.o
+[ 91%] Building CXX object CMakeFiles/kapitsa.dir/src/server/ui.cpp.o
+[ 91%] Building CXX object CMakeFiles/kapitsa.dir/src/server/picker.cpp.o
+[ 94%] Building CXX object CMakeFiles/kapitsa.dir/src/server/bench_cmd.cpp.o
+[ 94%] Building CXX object CMakeFiles/kapitsa.dir/src/server/update_cmd.cpp.o
+[ 94%] Building CXX object CMakeFiles/kapitsa.dir/src/server/stage_cmd.cpp.o
+[ 97%] Building CXX object CMakeFiles/kapitsa.dir/src/server/route.cpp.o
+[ 97%] Building CXX object CMakeFiles/kapitsa.dir/src/server/cluster_cmd.cpp.o
+[ 97%] Building CXX object CMakeFiles/kapitsa.dir/src/server/pair.cpp.o
+[100%] Building CXX object CMakeFiles/kapitsa.dir/generated/chat_page.cpp.o
+[100%] Linking CXX executable kapitsa
+[100%] Built target kapitsa
+[100%] Built target naceinfer
+[100%] Building CXX object CMakeFiles/logit_dump.dir/tools/logit_dump.cpp.o
+[100%] Linking CXX executable logit_dump
+[100%] Built target logit_dump
+[ 96%] Built target naceinfer
+[100%] Building CXX object CMakeFiles/ni_run.dir/tools/ni_run.cpp.o
+[100%] Linking CXX executable ni_run
+[100%] Built target ni_run
+[ 96%] Built target naceinfer
+[100%] Building CXX object CMakeFiles/ni_eval.dir/tools/ni_eval.cpp.o
+[100%] Linking CXX executable ni_eval
+[100%] Built target ni_eval

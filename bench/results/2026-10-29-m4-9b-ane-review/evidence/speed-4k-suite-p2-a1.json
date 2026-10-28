@@ -1,0 +1,10 @@
+[
+  {
+    "name": "code-scheduler-4096",
+    "messages": "$RUN/prompts/code-scheduler-4096-messages.json",
+    "sha256": "211033f82de09c9649b8b3130c6ddc8cab51e8901ff3cddf1ac5d872e79a68a7",
+    "nominal_tokens": 4096,
+    "corpus_char_offset": 7312,
+    "historical_source": "$PREVIOUS_RUN/prompts/ane-confirm/code-scheduler-4096-messages.json"
+  }
+]

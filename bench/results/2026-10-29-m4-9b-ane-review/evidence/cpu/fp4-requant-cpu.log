@@ -1,0 +1,44 @@
+PASS E4M3: every code's value encodes back to the code
+PASS E4M3 table equals the format's definition
+PASS E4M3 ties go to the even code
+PASS E4M3 clamp, zero, tiny
+PASS E2M1 at the bounds, ties and signs
+PASS E2M1 of 20000 random values
+PASS quantize random: weight_scale_2
+PASS quantize random: block scale codes
+PASS quantize random: codes (packed low nibble first)
+PASS an all-zero block: scale 1.0
+PASS a block whose scale rounds to zero: codes 0
+PASS quantize random: error bound
+PASS quantize small K: weight_scale_2
+PASS quantize small K: block scale codes
+PASS quantize small K: codes (packed low nibble first)
+PASS quantize small K: error bound
+PASS quantize wide: weight_scale_2
+PASS quantize wide: block scale codes
+PASS quantize wide: codes (packed low nibble first)
+PASS quantize wide: error bound
+PASS --dry-run: 3 modules, the head kept, nothing written
+PASS --dry-run --head: 4 modules
+PASS run on the fake checkpoint
+PASS lm_head: NVFP4 as quantize() of its BF16 weight, no input_scale
+PASS backbone.layers.0.mixer.in_proj: NVFP4 as quantize() of its BF16 weight, no input_scale
+PASS backbone.layers.0.mixer.out_proj: NVFP4 as quantize() of its BF16 weight, no input_scale
+PASS backbone.layers.1.mixer.q_proj: NVFP4 as quantize() of its BF16 weight, no input_scale
+PASS the other 7 tensors copied byte for byte
+PASS each module stays in its shard
+PASS index: every tensor, its shard, total_size
+PASS hf_quant_config: only conv1d still excluded
+PASS requant.json lists the modules
+PASS other files copied
+PASS a second run writes the same bytes
+PASS a rewritten shard's per-shard index: its tensors and size
+PASS an unchanged shard's index as it was
+PASS a shard with nothing to quantize: the same file
+PASS requant.json shard sha256
+PASS the head and --keep's modules stay BF16
+PASS requant.json: head false
+PASS accepts W4A16_NVFP4
+PASS refuses a checkpoint that is not NVFP4
+PASS refuses to write over its input
+all passed

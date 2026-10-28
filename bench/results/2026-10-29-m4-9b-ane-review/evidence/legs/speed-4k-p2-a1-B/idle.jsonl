@@ -1,0 +1,12 @@
+{"epoch": 1793206078.6929, "foreign_pct": 0, "desktop_pct": 0, "thermal": "nominal", "swap_mb": 2970.0625, "swapouts": 1548098, "memory_level": 71, "users": []}
+{"epoch": 1793206079.730829, "foreign_pct": 0, "desktop_pct": 0, "thermal": "nominal", "swap_mb": 2970.0625, "swapouts": 1548098, "memory_level": 71, "users": []}
+{"epoch": 1793206080.763595, "foreign_pct": 2.3902338357890485, "desktop_pct": 0, "thermal": "nominal", "swap_mb": 2970.0625, "swapouts": 1548098, "memory_level": 71, "users": [{"pid": 430, "name": "loginwindow", "pct": 2.3902338357890485}]}
+{"epoch": 1793206081.812672, "foreign_pct": 1.0427434833189566, "desktop_pct": 0, "thermal": "nominal", "swap_mb": 2970.0625, "swapouts": 1548098, "memory_level": 71, "users": [{"pid": 430, "name": "loginwindow", "pct": 1.0427434833189566}]}
+{"epoch": 1793206082.851752, "foreign_pct": 0.07188767566428181, "desktop_pct": 0, "thermal": "nominal", "swap_mb": 2970.0625, "swapouts": 1548098, "memory_level": 71, "users": [{"pid": 430, "name": "loginwindow", "pct": 0.07188767566428181}]}
+{"epoch": 1793206083.886866, "foreign_pct": 0, "desktop_pct": 0, "thermal": "nominal", "swap_mb": 2970.0625, "swapouts": 1548098, "memory_level": 71, "users": []}
+{"epoch": 1793206084.918989, "foreign_pct": 0, "desktop_pct": 0, "thermal": "nominal", "swap_mb": 2970.0625, "swapouts": 1548098, "memory_level": 71, "users": []}
+{"epoch": 1793206085.951815, "foreign_pct": 0, "desktop_pct": 0, "thermal": "nominal", "swap_mb": 2970.0625, "swapouts": 1548098, "memory_level": 71, "users": []}
+{"epoch": 1793206086.993802, "foreign_pct": 0, "desktop_pct": 0, "thermal": "nominal", "swap_mb": 2970.0625, "swapouts": 1548098, "memory_level": 71, "users": []}
+{"epoch": 1793206088.022804, "foreign_pct": 0, "desktop_pct": 0, "thermal": "nominal", "swap_mb": 2970.0625, "swapouts": 1548098, "memory_level": 71, "users": []}
+{"epoch": 1793206089.053226, "foreign_pct": 0, "desktop_pct": 0, "thermal": "nominal", "swap_mb": 2970.0625, "swapouts": 1548098, "memory_level": 71, "users": []}
+{"epoch": 1793206090.095256, "foreign_pct": 0, "desktop_pct": 0, "thermal": "nominal", "swap_mb": 2970.0625, "swapouts": 1548098, "memory_level": 71, "users": []}

@@ -1,0 +1,20 @@
+{
+  "baseline_commit": "6d5c2aad8bb7f158b064b2f41731ed885400140d",
+  "candidate_commit": "82e9b9e834e82df15b9cefa1926f3f06aa253451",
+  "tracked_tree_objects": {
+    "src": "324675dcdaca6360a473f268991fd464cb916fa5",
+    "tools": "3db1d186e7d694d01de8e47d1a8458fae190a0cf",
+    "tests": "97dd70721e79a87b9d857ead96e3fdcec0832cfe",
+    "cmake": "a3960093677a9eb1d7a29b2a5fcbe1d3e5f74158",
+    "CMakeLists.txt": "4ad168ff28b813eba98bd802dc78ab1b0ffbab46",
+    "third_party": "a9ad6c451bf7b00d55ac2dbaa4770417c20e62e5",
+    "sdk": "bf0e41d327079cced89022578f0aa27f9900d639"
+  },
+  "split_bytes_callers": {
+    "conclusion": "The only production caller is Qwen35::ane_plan; rotate_simdgroups(hidden) rejects unsupported widths before computing the budget. Zero is not used as a valid budget.",
+    "guard_line": 169,
+    "budget_line": 185
+  },
+  "upstream_delta": "#770 adds the C ABI and bounded GPU lock waits; #783 updates README. Current-main builds, CPU/API/output/performance checks are recorded independently.",
+  "production_paths_changed_since_previous_validation": []
+}

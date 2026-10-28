@@ -1,0 +1,4 @@
+[kapitsa] prefill: Neural Engine busy 50% of 6458 ms over 2 split chunks (128 evaluations)
+[kapitsa] KFlash: 423 cycles, 8.00 rows per cycle; cycles by rows 8:423; tokens per cycle expected 2.858, got 2.631; rate 0.0347 tok/ms; cost ms by rows 8:79.07; calibration (alpha, beta) by depth (-0.69, 1.00) (-0.61, 0.97) (-0.50, 1.00) (-0.23, 0.91) (-0.59, 1.18) (0.00, 1.00) (0.00, 1.00) (0.00, 1.00)
+[kapitsa] KFlash: budget saved (423 cycles) to $RUN/evidence/legs/speed-4k-p3-a0-B/home/kflash/qwen3.5-9b-4bit-dflash2-b4-Apple_M4.json
+[kapitsa] chat: prompt 4099 (cached 0) in 6458 ms (+3.0 ms template/tokenize; last chunk: encoded by 6384.3 ms, GPU start +4.3 ms, GPU 69.0 ms, wake +0.2 ms), 512 tokens in 18278 ms (28.0 tok/s), length, 1.96 tok/cycle, KFlash (DFlash2): 261 cycles

@@ -1,0 +1,10 @@
+{
+  "argv": [
+    ".dsh/skills/verify-kapitsa/scripts/vk",
+    "checks",
+    "6d5c2aad8bb7f158b064b2f41731ed885400140d"
+  ],
+  "commit": "82e9b9e834e82df15b9cefa1926f3f06aa253451",
+  "returncode": 0,
+  "seconds": 0.4149599075317383
+}

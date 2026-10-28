@@ -1,0 +1,45 @@
+START head-segments-debug
+head-segments-debug: waiting for GPU lock
+head-segments-debug: GPU quiet, running
+{"label": "head-segments-debug", "returncode": 0, "wall_seconds": 4.142845869064331, "foreign_mean_pct": 0.0, "foreign_peak_pct": 0, "thermal_states": ["nominal"], "swapouts_delta": 0, "samples": 5, "user_activity_observed": false, "summaries": []}
+PASS head-segments-debug
+START logit-9b-base-default
+logit-9b-base-default: waiting for GPU lock
+logit-9b-base-default: GPU quiet, running
+{"label": "logit-9b-base-default", "returncode": 0, "wall_seconds": 82.16040897369385, "foreign_mean_pct": 0.4862112050975664, "foreign_peak_pct": 28.598768098856702, "thermal_states": ["nominal"], "swapouts_delta": 0, "samples": 82, "user_activity_observed": false, "summaries": []}
+PASS logit-9b-base-default
+START logit-9b-default
+logit-9b-default: waiting for GPU lock
+logit-9b-default: GPU quiet, running
+{"label": "logit-9b-default", "returncode": 0, "wall_seconds": 81.83529496192932, "foreign_mean_pct": 0.3281478458439194, "foreign_peak_pct": 18.025733592497918, "thermal_states": ["nominal"], "swapouts_delta": 0, "samples": 82, "user_activity_observed": false, "summaries": []}
+PASS logit-9b-default
+{"label": "logit-9b-default", "compare_returncode": 0, "paths": {"prefill": {"records": 8, "bitwise": 8, "top1": 1.0, "flips": 0, "kl_mean": 0.0, "kl_p99": 0.0, "kl_max": 0.0, "nll_change_mean": 0.0, "max_abs_diff": 0.0}, "step": {"records": 192, "bitwise": 192, "top1": 1.0, "flips": 0, "kl_mean": 0.0, "kl_p99": 0.0, "kl_max": 0.0, "nll_change_mean": 0.0, "max_abs_diff": 0.0}, "verify": {"records": 192, "bitwise": 192, "top1": 1.0, "flips": 0, "kl_mean": 0.0, "kl_p99": 0.0, "kl_max": 0.0, "nll_change_mean": 0.0, "max_abs_diff": 0.0}, "batch": {"records": 192, "bitwise": 192, "top1": 1.0, "flips": 0, "kl_mean": 0.0, "kl_p99": 0.0, "kl_max": 0.0, "nll_change_mean": 0.0, "max_abs_diff": 0.0}}}
+START logit-9b-on
+logit-9b-on: waiting for GPU lock
+logit-9b-on: GPU quiet, running
+{"label": "logit-9b-on", "returncode": 0, "wall_seconds": 40.53735113143921, "foreign_mean_pct": 0.34762798785663, "foreign_peak_pct": 6.549074704171735, "thermal_states": ["nominal"], "swapouts_delta": 0, "samples": 41, "user_activity_observed": false, "summaries": []}
+PASS logit-9b-on
+{"label": "logit-9b-on", "compare_returncode": 1, "paths": {"prefill": {"records": 8, "bitwise": 0, "top1": 1.0, "flips": 0, "kl_mean": 0.00047847517260584294, "kl_p99": 0.001989358387337623, "kl_max": 0.002064196454376971, "nll_change_mean": 7.509512929670947e-05, "max_abs_diff": 0.8046739101409912}, "step": {"records": 192, "bitwise": 0, "top1": 0.9895833333333334, "flips": 2, "kl_mean": 0.0003691627516563735, "kl_p99": 0.007215718988357354, "kl_max": 0.009689941088064197, "nll_change_mean": 0.001677625729465985, "max_abs_diff": 3.36077544093132}, "verify": {"records": 192, "bitwise": 0, "top1": 0.9895833333333334, "flips": 2, "kl_mean": 0.0003767443686522171, "kl_p99": 0.007340711699394486, "kl_max": 0.010124970732502346, "nll_change_mean": 0.0016965787883759982, "max_abs_diff": 3.3148902654647827}, "batch": {"records": 192, "bitwise": 0, "top1": 0.9895833333333334, "flips": 2, "kl_mean": 0.0003638997966277224, "kl_p99": 0.006972980239398841, "kl_max": 0.009528184544307879, "nll_change_mean": 0.0016311985587391664, "max_abs_diff": 3.2830371856689453}}}
+START logit-4b-base-default
+logit-4b-base-default: waiting for GPU lock
+logit-4b-base-default: GPU quiet, running
+{"label": "logit-4b-base-default", "returncode": 0, "wall_seconds": 25.339488744735718, "foreign_mean_pct": 0.0, "foreign_peak_pct": 0, "thermal_states": ["nominal"], "swapouts_delta": 0, "samples": 26, "user_activity_observed": false, "summaries": []}
+PASS logit-4b-base-default
+START logit-4b-default
+logit-4b-default: waiting for GPU lock
+logit-4b-default: GPU quiet, running
+{"label": "logit-4b-default", "returncode": 0, "wall_seconds": 24.127674102783203, "foreign_mean_pct": 0.40467217138196504, "foreign_peak_pct": 6.794810328568232, "thermal_states": ["nominal"], "swapouts_delta": 0, "samples": 24, "user_activity_observed": false, "summaries": []}
+PASS logit-4b-default
+{"label": "logit-4b-default", "compare_returncode": 0, "paths": {"prefill": {"records": 8, "bitwise": 8, "top1": 1.0, "flips": 0, "kl_mean": 0.0, "kl_p99": 0.0, "kl_max": 0.0, "nll_change_mean": 0.0, "max_abs_diff": 0.0}, "step": {"records": 192, "bitwise": 192, "top1": 1.0, "flips": 0, "kl_mean": 0.0, "kl_p99": 0.0, "kl_max": 0.0, "nll_change_mean": 0.0, "max_abs_diff": 0.0}, "verify": {"records": 192, "bitwise": 192, "top1": 1.0, "flips": 0, "kl_mean": 0.0, "kl_p99": 0.0, "kl_max": 0.0, "nll_change_mean": 0.0, "max_abs_diff": 0.0}, "batch": {"records": 192, "bitwise": 192, "top1": 1.0, "flips": 0, "kl_mean": 0.0, "kl_p99": 0.0, "kl_max": 0.0, "nll_change_mean": 0.0, "max_abs_diff": 0.0}}}
+START logit-9b-16k-A
+logit-9b-16k-A: waiting for GPU lock
+logit-9b-16k-A: GPU quiet, running
+{"label": "logit-9b-16k-A", "returncode": 0, "wall_seconds": 79.14438796043396, "foreign_mean_pct": 0.43328410013322677, "foreign_peak_pct": 28.898672745152854, "thermal_states": ["nominal"], "swapouts_delta": 0, "samples": 79, "user_activity_observed": false, "summaries": []}
+PASS logit-9b-16k-A
+START logit-9b-16k-B
+logit-9b-16k-B: waiting for GPU lock
+logit-9b-16k-B: GPU quiet, running
+{"label": "logit-9b-16k-B", "returncode": 0, "wall_seconds": 34.0826530456543, "foreign_mean_pct": 0.8385423858097448, "foreign_peak_pct": 20.079427705685813, "thermal_states": ["nominal"], "swapouts_delta": 0, "samples": 34, "user_activity_observed": false, "summaries": []}
+PASS logit-9b-16k-B
+{"label": "logit-9b-16k", "compare_returncode": 1, "paths": {"prefill": {"records": 1, "bitwise": 0, "top1": 1.0, "flips": 0, "kl_mean": 3.77869089931062e-05, "kl_p99": 3.77869089931062e-05, "kl_max": 3.77869089931062e-05, "nll_change_mean": 0.004188999019920203, "max_abs_diff": 0.3287198543548584}, "step": {"records": 24, "bitwise": 0, "top1": 1.0, "flips": 0, "kl_mean": 0.000297822447014149, "kl_p99": 0.0018541178269422822, "kl_max": 0.002079710120518429, "nll_change_mean": -0.0047763179402419515, "max_abs_diff": 0.47661876678466797}, "verify": {"records": 24, "bitwise": 0, "top1": 1.0, "flips": 0, "kl_mean": 0.00029375859935685937, "kl_p99": 0.0018190571315079228, "kl_max": 0.0020362741241856264, "nll_change_mean": -0.004629888412408671, "max_abs_diff": 0.47593116760253906}}}
+Latest-main functional logits checks complete.

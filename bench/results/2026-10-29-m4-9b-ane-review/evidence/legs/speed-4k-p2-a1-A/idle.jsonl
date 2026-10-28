@@ -1,0 +1,16 @@
+{"epoch": 1793206013.767073, "foreign_pct": 0, "desktop_pct": 0, "thermal": "nominal", "swap_mb": 2970.0625, "swapouts": 1548098, "memory_level": 71, "users": []}
+{"epoch": 1793206014.798187, "foreign_pct": 0, "desktop_pct": 0, "thermal": "nominal", "swap_mb": 2970.0625, "swapouts": 1548098, "memory_level": 71, "users": []}
+{"epoch": 1793206015.830442, "foreign_pct": 0, "desktop_pct": 0, "thermal": "nominal", "swap_mb": 2970.0625, "swapouts": 1548098, "memory_level": 71, "users": []}
+{"epoch": 1793206016.864965, "foreign_pct": 0, "desktop_pct": 0, "thermal": "nominal", "swap_mb": 2970.0625, "swapouts": 1548098, "memory_level": 71, "users": []}
+{"epoch": 1793206017.897394, "foreign_pct": 0, "desktop_pct": 0, "thermal": "nominal", "swap_mb": 2970.0625, "swapouts": 1548098, "memory_level": 71, "users": []}
+{"epoch": 1793206018.931366, "foreign_pct": 0, "desktop_pct": 0, "thermal": "nominal", "swap_mb": 2970.0625, "swapouts": 1548098, "memory_level": 71, "users": []}
+{"epoch": 1793206019.972349, "foreign_pct": 0, "desktop_pct": 0, "thermal": "nominal", "swap_mb": 2970.0625, "swapouts": 1548098, "memory_level": 72, "users": []}
+{"epoch": 1793206021.014361, "foreign_pct": 3.023091571300619, "desktop_pct": 0, "thermal": "nominal", "swap_mb": 2970.0625, "swapouts": 1548098, "memory_level": 71, "users": [{"pid": 430, "name": "loginwindow", "pct": 3.023091571300619}]}
+{"epoch": 1793206022.045306, "foreign_pct": 0.9188722083662454, "desktop_pct": 0, "thermal": "nominal", "swap_mb": 2970.0625, "swapouts": 1548098, "memory_level": 71, "users": [{"pid": 430, "name": "loginwindow", "pct": 0.9188722083662454}]}
+{"epoch": 1793206023.077898, "foreign_pct": 0, "desktop_pct": 0, "thermal": "nominal", "swap_mb": 2970.0625, "swapouts": 1548098, "memory_level": 72, "users": []}
+{"epoch": 1793206024.110412, "foreign_pct": 0, "desktop_pct": 0, "thermal": "nominal", "swap_mb": 2970.0625, "swapouts": 1548098, "memory_level": 72, "users": []}
+{"epoch": 1793206025.146006, "foreign_pct": 0, "desktop_pct": 0, "thermal": "nominal", "swap_mb": 2970.0625, "swapouts": 1548098, "memory_level": 72, "users": []}
+{"epoch": 1793206026.176051, "foreign_pct": 0, "desktop_pct": 0, "thermal": "nominal", "swap_mb": 2970.0625, "swapouts": 1548098, "memory_level": 71, "users": []}
+{"epoch": 1793206027.222457, "foreign_pct": 0, "desktop_pct": 0, "thermal": "nominal", "swap_mb": 2970.0625, "swapouts": 1548098, "memory_level": 72, "users": []}
+{"epoch": 1793206028.263322, "foreign_pct": 0, "desktop_pct": 0, "thermal": "nominal", "swap_mb": 2970.0625, "swapouts": 1548098, "memory_level": 72, "users": []}
+{"epoch": 1793206029.311422, "foreign_pct": 0, "desktop_pct": 0, "thermal": "nominal", "swap_mb": 2970.0625, "swapouts": 1548098, "memory_level": 72, "users": []}

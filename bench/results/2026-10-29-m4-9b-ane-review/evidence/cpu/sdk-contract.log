@@ -1,0 +1,8 @@
+Internal ctest changing into directory: $RUN/sdk-build
+Test project $RUN/sdk-build
+    Start 7: sdk_contract_test
+1/1 Test #7: sdk_contract_test ................   Passed    1.00 sec
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   1.01 sec

@@ -1,0 +1,42 @@
+PASS neither name set: not held
+PASS NI_LOCK_HELD='1' -> True
+PASS NI_LOCK_HELD='yes' -> True
+PASS NI_LOCK_HELD='00' -> True
+PASS NI_LOCK_HELD='false' -> True
+PASS NI_LOCK_HELD=' ' -> True
+PASS NI_LOCK_HELD='' -> False
+PASS NI_LOCK_HELD='0' -> False
+PASS NACE_GPU_LOCK_HELD='1' -> True
+PASS NACE_GPU_LOCK_HELD='yes' -> True
+PASS NACE_GPU_LOCK_HELD='00' -> True
+PASS NACE_GPU_LOCK_HELD='false' -> True
+PASS NACE_GPU_LOCK_HELD=' ' -> True
+PASS NACE_GPU_LOCK_HELD='' -> False
+PASS NACE_GPU_LOCK_HELD='0' -> False
+PASS one name off, the other on: held
+PASS the other way round: held
+PASS both off (0 and empty): not held
+PASS a held lock blocks a second taker
+PASS held lock, no env: the child cannot take it
+PASS held lock, NI_LOCK_HELD=1: not taken again
+PASS held lock, NI_LOCK_HELD=0: still a taker (blocked)
+PASS held lock, NACE_GPU_LOCK_HELD=1: not taken again
+PASS held lock, NACE_GPU_LOCK_HELD=0: still a taker (blocked)
+PASS qwen4_exp_pack: held lock, no env: take() blocks
+PASS qwen4_exp_pack: NI_LOCK_HELD=1 does not re-take
+PASS qwen4_exp_pack: NACE_GPU_LOCK_HELD=1 does not re-take
+PASS qwen4_exp_pack: NI_LOCK_HELD=0 is not held
+PASS engine env drops both held names
+PASS engine env keeps the rest, applies the config's env and clear prefixes
+PASS our own env is left alone
+PASS bench/harness/bench.py uses held_by_caller()
+PASS bench/quality/eval_mlx.py uses held_by_caller()
+PASS bench/quality/eval_stream.py uses held_by_caller()
+PASS bench/quality/speed_variants.py uses held_by_caller()
+PASS bench/quality/speed_mlx.py uses held_by_caller()
+PASS bench/harness/agent_replay.py uses held_by_caller()
+PASS bench/harness/compare_engines.py uses held_by_caller()
+PASS bench/reasoning/reasoning.py uses held_by_caller()
+PASS tools/qwen4_exp_pack.py uses held_by_caller()
+
+all passed

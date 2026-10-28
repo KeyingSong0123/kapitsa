@@ -1,0 +1,20 @@
+START head-9b-native-on
+head-9b-native-on: waiting for GPU lock
+head-9b-native-on: GPU quiet, running
+{"label": "head-9b-native-on", "returncode": 0, "wall_seconds": 232.77265310287476, "foreign_mean_pct": 0.08333427517910573, "foreign_peak_pct": 7.160121455538825, "thermal_states": ["nominal"], "swapouts_delta": 0, "samples": 232, "user_activity_observed": false, "summaries": []}
+PASS head-9b-native-on
+START head-4b-native-default
+head-4b-native-default: waiting for GPU lock
+head-4b-native-default: GPU quiet, running
+{"label": "head-4b-native-default", "returncode": 0, "wall_seconds": 167.20459389686584, "foreign_mean_pct": 0.056055062104423146, "foreign_peak_pct": 5.069475273288728, "thermal_states": ["nominal"], "swapouts_delta": 0, "samples": 167, "user_activity_observed": false, "summaries": []}
+PASS head-4b-native-default
+START head-9b-abort
+head-9b-abort: waiting for GPU lock
+head-9b-abort: GPU quiet, running
+{"label": "head-9b-abort", "returncode": 0, "wall_seconds": 34.03594493865967, "foreign_mean_pct": 0.09142505432276463, "foreign_peak_pct": 2.3287911438066096, "thermal_states": ["nominal"], "swapouts_delta": 0, "samples": 34, "user_activity_observed": false, "summaries": []}
+PASS head-9b-abort
+START head-9b-cache-isolation
+head-9b-cache-isolation: waiting for GPU lock
+head-9b-cache-isolation: GPU quiet, running
+{"label": "head-9b-cache-isolation", "returncode": 0, "wall_seconds": 52.103962898254395, "foreign_mean_pct": 0.5999617817481588, "foreign_peak_pct": 23.3085469039292, "thermal_states": ["nominal"], "swapouts_delta": 0, "samples": 52, "user_activity_observed": false, "summaries": []}
+PASS head-9b-cache-isolation

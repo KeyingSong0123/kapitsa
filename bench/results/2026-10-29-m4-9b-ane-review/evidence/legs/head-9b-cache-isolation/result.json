@@ -1,0 +1,14 @@
+{
+  "label": "head-9b-cache-isolation",
+  "returncode": 0,
+  "wall_seconds": 52.103962898254395,
+  "foreign_mean_pct": 0.5999617817481588,
+  "foreign_peak_pct": 23.3085469039292,
+  "thermal_states": [
+    "nominal"
+  ],
+  "swapouts_delta": 0,
+  "samples": 52,
+  "user_activity_observed": false,
+  "summaries": []
+}

@@ -1,0 +1,145 @@
+{
+  "passed": true,
+  "results": [
+    {
+      "label": "B-cold",
+      "cached_tokens": 0,
+      "response": {
+        "id": "chatcmpl-179320527675249",
+        "object": "chat.completion",
+        "created": 1793205276,
+        "model": "ane-quality",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "{\"id\": \"ref_0003\", \"owner\": \"Person_5021\", \"city\": \"Lima\", \"quota\": 560, \"code\": \"b67fd506\"}"
+            },
+            "finish_reason": "stop"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 4975,
+          "completion_tokens": 50,
+          "total_tokens": 5025,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "kapitsa": {
+            "prefill_ms": 7624.0,
+            "kflash": {
+              "source": "DFlash2",
+              "cycles": 11
+            }
+          }
+        }
+      }
+    },
+    {
+      "label": "A-cold",
+      "cached_tokens": 0,
+      "response": {
+        "id": "chatcmpl-179320528975249",
+        "object": "chat.completion",
+        "created": 1793205289,
+        "model": "ane-quality",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "{\"id\": \"ref_0003\", \"owner\": \"Person_5021\", \"city\": \"Lima\", \"quota\": 560, \"code\": \"b67fd506\"}"
+            },
+            "finish_reason": "stop"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 4975,
+          "completion_tokens": 50,
+          "total_tokens": 5025,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "kapitsa": {
+            "prefill_ms": 20920.5,
+            "kflash": {
+              "source": "DFlash2",
+              "cycles": 11
+            }
+          }
+        }
+      }
+    },
+    {
+      "label": "B-warm",
+      "cached_tokens": 4968,
+      "response": {
+        "id": "chatcmpl-179320531875249",
+        "object": "chat.completion",
+        "created": 1793205318,
+        "model": "ane-quality",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "{\"id\": \"ref_0003\", \"owner\": \"Person_5021\", \"city\": \"Lima\", \"quota\": 560, \"code\": \"b67fd506\"}"
+            },
+            "finish_reason": "stop"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 4975,
+          "completion_tokens": 50,
+          "total_tokens": 5025,
+          "prompt_tokens_details": {
+            "cached_tokens": 4968
+          },
+          "kapitsa": {
+            "prefill_ms": 60.7,
+            "kflash": {
+              "source": "DFlash2",
+              "cycles": 11
+            }
+          }
+        }
+      }
+    },
+    {
+      "label": "A-warm",
+      "cached_tokens": 4968,
+      "response": {
+        "id": "chatcmpl-179320532375249",
+        "object": "chat.completion",
+        "created": 1793205323,
+        "model": "ane-quality",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "{\"id\": \"ref_0003\", \"owner\": \"Person_5021\", \"city\": \"Lima\", \"quota\": 560, \"code\": \"b67fd506\"}"
+            },
+            "finish_reason": "stop"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 4975,
+          "completion_tokens": 50,
+          "total_tokens": 5025,
+          "prompt_tokens_details": {
+            "cached_tokens": 4968
+          },
+          "kapitsa": {
+            "prefill_ms": 57.9,
+            "kflash": {
+              "source": "DFlash2",
+              "cycles": 11
+            }
+          }
+        }
+      }
+    }
+  ]
+}

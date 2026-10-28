@@ -1,0 +1,14 @@
+{
+  "argv": [
+    "cmake",
+    "-S",
+    ".",
+    "-B",
+    "build",
+    "-DCMAKE_BUILD_TYPE=Release",
+    "-DKAPITSA_BUILD_SDK=OFF"
+  ],
+  "commit": "6d5c2aad8bb7f158b064b2f41731ed885400140d",
+  "returncode": 0,
+  "seconds": 1.145005702972412
+}

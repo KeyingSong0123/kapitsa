@@ -1,0 +1,17 @@
+{
+  "argv": [
+    "cmake",
+    "--build",
+    "build",
+    "-j",
+    "6",
+    "--target",
+    "kapitsa",
+    "logit_dump",
+    "ni_run",
+    "ni_eval"
+  ],
+  "commit": "6d5c2aad8bb7f158b064b2f41731ed885400140d",
+  "returncode": 0,
+  "seconds": 23.052664041519165
+}

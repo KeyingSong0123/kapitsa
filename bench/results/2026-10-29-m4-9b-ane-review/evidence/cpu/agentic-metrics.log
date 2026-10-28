@@ -1,0 +1,66 @@
+PASS sweep targets start at 1000
+PASS sweep targets dedupe and cap at the window
+PASS hit rate over follow-ups only
+PASS unreported is None, not 0
+PASS reported zero is 0
+PASS no turns is None
+PASS falloff first vs last third
+PASS no falloff from 2 runs
+PASS empty sustain
+PASS retention skips failed points
+PASS interleave evicted
+PASS interleave kept
+PASS pmset parse
+PASS powermode 1 reads as Low Power Mode
+PASS the older lowpowermode 1 spelling still reads as Low Power Mode
+PASS the bare capability tokens pmset -g cap prints are not a mode
+PASS pmset without limits
+PASS cold start record
+PASS cold start valid
+PASS cold-start requests are separate cold sessions
+PASS sweep covers the targets
+PASS sweep decode rates and valid
+PASS sweep requests share no cache
+PASS sweep prompt tokens grow and fit
+PASS warm prefix is hit
+PASS follow-up turn is hit
+PASS multi-slot engine keeps the prefix across another chat
+PASS one-slot engine loses it
+PASS cache valid on a clean server
+PASS cache records the server's slot count
+PASS the A-after-B turn is labelled with the slots
+PASS one slot is flagged as the configuration, not as a lost prefix
+PASS four slots keep A and flag nothing
+PASS an unknown slot count is recorded as 0 and not flagged
+PASS sustain runs until the time is up
+PASS reasoning text in a sweep is INVALID without --always-reasons
+PASS --always-reasons: the sweep is valid
+PASS --always-reasons: the cache turns are valid
+PASS --always-reasons: the cache turns get past the reasoning to an answer (budget 1024, not 256)
+PASS a cold turn cut inside its reasoning is flagged, not silently skipped
+PASS unreachable server is INVALID, not a crash
+PASS unreachable cold start is INVALID
+PASS compare_table row
+PASS agentic table renders
+PASS results without --agentic add no row
+PASS agentic table shows slots 1
+PASS agentic table shows slots 4
+PASS agentic table shows slots 0
+PASS live_slots reads --slots N
+PASS live_slots reads --slots=N
+PASS live_slots reads -np N
+PASS live_slots reads --parallel N
+PASS live_slots reads --max-concurrency=N
+PASS live_slots is 0 when the command leaves it to the engine
+PASS the corpus holds a 128K-token prompt
+PASS the extended corpus is the frozen one
+PASS its first 144,500 characters are byte-identical to the corpus before the extension
+PASS a 128K context is cut whole
+PASS a size past the corpus says why
+PASS build_context refuses a size past the corpus
+PASS a 128K prefill size passes the size check
+PASS a prefill size past the corpus fails before any request
+PASS a skipped phase's sizes are not checked
+PASS an agentic sweep to 128K passes the size check
+PASS an agentic sweep 'max' past the corpus fails before any request
+all passed

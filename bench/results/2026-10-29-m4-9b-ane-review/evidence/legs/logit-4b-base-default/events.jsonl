@@ -1,0 +1,18 @@
+{"epoch": 1793204671.345642, "stream": "stderr", "line": "[kapitsa] tokenizer: 248044 tokens, 247587 merges, 33 added (336 ms)\n"}
+{"epoch": 1793204672.180646, "stream": "stderr", "line": "[kapitsa] read 2.37 GB of weights in 719 ms (3.3 GB/s)\n"}
+{"epoch": 1793204672.18099, "stream": "stderr", "line": "[kapitsa] converted 24 parameter tensors to bf16 at load (0 values not exactly representable)\n"}
+{"epoch": 1793204672.253759, "stream": "stderr", "line": "[kapitsa] read 0.24 GB of weights in 72 ms (3.3 GB/s)\n"}
+{"epoch": 1793204672.4949172, "stream": "stderr", "line": "[kapitsa] MTP head loaded in 241 ms (dense, trunk hidden post-norm, drafts over ids < 32768 + specials)\n"}
+{"epoch": 1793204672.52042, "stream": "stderr", "line": "[kapitsa] NI_QMM: dense prefill GEMM qmr_k32_w14_m32_n128 (M >= 64), qmr_k64_w14_m16_n64 / qmr_k64_w12_m8_n64 below\n"}
+{"epoch": 1793204672.520662, "stream": "stderr", "line": "[kapitsa] NI_QMM8=1: 8-bit prefill GEMMs on qmr8 (all but the MoE router)\n"}
+{"epoch": 1793204672.531868, "stream": "stderr", "line": "[kapitsa] compiled kernels in 10 ms\n"}
+{"epoch": 1793204672.536077, "stream": "stderr", "line": "[kapitsa] prewarmed 93 prefill pipelines in 15 ms\n"}
+{"epoch": 1793204672.536127, "stream": "stderr", "line": "[kapitsa] loaded $MODELS/qwen3.5-4b-4bit: 32 layers, dense, 2.4 GB mapped in 1089 ms; weights 4-bit group 64 100%\n"}
+{"epoch": 1793204672.610935, "stream": "stderr", "line": "[kapitsa] NI_ANE: Neural Engine FFN split (wavefront): 18/18 units (9216 channels; GPU 0) from the default for this chip, chunks >= 512 rows; row scales 12 ms, program cached 2 ms + load 19 ms (13 functions, MIL 89 KB); 187.6 MB Metal; ready in 0.1 s\n"}
+{"epoch": 1793204672.883866, "stream": "stderr", "line": "[kapitsa] NI_ANE: startup check 2.11% of the ANE's part from the GPU alone (2 functions, 273 ms)\n"}
+{"epoch": 1793204681.166373, "stream": "stderr", "line": "[kapitsa] NI_QMM_GU: dense gate/up/SwiGLU fused (qmr_gu_k32_w14_m32_n64, m16_n64 / m8_n32 below 64 rows)\n"}
+{"epoch": 1793204696.2617002, "stream": "stdout", "line": "prefill 8 rows: next-token NLL 1.7539, top-1 = next token 0.6250 -> $RUN/dumps/4b-base-default/prefill\n"}
+{"epoch": 1793204696.261787, "stream": "stdout", "line": "step   192 rows: next-token NLL 0.6746, top-1 = next token 0.8333 -> $RUN/dumps/4b-base-default/step\n"}
+{"epoch": 1793204696.261802, "stream": "stdout", "line": "verify 192 rows: next-token NLL 0.6746, top-1 = next token 0.8333 -> $RUN/dumps/4b-base-default/verify\n"}
+{"epoch": 1793204696.261814, "stream": "stdout", "line": "batch  192 rows: next-token NLL 0.6747, top-1 = next token 0.8333 -> $RUN/dumps/4b-base-default/batch\n"}
+{"epoch": 1793204696.261826, "stream": "stdout", "line": "8 windows, 14848 prefilled tokens in 15.6 s; 23.3 s in all\n"}
