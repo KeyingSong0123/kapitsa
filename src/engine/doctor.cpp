@@ -20,6 +20,8 @@
 #include <sys/sysctl.h>
 
 #include <algorithm>
+#include <cerrno>
+#include <climits>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
@@ -242,6 +244,23 @@ void print_tty(const nlohmann::ordered_json& J, size_t budget, const std::string
   fputs(out.c_str(), stdout);
 }
 
+// A whole number (or, when `whole` is false, a decimal one) of at least 0, all of `v`: what --slots, --prefill-chunk and
+// --mem-budget take. Whole ones fit an int, decimal ones are at most kMaxBudgetGb (a size_t holds budget * 1e9). std::stoi
+// and stod threw out of main on anything else. kNotANumber and kOutOfRange are told apart so a whole number is never
+// reported as "not a whole number".
+enum class Num { kOk, kNotANumber, kOutOfRange };
+constexpr double kMaxBudgetGb = 1e6;  // a petabyte
+
+static Num number(const std::string& v, bool whole, double* out) {
+  char* end = nullptr;
+  errno = 0;
+  const double x = whole ? double(strtol(v.c_str(), &end, 10)) : strtod(v.c_str(), &end);
+  if (v.empty() || *end || std::isnan(x)) return Num::kNotANumber;
+  if (errno == ERANGE || !std::isfinite(x) || x < 0 || (whole && x > INT_MAX) || (!whole && x > kMaxBudgetGb)) return Num::kOutOfRange;
+  *out = x;
+  return Num::kOk;
+}
+
 }  // namespace
 
 int run_doctor(int argc, char** argv) {
@@ -270,9 +289,22 @@ int run_doctor(int argc, char** argv) {
         return 2;
       }
     }
-    else if (a == "--slots") slots_opt = std::stoi(next());
-    else if (a == "--prefill-chunk") chunk = std::stoi(next());
-    else if (a == "--mem-budget") budget_gb = std::stod(next());
+    else if (a == "--slots" || a == "--prefill-chunk" || a == "--mem-budget") {
+      const std::string v = next();
+      double x = 0;
+      const bool gb = a == "--mem-budget";
+      if (const Num r = number(v, !gb, &x); r != Num::kOk) {
+        const std::string need = r == Num::kNotANumber ? (gb ? "a number of GB" : "a whole number")
+                                                       : (gb ? "a number of GB from 0 to 1000000" : "a whole number from 0 to 2147483647");
+        const std::string why = a + " needs " + need + ", not \"" + v + "\"";
+        if (term::fancy()) term::error(why, "kapitsa doctor --help shows how to use it.");
+        else fprintf(stderr, "kapitsa doctor: %s\n", why.c_str());
+        return 2;
+      }
+      if (a == "--slots") slots_opt = int(x);
+      else if (a == "--prefill-chunk") chunk = int(x);
+      else budget_gb = x;
+    }
     else if (a == "--dflash") dflash = next();
     else if (a == "--json") as_json = true;
     else {

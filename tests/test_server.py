@@ -687,6 +687,29 @@ def cli_checks(kapitsa):
     rc, _, err = run("pull", "--dry-run", "4b:9bit")
     check("cli: an unknown variant is refused with the model's variants",
           rc == 2 and "has no variant" in err and DEFAULTS["qwen3.5-4b"][0] + " (the default)" in err, err)
+    for args, flag in ((("doctor", "--slots", "abc"), "--slots"), (("doctor", "--prefill-chunk", "-1"), "--prefill-chunk"),
+                       (("doctor", "--mem-budget", "x"), "--mem-budget"), (("import", "x.gguf", "--threads", "abc"), "--threads"),
+                       (("doctor", "--slots", "99999999999"), "--slots"), (("doctor", "--prefill-chunk", "3000000000"), "--prefill-chunk")):
+        rc, _, err = run(*args)  # (a bad number was an uncaught std::invalid_argument: the process aborted)
+        check(f"cli: {' '.join(args[:1])} {flag} with a bad number is a usage error (2), not an abort",
+              rc == 2 and flag in err and "needs" in err, f"rc={rc} {err}")
+    # a whole number out of range is told as a range, never as "not a whole number" (and 1e30 GB never reaches size_t())
+    for args, flag, want in ((("doctor", "--slots", "99999999999"), "--slots", "0 to 2147483647"),
+                             (("doctor", "--prefill-chunk", "-1"), "--prefill-chunk", "0 to 2147483647"),
+                             (("doctor", "--mem-budget", "1e30"), "--mem-budget", "0 to 1000000"),
+                             (("doctor", "--mem-budget", "1e400"), "--mem-budget", "0 to 1000000"),
+                             (("doctor", "--mem-budget", "-3"), "--mem-budget", "0 to 1000000")):
+        rc, _, err = run(*args)
+        check(f"cli: doctor {flag} {args[2]} says its range", rc == 2 and want in err and "not a whole number" not in err,
+              f"rc={rc} {err}")
+    rc, _, err = run("doctor", "--mem-budget", "nan")
+    check("cli: doctor --mem-budget nan is not a number", rc == 2 and "needs a number of GB" in err and "from 0 to" not in err, f"rc={rc} {err}")
+    rc, _, err = run("import", "x.gguf", "--threads", "2000")
+    check("cli: import --threads past 1024 says the range, not 'a whole number'",
+          rc == 2 and "0 to 1024" in err and "whole number" not in err, f"rc={rc} {err}")
+    rc, _, err = run("pull", "--dry-run", "./no-such-folder")
+    check("cli: a missing model folder is named without a --model flag that pull does not have",
+          rc == 2 and "No folder at ./no-such-folder" in err and "--model" not in err, err)
     j = plan("mlx-community/Qwen3.5-9B-4bit@main")
     check("cli: org/name@rev is a Hugging Face repo",
           j.get("kind") == "repo" and j.get("id") == "mlx-community/Qwen3.5-9B-4bit" and j.get("revision") == "main" and
