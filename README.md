@@ -23,7 +23,7 @@ The poster's numbers, and the models it leaves out, are in each Mac's table unde
 
 ## 🔥 What's new
 
-- [2026/10] 🍀 **DiffuSpace's Clover-35B-A3B, a block-diffusion MoE, writes at 319 tok/s on an M5 Max** ([numbers](docs/benchmarks.md#diffuspace-clover-35b-a3b-m5-max-2026-10-28), [how](docs/usage.md#other-models)).
+- [2026/10] 🍀 **DiffuSpace's Clover-35B-A3B, a block-diffusion MoE, writes at 319 tok/s on an M5 Max**: `kapitsa serve --model clover` ([numbers](docs/benchmarks.md#diffuspace-clover-35b-a3b-m5-max-2026-10-28), [how](docs/usage.md#other-models)).
 - [2026/10] 🌊 **Kapitsa runs Splash's engine**: `kapitsa serve --engine splash` puts Inco's Splash behind Kapitsa's chat page, OpenAI API and Anthropic API ([backends](#supported-backends)).
 - [2026/10] 🗄️ **A 180B model runs on a 48 GB Mac**: `kapitsa serve --engine splash` streams Qwen3.8-Flash-Next's Q2_0 experts from the SSD ([numbers](bench/results/2026-10-28-m5-pro-flash-next-engines/README.md)).
 - [2026/10] 🏆 **The fastest decode in 32 of the 38 model and Mac pairs** measured against nine engines ([poster](#benchmarks)).
@@ -53,7 +53,7 @@ kapitsa opencode --model 35b    # also: claude, codex, pi
 - **An agent in one command**: `kapitsa claude`, `kapitsa codex`, `kapitsa opencode` and `kapitsa pi` start on the local model.
 - **Drex decision models**: `kapitsa-systemone` serves a Drex 2.0 state and its questions as one calibrated probability per option (`POST /v1/systemone`) ([decisions](docs/systemone.md)).
 - **Several Macs, one model**: a Mac that cannot hold a model sends its requests to one that can, and `--split` spreads one model's layers across a network ([several Macs](docs/usage.md#several-macs)).
-- **Images**: screenshots and photos in the chat page and the APIs, on every catalog model but the four text-only Nemotrons, Flint and the 35B's `16gb`.
+- **Images**: screenshots and photos in the chat page and the APIs, on every catalog model but the four text-only Nemotrons, Flint, Clover and the 35B's `16gb`.
 
 ## CLI
 
@@ -124,6 +124,7 @@ The most precise variant of each catalog model that runs on a Mac of each size. 
 | **Nemotron 3.5 Bolt 74B-A9B** · `bolt` | — | — | 2-bit† | 2-bit | 2-bit | 2-bit | 2-bit |
 | **Nemotron 3.5 Super-VL 120B-A12B** · `super-vl` | — | — | — | — | — | — | NVFP4 |
 | **Recursive Flint 40B-A2.5B** · `flint` | 2-bit† | 2-bit | 2-bit | 4-bit | 4-bit | 4-bit | 4-bit |
+| **Clover-35B-A3B-Preview** · `clover` | — | — | 4-bit | 4-bit | 4-bit | 4-bit | 4-bit |
 | **Nemotron Dory1.0 4B** · `dory` | BF16 | BF16 | BF16 | BF16 | BF16 | BF16 | BF16 |
 | **Nemotron 3 Nano 4B** · `nano-4b` | BF16 | BF16 | BF16 | BF16 | BF16 | BF16 | BF16 |
 | **Nemotron Nano 9B v2** · `nano-9b` | NVFP4 | NVFP4 | NVFP4 | NVFP4 | NVFP4 | NVFP4 | NVFP4 |
@@ -165,7 +166,7 @@ The catalog models measured on each Mac, against the engines that run them: one 
 
 | Model | <mark>**Kapitsa**</mark> |
 | --- | ---: |
-| **Clover-35B-A3B-Preview**<br><sub>block-diffusion MoE, 3B active · 4-bit pack converted by tools/convert_clover.py (not in the catalog), 19.5 GB</sub> | 🟩 6002 / **319**<br><sub>KFlash</sub> |
+| **Clover-35B-A3B-Preview** · `clover`<br><sub>block-diffusion MoE, 3B active · 4-bit pack converted by tools/convert_clover.py, 19.5 GB (measured; the catalog's `clover` serves the same files)</sub> | 🟩 6002 / **319**<br><sub>KFlash</sub> |
 
 <sub>The 27B, 35B-A3B and Bolt rows are the 2026-10-25 session (Kapitsa main cd20dcc and each engine's latest release, macOS 26.4); llama.cpp's 35B-A3B cell, the Flash-Next row and the Lightning, Super-VL and Dory rows are the 2026-10-18 to 10-22 runs, not yet re-measured. The Flint row is one block on 2026-10-26 (Kapitsa 0.2.18, [results](bench/results/2026-10-26-m5-max/README.md)). The 27B and Bolt rows are each one block of the row on AC power in High Power mode. The build each cell ran is under its number; details in [bench/results/2026-10-25-m5-max](bench/results/2026-10-25-m5-max/README.md) and [its re-runs](bench/results/2026-10-25-m5-max/2026-10-26-reruns.md).</sub>
 
@@ -266,7 +267,7 @@ The catalog models measured on each Mac, against the engines that run them: one 
 
 </details>
 
-<sub>Other precisions: `--model 35b:6bit` is five times closer to bf16 than the 4-bit default ([KL](docs/benchmarks.md#quality-qwen36-35b-a3b-against-bf16-2026-10-19)). All but Lightning, Dory, the two Nemotron Nanos, Flint and the 35B's `16gb` read images. What runs on a Mac of each size: [Supported models](#supported-models). [Every model's variants and draft models](docs/usage.md#models-and-downloads)</sub>
+<sub>Other precisions: `--model 35b:6bit` is five times closer to bf16 than the 4-bit default ([KL](docs/benchmarks.md#quality-qwen36-35b-a3b-against-bf16-2026-10-19)). All but Lightning, Dory, the two Nemotron Nanos, Flint, Clover and the 35B's `16gb` read images. What runs on a Mac of each size: [Supported models](#supported-models). [Every model's variants and draft models](docs/usage.md#models-and-downloads)</sub>
 
 ## How it works
 
