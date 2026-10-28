@@ -1,0 +1,8 @@
+_kapitsa_abi_version
+_kapitsa_engine_create
+_kapitsa_engine_destroy
+_kapitsa_request_create
+_kapitsa_generate
+_kapitsa_request_cancel
+_kapitsa_request_destroy
+_kapitsa_string_free

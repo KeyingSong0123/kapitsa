@@ -75,6 +75,11 @@ A Mac that cannot hold a model whole uses another Mac on the network that runs i
 Flash-Next pair to hold it in memory between them ([Several Macs](docs/usage.md#several-macs)); `--private` keeps a
 server to its own Mac. [Usage guide](docs/usage.md)</sub>
 
+## In-process SDK
+
+The opt-in [C ABI SDK](sdk/README.md) lets desktop clients reuse a loaded model,
+stream and cancel requests. See its build instructions and host-process lifetime limitations.
+
 ## Splash's engine
 
 `kapitsa serve --engine splash` runs Inco's [Splash](https://github.com/incoai/splash) as the engine and Kapitsa as
