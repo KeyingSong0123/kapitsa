@@ -117,7 +117,7 @@ The decode rows use the prefill-scale gate, not the file's `decode_gate` of 1.02
 The changed prefill produces the KV inherited by decode. With `NI_ANE=0`, the same switch moves the 4B's
 decode paths at the 1e-7 scale.
 
-The 9B has hidden size 4096, no ANE split and no floor file of its own. The PR measured it on an M5 Max:
+At that measurement, the 9B (hidden size 4096) had no ANE split and no floor file of its own. The PR measured it on an M5 Max:
 prefill mean KL 1.4e-7, decode mean KL 2.6e-7 to 5.8e-7, 0 flips in 192 rows. Applied for scale, the 4B's
 gate passes by four orders of magnitude. The M5 Pro pair shows the same order of magnitude with the split
 off. This is not a measured 9B noise floor. Re-measuring the 4B floor with this path enabled requires a separate PR.
@@ -133,3 +133,18 @@ off. This is not a measured 9B noise floor. Re-measuring the 4B floor with this 
   default-off revert [#586](https://github.com/nace-ai/kapitsa/pull/586).
 - Qwen 4B and 9B attention: [#581](https://github.com/nace-ai/kapitsa/pull/581),
   numerical record [#583](https://github.com/nace-ai/kapitsa/pull/583).
+
+## Experimental 4096-hidden ANE prefill
+
+`NI_ANE_H4096=1` opts Qwen3.5-9B into the existing W8A8 approximation with two 2048-channel inputs;
+the default remains off. At experimental commit `92e8b88`, on an M4 Pro 20-core GPU / 48 GiB /
+macOS 26.4.1 (25E253), 768 teacher-forced step rows against the same 4-bit GPU model gave mean KL
+1.795e-4 and 3 top-1 flips. The corresponding existing 4B/27B paths gave 3.940e-4 / 8.249e-5 and
+3 / 2 flips. On 8192 code-token positions, 9B PPL was 2.01072 -> 2.01052; its document-bootstrap
+interval crossed zero. This does not establish quality equivalence. An earlier M4 mini summary
+reported PPL 6.41118 -> 6.41682 on a separate 4092-position sample and changed greedy answers.
+
+[Complete numerical evidence, controls, historical speed summary and limitations](../bench/results/2026-10-28-m4pro-9b-ane/README.md).
+The GPU data precede the rebase onto `909e282`; the rebased head is not GPU-verified. These are
+descriptive `--no-gate` comparisons, not a floor-gate pass or a `--reorder` claim. No floor or default
+is changed, and existing 4B/27B input segmentation remains 2560 channels.
