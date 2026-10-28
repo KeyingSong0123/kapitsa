@@ -22,6 +22,8 @@
 
 #include <cstring>
 #include <regex>
+#include <chrono>
+#include <thread>
 
 extern char** environ;
 
@@ -394,12 +396,29 @@ bool GpuLock::held_by_caller() {
   return false;
 }
 
-bool GpuLock::acquire(const std::function<void(const std::string&)>& waiting) {
+bool GpuLock::acquire(const std::function<void(const std::string&)>& waiting, int timeout_ms) {
   release();
   const std::string p = path();
   mkdir(p.substr(0, p.find_last_of('/')).c_str(), 0755);
   const int fd = open(p.c_str(), O_RDONLY | O_CREAT | O_CLOEXEC, 0644);
   if (fd < 0) return false;
+  if (timeout_ms >= 0) {
+    // SDK-only bounded wait. Keep the CLI's kernel-queued blocking path below unchanged.
+    using Clock = std::chrono::steady_clock;
+    const auto deadline = Clock::now() + std::chrono::milliseconds(timeout_ms);
+    for (;;) {
+      if (flock(fd, LOCK_EX | LOCK_NB) == 0) { fd_ = fd; return true; }
+      const int e = errno;
+      const auto now = Clock::now();
+      if ((e != EWOULDBLOCK && e != EINTR) || now >= deadline) {
+        close(fd);
+        errno = (e == EWOULDBLOCK || e == EINTR) ? EWOULDBLOCK : e;
+        return false;
+      }
+      std::this_thread::sleep_until(std::min(deadline, now + std::chrono::milliseconds(5)));
+      if (Clock::now() >= deadline) { close(fd); errno = EWOULDBLOCK; return false; }
+    }
+  }
   if (flock(fd, LOCK_EX | LOCK_NB) != 0) {
     if (waiting) waiting(lock_holders(p));
     // block in flock() as lockf does: the kernel queues blocked waiters, so polling would lose every release to them

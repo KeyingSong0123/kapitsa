@@ -184,3 +184,26 @@ target_compile_definitions(kapitsa PRIVATE KAPITSA_VERSION="${KAPITSA_VERSION}" 
 add_custom_command(TARGET kapitsa POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E rm -f ${CMAKE_BINARY_DIR}/nace-infer-server
   COMMAND ${CMAKE_COMMAND} -E create_symlink kapitsa ${CMAKE_BINARY_DIR}/nace-infer-server)
+
+# In-process SDK. Opt-in so the existing CLI build stays unchanged.
+option(KAPITSA_BUILD_SDK "Build the in-process C ABI shared library" OFF)
+if(KAPITSA_BUILD_SDK)
+  set_target_properties(naceinfer PROPERTIES POSITION_INDEPENDENT_CODE ON)
+  add_library(kapitsa_sdk SHARED sdk/c/kapitsa.cpp)
+  target_include_directories(kapitsa_sdk PUBLIC sdk/c PRIVATE src)
+  target_link_libraries(kapitsa_sdk PRIVATE naceinfer)
+  target_link_options(kapitsa_sdk PRIVATE "LINKER:-exported_symbols_list,${CMAKE_CURRENT_SOURCE_DIR}/sdk/c/exports.txt")
+  set_property(TARGET kapitsa_sdk APPEND PROPERTY LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/sdk/c/exports.txt")
+  set_target_properties(kapitsa_sdk PROPERTIES CXX_VISIBILITY_PRESET hidden
+    VISIBILITY_INLINES_HIDDEN YES VERSION 1.0.0 SOVERSION 1)
+  add_executable(sdk_contract_test sdk/c/contract_test.cpp)
+  target_include_directories(sdk_contract_test PRIVATE sdk/c src third_party)
+  target_link_libraries(sdk_contract_test PRIVATE kapitsa_sdk)
+  add_test(NAME sdk_contract_test COMMAND sdk_contract_test)
+  add_executable(sdk_model_test sdk/c/model_test.cpp)
+  target_include_directories(sdk_model_test PRIVATE third_party)
+  target_link_libraries(sdk_model_test PRIVATE kapitsa_sdk)
+  # Real-model test: built in CI but run only with explicit GPU authorization.
+  install(TARGETS kapitsa_sdk LIBRARY DESTINATION lib)
+  install(FILES sdk/c/kapitsa.h DESTINATION include)
+endif()

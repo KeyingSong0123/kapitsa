@@ -26,6 +26,13 @@ The Metal kernels are embedded in the binary as source and compiled by macOS at 
 offline `metal` compiler is needed. The GPU pipelines are created when a model loads; `NI_PREWARM=0` creates them on
 first use instead.
 
+## SDK build and tests
+
+See [sdk/README.md](sdk/README.md) for the opt-in C ABI build, usage and CPU tests.
+`build/sdk_model_test MODEL_DIR` additionally checks streaming, retained handles,
+concurrent requests and cross-thread cancellation. It loads a model, holds a temporary GPU lock,
+and requires authorization and an idle GPU under [AGENTS.md](AGENTS.md). Report actual runs in the PR.
+
 ## Tests
 
 These run on the CPU. The tools (`build/api_test`, `build/parser_test`, `build/tokenizer_test`, `build/vit_check`,
