@@ -65,6 +65,8 @@ constexpr char admission_constructed[] = "ADMISSION_CONSTRUCTED\n";
 constexpr char admission_cold[] = "ADMISSION_COLD_WORKERS_2_READS_0\n";
 constexpr char admission_bytes[] = "ADMISSION_ROUTED_BYTES_OK\n";
 std::atomic<bool> admission_observing{false};
+std::atomic<int> fail_stage{0}, fail_read{0};
+std::atomic<const char*> truncate_before_read{nullptr};
 std::atomic<int> admission_workers{0}, admission_reads{0};
 
 template <size_t N>
@@ -92,6 +94,13 @@ struct ShutdownProbe {
 
 namespace ni::q20 {
 void ExpertCacheTestAccess::observe(const ExpertCache& cache, Point point) {
+  if (point == Point::BeforeWorkerStart && fail_stage && --fail_stage == 0) fatal("injected staging allocation failure");
+  if (point == Point::BeforeRead) {
+    if (const char* path = truncate_before_read.exchange(nullptr)) {
+      if (truncate(path, 0)) fatal("test truncate failed");
+    }
+    if (fail_read && --fail_read == 0) fatal("injected initial fill failure");
+  }
   if (admission_observing.load()) {
     if (point == Point::BeforeWorkerStart) {
       ++admission_workers;
@@ -1833,10 +1842,80 @@ void case_shutdown_waiting(const Pack& p) {
   printf("shutdown waiting/idle: joined without a synthetic go\n");
 }
 
+void case_load_recovery(const std::string& dir) {
+  alarm(20);
+  auto fds = [] {
+    int n = 0;
+    for (int fd = 0; fd < 1024; ++fd) n += fcntl(fd, F_GETFD) != -1;
+    return n;
+  };
+  const int before = fds();
+  FatalRecovery recovery;
+  // Repeated failures after one reader has started and during initial fill;
+  // teardown must not wait on pending counts whose worker failed.
+  for (int mode = 0; mode < 3; ++mode) {
+    for (int run = 0; run < 4; ++run) {
+      Pack p = make_pack(dir, 4, 2);
+      Arena a(p.lay, 3 * p.E, 4, p.E);
+      Event ev;
+      ExpertCache::Options o;
+      o.readers = 2;
+      o.fill = mode != 0;
+      if (mode == 0) fail_stage = 2;
+      if (mode == 1) fail_read = 2;
+      if (mode == 2) truncate_before_read = p.files[0].c_str();
+      bool caught = false;
+      try { ExpertCache c(p.files, p.layers, p.E, p.lay, 3 * p.E, a.m, ev.sync(), o); }
+      catch (const FatalError& e) {
+        const std::string message = e.what();
+        caught = message.find(mode == 0 ? "staging" : mode == 1 ? "initial fill" : "short read") != std::string::npos;
+      }
+      CHECK(caught, "initial expert loading failure %d did not reach constructing thread", mode);
+      fail_stage = 0; fail_read = 0; truncate_before_read = nullptr;
+    }
+  }
+  // A fresh fill after failure still reads every byte, with both direct and widened reads.
+  Pack p = make_pack(dir, 4, 2);
+  case_complete(p);
+  CHECK(fds() == before, "failed initial fills leaked file descriptors");
+  // The same reader failure without the SDK opt-in must still exit 1.
+  char executable[4096]; uint32_t size = sizeof executable;
+  CHECK(_NSGetExecutablePath(executable, &size) == 0, "resolve executable");
+  const std::string output = dir + "/fatal-read.log";
+  posix_spawn_file_actions_t actions;
+  CHECK(posix_spawn_file_actions_init(&actions) == 0, "spawn actions");
+  CHECK(posix_spawn_file_actions_addopen(&actions, STDERR_FILENO, output.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0600) == 0,
+        "redirect reader diagnostic");
+  char* args[] = {executable, const_cast<char*>("--initial-fatal"), const_cast<char*>(dir.c_str()), nullptr};
+  pid_t child = -1;
+  const int spawned = posix_spawn(&child, executable, &actions, nullptr, args, environ);
+  posix_spawn_file_actions_destroy(&actions);
+  CHECK(spawned == 0, "spawn unscoped reader");
+  if (spawned == 0) {
+    int status = 0;
+    CHECK(waitpid(child, &status, 0) == child && WIFEXITED(status) && WEXITSTATUS(status) == 1, "reader exit 1");
+    FILE* f = fopen(output.c_str(), "r");
+    char buf[256] = {};
+    if (f) { (void)fread(buf, 1, sizeof(buf) - 1, f); fclose(f); }
+    CHECK(strstr(buf, "[kapitsa] fatal: injected initial fill failure"), "reader fatal diagnostic");
+  }
+  unlink(output.c_str());
+  alarm(0);
+  printf("load recovery: staging/initial fill/real truncated reads returned; reload passed\n");
+}
+
 int main(int argc, char** argv) {
   if (setenv("NI_ABORT", "0", 1)) {
     fprintf(stderr, "fn_store_test: cannot normalize NI_ABORT\n");
     return 91;
+  }
+  if (argc == 3 && !strcmp(argv[1], "--initial-fatal")) {
+    Pack p = make_pack(argv[2], 4, 2);
+    Arena a(p.lay, 3 * p.E, 4, p.E);
+    Event ev;
+    fail_read = 1;
+    ExpertCache c(p.files, p.layers, p.E, p.lay, 3 * p.E, a.m, ev.sync(), {});
+    return 93;
   }
   if (argc > 1 && !strcmp(argv[1], "--admission-probe")) {
     if (argc != 4) fatal("usage: fn_store_test --admission-probe CASE DIR");
@@ -1878,6 +1957,7 @@ int main(int argc, char** argv) {
     } else {
       mkdir(dir.c_str(), 0755);
     }
+    case_load_recovery(dir);
     Pack p = make_pack(dir, shutdown_only ? 4 : 6, shutdown_only ? 2 : 64);
     case_shutdown_demand(p, false);
     case_shutdown_demand(p, true);

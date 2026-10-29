@@ -1,0 +1,51 @@
+{
+  "tokens": 512,
+  "finish": "length",
+  "ttft_s": 7.7576338749495335,
+  "decode_tps": 15.392628197842967,
+  "wall_s": 41.020665249961894,
+  "usage": {
+    "prompt_tokens": 2957,
+    "completion_tokens": 512,
+    "total_tokens": 3469,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "kapitsa": {
+      "prefill_ms": 7744.9,
+      "kflash": {
+        "source": "none",
+        "cycles": 511
+      }
+    }
+  },
+  "sha256": "7407ce83e410ee3713eb5ccfa3ef25040e6bee993958bc81198b51e203278c80",
+  "label": "B1",
+  "variant": "reduce",
+  "ane_ready_wait_s": 0.0007172499899752438,
+  "thermal_before": "0",
+  "thermal_after": "0",
+  "command": [
+    "lockf",
+    "-k",
+    "/tmp/kapitsa-gpu.lock",
+    "/Users/bytedance/Documents/ChatGPT/blog/kapitsa-perf-reduce/build/kapitsa",
+    "serve",
+    "--model",
+    "/Users/bytedance/.cache/kapitsa/models/qwen3.8-27b-4bit",
+    "--host",
+    "127.0.0.1",
+    "--private",
+    "--port",
+    "18130",
+    "--context",
+    "8192",
+    "--slots",
+    "1",
+    "--spec",
+    "0"
+  ],
+  "version": "kapitsa 0.2.24 (8ea1723)",
+  "prompt_sha256": "6f004e0a164073a1d04d5d84ce8aea4aed706825b342e3a5c09348d0682c542e",
+  "power": "Now drawing from 'AC Power'\n -InternalBattery-0 (id=21692515)\t84%; charging; 1:53 remaining present: true\n"
+}

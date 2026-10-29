@@ -31,8 +31,11 @@ KAPITSA_API uint32_t kapitsa_abi_version(void);
  * The lock is held while the engine or retained requests exist, even when idle.
  * One live SDK engine per process; concurrent requests use its native slots.
  * Creating a second live engine returns BUSY immediately regardless of the lock timeout.
- * Some loader, Metal and resource failures call fatal()/_exit(1), terminating the host process;
- * they do not return a status. Exception handling here cannot recover from those failures.
+ * Model-loading (including streamed-expert initial fill) and Metal initialization failures
+ * return ERROR with a diagnostic.
+ * Failed construction releases its allocations and lock, permitting another create attempt.
+ * Other runtime fatal errors, including live streamed-expert reads, can still terminate
+ * the host process; applications needing crash isolation should use a worker process.
  * Errors/output strings are owned by the caller; free with kapitsa_string_free.
  * Output pointer arguments must be non-null; the returned handle/error may be null.
  * They are initialized on entry. Never pass a stale handle. */
@@ -50,6 +53,10 @@ KAPITSA_API kapitsa_status kapitsa_request_create(kapitsa_engine* engine,
                                                  kapitsa_request** out, char** error);
 /* Blocking call. callback may be null. Result/error outputs must be distinct and non-null.
  * Any returned strings must be freed, including a partial result returned with an error.
+ * Deferred Metal library/pipeline creation failures return ERROR and invalidate the engine.
+ * In-flight and future requests then fail; no affected model state is persisted to disk.
+ * Deltas already delivered may be incomplete. Destroy all engine/request handles and create
+ * a new engine to retry. The GPU lock stays held until the last handle is destroyed.
  * Pre-cancelled requests return CANCELLED with no result; later cancellations may return
  * a partial result. A second call returns BUSY. Once terminal, cancellation has no effect.
  * Result JSON: content, reasoning, tool_calls, finish_reason, error, prompt_tokens,

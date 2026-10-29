@@ -122,6 +122,8 @@ add_executable(execution_session_test tools/execution_session_test.cpp src/engin
 target_include_directories(execution_session_test PRIVATE ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/third_party)
 target_link_libraries(execution_session_test PRIVATE Threads::Threads)
 enable_testing()
+add_test(NAME load_error_test COMMAND load_error_test)
+set_tests_properties(load_error_test PROPERTIES TIMEOUT 30)
 add_test(NAME execution_session_test COMMAND execution_session_test)
 set_tests_properties(execution_session_test PROPERTIES TIMEOUT 30)
 
@@ -203,6 +205,11 @@ if(KAPITSA_BUILD_SDK)
   add_executable(sdk_model_test sdk/c/model_test.cpp)
   target_include_directories(sdk_model_test PRIVATE third_party)
   target_link_libraries(sdk_model_test PRIVATE kapitsa_sdk)
+  # Fault hooks only in this test's objects, never in the CLI or shared library.
+  add_executable(sdk_deferred_test sdk/c/deferred_test.cpp sdk/c/kapitsa.cpp src/metal/gpu.mm src/engine/engine.cpp)
+  target_include_directories(sdk_deferred_test PRIVATE sdk/c src third_party)
+  target_compile_definitions(sdk_deferred_test PRIVATE NI_PIPELINE_TEST)
+  target_link_libraries(sdk_deferred_test PRIVATE naceinfer)
   # Real-model test: built in CI but run only with explicit GPU authorization.
   install(TARGETS kapitsa_sdk LIBRARY DESTINATION lib)
   install(FILES sdk/c/kapitsa.h DESTINATION include)

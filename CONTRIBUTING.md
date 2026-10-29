@@ -29,9 +29,18 @@ first use instead.
 ## SDK build and tests
 
 See [sdk/README.md](sdk/README.md) for the opt-in C ABI build, usage and CPU tests.
+`build/load_error_test` checks error recovery, joined workers, file cleanup and the CLI's fatal exit on the CPU.
+Its optional `--gpu` mode checks real Metal failures and buffer cleanup under the GPU lock.
 `build/sdk_model_test MODEL_DIR` additionally checks streaming, retained handles,
-concurrent requests and cross-thread cancellation. It loads a model, holds a temporary GPU lock,
-and requires authorization and an idle GPU under [AGENTS.md](AGENTS.md). Report actual runs in the PR.
+concurrent requests, cross-thread cancellation, failed loads and loading again after destruction.
+`build/sdk_deferred_test --small-gpu` checks deferred Metal compilation with tiny buffers.
+`build/sdk_deferred_test MODEL_DIR` injects missing pipelines during initial generation,
+concurrent requests and a real DFlash2 batch, then checks failure, teardown and reload; the model
+must have a compatible DFlash2 drafter. Fault hooks are compiled only into this test executable.
+CI compiles `sdk_model_test` and `sdk_deferred_test` but does not run their GPU modes;
+`fn_store_test` is built and run as a CPU test. All `sdk_deferred_test` modes use Metal.
+GPU modes require authorization, the shared GPU lock and an idle GPU under [AGENTS.md](AGENTS.md).
+The SDK model tests additionally exercise ownership on a temporary lock file. Report actual runs in the PR.
 
 ## Tests
 
@@ -69,6 +78,7 @@ These run on the CPU. The tools (`build/api_test`, `build/parser_test`, `build/t
 | `build/parser_test MODEL_DIR` | The streaming parser (reasoning, content, tool calls) on real token ids; with a Flint folder, its GLM-format tool calls too | a Qwen or Flint model folder |
 | `build/tokenizer_test` | Flint's pre-tokenizer split against the pieces Hugging Face tokenizers 0.23.3 makes of the same texts (a synthetic tokenizer.json, one token per piece) | nothing |
 | `build/split_place_test` | Where a split model's layers go (`src/cluster/place.h`): runs that fit every Mac's memory with the fastest pass (each Mac's layers over its bandwidth), the head's own tensors and its n-gram layers, ties broken towards the most memory left everywhere; when the Macs stream the experts the runs follow their memory instead (each holds the same multiple of its budget, so a small fast Mac takes the smaller share); nothing when the Macs do not hold the model | nothing |
+| `build/qwen4_config_test` | What a Qwen 4 config.json asks that the Qwen3.8-Flash-Next path does not run (`src/model/qwen4_config.h`): Flash-Next's published config runs, with Sushi's YaRN only named as not applied, and each setting the path does not run is refused alone | nothing |
 | `build/json_file_test` | The parsed-JSON cache the planners read config.json through (`src/util/json_file.h`): a synthetic 8 MB Nemotron-H config read back as nlohmann's own parse, a second read without a parse, 2,000 reads in well under a second, a rewritten file read again, missing / empty / broken files null, eviction past the cache's size, threads reading at once | nothing |
 | `build/remote_test` | A split model's reserve on its other Macs (`src/model/remote.h`, `remote_reserve`): a fake stage records each growth asked of it and answers by its own rounding (or fails, or is lost); the reserves the engine makes must ask only past what it holds, take what it holds from its answer, and ask again after a failure | nothing |
 | `build/ane_segment_check [--gpu]` | Dense ANE FFN input widths and the explicit 4096 opt-in; `--gpu` compares segmented and full activation packing and weight staging at hidden 2560/4096/5120, with offsets, tails, padding and guards. GPU mode takes the GPU lock; use `MTL_SHADER_VALIDATION=1 MTL_DEBUG_LAYER=1` | nothing (`--gpu`: a Mac with Metal) |

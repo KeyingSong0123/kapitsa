@@ -3,6 +3,7 @@
 #include "engine/output_parser.h"
 #include "engine/reasoning_memory.h"
 #include "engine/tool_args.h"
+#include "model/qwen4_config.h"
 #include "splash/runtime.h"
 #include "util/json_file.h"
 #include "util/log.h"
@@ -215,6 +216,34 @@ void Engine::yield_turn(ChatResult& res) {
   ++res.yields;
   turn_.unlock();
   turn_.lock();
+  check_healthy();
+}
+
+void Engine::check_healthy() const {
+  if (failed_) throw FatalError("engine is unusable after a Metal pipeline failure; destroy all handles and load again");
+}
+
+void Engine::abandon_batch() {
+  // Never commit staged rows on this path. Every job still belongs to a waiting
+  // request; wake it before its stack can disappear.
+  std::lock_guard<std::mutex> lk(bmu_);
+  for (BatchJob* j : batch_) j->state = BatchJob::State::returned;
+  batch_.clear();
+  batch_runner_ = false;
+  bcv_.notify_all();
+}
+
+void Engine::fail_generation() noexcept {
+  if (failed_) return;
+  failed_ = true;
+  abandon_batch();
+  turn_.notify();
+  // Encoders have discarded their uncommitted tails. Resolve host-fed waits in
+  // already submitted work, then drain it before another request can take the
+  // turn or any model buffers can be destroyed. No outputs/state are reusable.
+  model_->ane_abort("pipeline error");
+  if (mask_event_) Gpu::signal_event_cpu(mask_event_, mask_value_);
+  Gpu::get().drain();
 }
 
 // Whether a chat template renders an assistant turn's reasoning with a newline of its own before </think> (Nemotron
@@ -676,6 +705,8 @@ std::string unsupported_model(const std::string& model_dir) {
   const auto jp = json_file(model_dir + "/config.json");
   const nlohmann::json& j = *jp;
   if (!j.is_object()) return model_dir + ": its config.json is not valid JSON.";
+  // Qwen 4 (qwen4*): what the Qwen3.8-Flash-Next path does not run, or "" (model/qwen4_config.h)
+  if (qwen4_family(j)) return qwen4_refusal(j, model_dir);
   if (Qwen4Exp::is_model(model_dir) || Dory::is_model(model_dir) || NemotronH::is_model(model_dir) ||
       Flint::is_model(model_dir) || Clover::is_model(model_dir))
     return "";
@@ -1251,6 +1282,7 @@ bool Engine::reserve_kv_wait(Slot& slot, int need, const std::function<bool()>& 
     // one takes it or finds its prompt too long), else none of them would see an event
     if (running == 0) turn_.notify();
     turn_.wait_event(turn_.events(), cancelled);
+    check_healthy();
     slot.mem_wait = Slot::MemWait::none;
     if (reserve_kv(slot, need, started)) return true;
   }
@@ -1346,16 +1378,23 @@ bool Engine::batch_wanted() const {
   return n >= 2 && batch_rows(std::min(n, 8)) > 0;
 }
 
+#ifdef NI_PIPELINE_TEST
+void pipeline_test_leave();
+#endif
 void Engine::batch_leave(BatchJob& j, BatchJob::State st) {
-  batch_.erase(std::remove(batch_.begin(), batch_.end(), &j), batch_.end());
   // its staged rows into its drafter's ring: the ring holds every row before j.P again, as its own loop expects
   const bool staged = dfl_ ? j.slot->dseq->staged > 0 : lili_ && j.slot->lseq->staged > 0;
   if (staged) {
+#ifdef NI_PIPELINE_TEST
+    pipeline_test_leave();
+#endif
     auto e = Gpu::get().begin();
     if (dfl_) dfl_->encode_commit_staged(*e, *j.slot->dseq);
     else lili_->encode_commit_staged(*e, *j.slot->lseq);
     e->commit_and_wait();
   }
+  // Keep the job visible to error cleanup until its staged rows have committed.
+  batch_.erase(std::remove(batch_.begin(), batch_.end(), &j), batch_.end());
   if (st == BatchJob::State::done) j.slot->decoding = false;  // (no batch waits for it any more)
   {
     std::lock_guard<std::mutex> lk(bmu_);
@@ -1364,7 +1403,7 @@ void Engine::batch_leave(BatchJob& j, BatchJob::State st) {
   bcv_.notify_all();
 }
 
-bool Engine::join_batch(BatchJob& job) {
+bool Engine::join_batch(BatchJob& job) try {
   batch_.push_back(&job);
   turn_.notify();  // a runner waiting for its members
   if (!batch_runner_) {
@@ -1382,8 +1421,14 @@ bool Engine::join_batch(BatchJob& job) {
       bcv_.wait(lk, [&] { return job.state != BatchJob::State::active || job.runner; });
     }
     turn_.lock();
+    check_healthy();
   }
   return job.state == BatchJob::State::done;
+} catch (...) {
+  // In particular, the runner's stack job must leave batch_ before unwinding
+  // to chat(), whose recovery guard drains submitted work under the turn.
+  if (auto* s = Gpu::PipelineRecovery::current(); s && s->failed) abandon_batch();
+  throw;
 }
 
 void Engine::run_batch(BatchJob& me) {
@@ -1399,6 +1444,7 @@ void Engine::run_batch(BatchJob& me) {
         if (t_wait < 0) t_wait = now_ms();
         const double t0 = t_wait;
         turn_.wait_event(turn_.events(), [t0] { return now_ms() - t0 >= 1000; });
+        check_healthy();
         continue;
       }
       if (t_wait >= 0 && now_ms() - t_wait >= 1000) batch_backoff_ = now_ms() + 2000;  // they did not come
@@ -1431,6 +1477,7 @@ void Engine::run_batch(BatchJob& me) {
     if (contended()) {  // between cycles: other requests' turns (prefill chunks, a member's end, a request joining)
       turn_.unlock();
       turn_.lock();
+      check_healthy();
     }
   }
   // this member left: another one runs the batch, or the last one goes back to its own loop
@@ -1455,6 +1502,9 @@ void Engine::run_batch(BatchJob& me) {
   }
 }
 
+#ifdef NI_PIPELINE_TEST
+void pipeline_test_batch();
+#endif
 void Engine::batch_cycle(int rows) {
   Gpu& g = Gpu::get();
   const double t_cycle = now_ms();
@@ -1567,6 +1617,9 @@ void Engine::batch_cycle(int rows) {
     if (e1_work) e1->commit();
     nh_->encode_verify_multi(*e2, groups);  // (no member is masked: a Nemotron-H reply under a grammar is not batched)
   }
+#ifdef NI_PIPELINE_TEST
+  pipeline_test_batch();  // e1 may already be submitted; e2 is still uncommitted
+#endif
   e2->commit();
   if (pending) {
     if (e1_work && !kfb) e1->wait();  // (under the budget it was waited for before the plan)
@@ -2171,6 +2224,9 @@ Engine::Slot* Engine::pick_slot(const std::vector<int>& prompt, uint64_t arrival
   return best;
 }
 
+#ifdef NI_PIPELINE_TEST
+void pipeline_test_queued();
+#endif
 ChatResult Engine::chat(const ChatRequest& r_in, const std::function<bool(const ChatDelta&)>& on_delta,
                         const std::function<void(const ChatResult&)>& on_prompt,
                         const std::function<bool()>& cancelled,
@@ -2298,6 +2354,15 @@ ChatResult Engine::chat(const ChatRequest& r_in, const std::function<bool(const 
 
   // ---- the GPU turn, then a free slot (first come first served when every slot is busy) ----
   std::unique_lock<TurnLock> turn(turn_);
+  check_healthy();
+  struct PipelineUnwind {
+    Engine& engine;
+    int exceptions = std::uncaught_exceptions();
+    ~PipelineUnwind() {
+      if (auto* s = Gpu::PipelineRecovery::current(); s && s->failed && std::uncaught_exceptions() > exceptions)
+        engine.fail_generation();
+    }
+  } pipeline_unwind{*this};
   // the image embeddings this request holds (Vision::embeddings): given back once it is done
   struct EndImages {
     vision::Vision* v;
@@ -2325,11 +2390,15 @@ ChatResult Engine::chat(const ChatRequest& r_in, const std::function<bool(const 
     if (picked) break;
     if (!queued) {
       slot_queue_.push_back(arrival);
+#ifdef NI_PIPELINE_TEST
+      pipeline_test_queued();
+#endif
       queued = true;
       logi("chat: all %d slots are busy: a request waits for one (%zu waiting; --slots sets how many requests run "
            "at once)", int(slots_.size()), slot_queue_.size());
     }
     turn_.wait_event(turn_.events(), cancelled);  // a request ending frees its slot
+    check_healthy();
   }
   if (queued) {
     slot_queue_.erase(std::find(slot_queue_.begin(), slot_queue_.end(), arrival));

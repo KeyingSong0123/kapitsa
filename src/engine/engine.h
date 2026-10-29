@@ -586,6 +586,10 @@ class Engine {
   std::unique_ptr<minja::chat_template> tmpl_;
   std::vector<Slot> slots_;
   TurnLock turn_;            // the GPU turn: engine state and the model are used by its holder only
+  std::atomic<bool> failed_{false};  // failure is cross-thread; model/batch cleanup still requires the turn
+  void check_healthy() const;
+  void fail_generation() noexcept;
+  void abandon_batch();
   int active_ = 0;           // requests holding a slot (under the turn)
   int decoding_ = 0;         // of those, requests in their decode loop (under the turn)
   std::vector<BatchJob*> batch_;  // the batch's members (under the turn)
