@@ -1,0 +1,312 @@
+===== final-cpu-0.log =====
+PASS api_test
+PASS prefix_cache_test
+PASS fn_store_test
+PASS fn_dflash_test
+PASS tokenizer_test
+PASS iq_layout_test
+PASS remote_test
+PASS cluster_test
+PASS split_place_test
+PASS test_server_cli
+PASS test_sidecar
+PASS test_bench
+PASS test_update
+PASS test_community
+PASS test_reasoning
+PASS test_pr_size
+PASS test_logit_compare
+PASS test_structured_cli
+0 failed
+
+===== final-cpu-1.log =====
+PASS execution_session_test
+PASS http_stream_test
+PASS exl3_test
+PASS json_file_test
+PASS splash_protocol_test
+PASS splash_runtime_test
+PASS splash_discover_test
+PASS splash_plan_test
+PASS load_error_test
+PASS ane_segment_check
+PASS test_logit_dump
+PASS test_structured_tokenizer
+PASS parser_tokenizer
+
+===== final-cpu-2.log =====
+check for merge conflicts................................................Passed
+check yaml...............................................................Passed
+check for added large files..............................................Passed
+check for case conflicts.................................................Passed
+trim trailing whitespace.................................................Passed
+ruff check...............................................................Passed
+shell scripts parse (bash -n)............................................Passed
+
+===== final-cpu-3.log =====
+
+===== logs/geometry-validation.out =====
+CPU input selection: 146 checks, 0 failures
+GPU input segments: 3872 comparisons, 83542976 data/guard bytes checked, 0 failures
+
+===== logs/geometry-validation.err =====
+2026-10-29 15:55:57.635 ane_segment_check[77205:10564045] Metal API Validation Enabled
+2026-10-29 15:55:57.636 ane_segment_check[77205:10564045] Metal GPU Validation Enabled
+[kapitsa] compiled kernels in 21 ms
+
+===== logs/9b-default-abort.out =====
+logs in $TMP/kap-ane-abort-98drcpfo
+PASS gpu alone: prompt 0 replies (24 tokens, 2.0 s)
+PASS gpu alone: prompt 1 replies (24 tokens, 2.2 s)
+PASS gpu alone: no split chunk in the log
+PASS split: prompt 0 ran split chunks that held (1.5 s)
+PASS split: prompt 1 ran split chunks that held (1.2 s)
+PASS split: no chunk was given up
+PASS fault: the injected fault is armed
+PASS fault: prompt 0 gives the GPU-alone reply again (24 tokens, 4.1 s)
+PASS fault: prompt 0 came back right after the bound (4.1 s)
+PASS fault: the 250 ms bound gave the chunk up
+PASS fault: the abort, not the per-job watchdog, retired the split
+PASS fault: the given-up chunk counted no evaluation
+PASS fault: the bound and the rerun were reported once each
+PASS fault: prompt 1 gives the GPU-alone reply again (24 tokens, 2.2 s)
+PASS fault: prompt 1 came back right after the bound (2.2 s)
+PASS fault: the second prompt does not split (and so does not bound) again
+PASS fault: no split chunk after the split was given up
+kept $TMP/kap-ane-abort-98drcpfo
+OK
+
+===== logs/9b-default-abort.err =====
+
+===== logs/server-api.log =====
+PASS GET / serves the chat page
+PASS chat page is self-contained (no external requests)
+PASS chat page carries the server's --timing (ttft, prefill or both; the placeholder is filled in)
+PASS /v1/models lists the model as qwen3.5-9b
+PASS chat page budgets the reply by the model's context, not the API's 16384 default
+PASS thinking: reasoning streamed separately
+PASS thinking: correct answer
+PASS thinking: finish=stop + usage
+PASS tool call: finish=tool_calls
+PASS tool call: read_file or run_shell on /etc/hosts
+PASS tool call: no markup in content
+PASS tool result: final answer mentions 3
+PASS tool result: prefix reused (cached >= first prompt, less the generation prompt's tail)
+PASS next turn: cached prefix
+PASS next turn: answer
+PASS non-stream tool call + int arg
+PASS int argument is a JSON number
+FAIL main slot survives side request  {"prompt_tokens": 507, "completion_tokens": 13, "total_tokens": 520, "prompt_tokens_details": {"cached_tokens": 0}, "kapitsa": {"prefill_ms": 1062.5, "kflash": {"source": "none", "cycles": 12}}}
+PASS thinking + tools: a call on /etc/hosts returned as a tool call
+FAIL one-offs keep the conversation in progress  {"prompt_tokens": 263, "completion_tokens": 25, "total_tokens": 288, "prompt_tokens_details": {"cached_tokens": 0}, "kapitsa": {"prefill_ms": 601.2, "kflash": {"source": "none", "cycles": 24}}}
+FAIL a side request sent beside a first request does not evict it  {"prompt_tokens": 636, "completion_tokens": 13, "total_tokens": 649, "prompt_tokens_details": {"cached_tokens": 0}, "kapitsa": {"prefill_ms": 1078.8, "kflash": {"source": "none", "cycles": 12}}}
+PASS anthropic: non-streamed tool call (stop_reason tool_use, tool_use on /etc/hosts, usage)
+PASS anthropic: display omitted: the thinking block has no text and a signature
+PASS anthropic: count_tokens counts the prompt
+PASS anthropic stream: message_start, ping, blocks, message_delta, message_stop
+PASS anthropic stream: message_start reports the tool loop's prompt as cached (the reply's tokens included)
+PASS anthropic stream: final answer mentions 3
+PASS anthropic: the next question's prompt continues the conversation (every turn's thinking kept)
+PASS anthropic: a prompt over the context is 400 "prompt is too long: N tokens > M maximum"
+PASS anthropic: streamed too, a plain 400 before any event
+PASS responses stream: created, in_progress, items, completed; sequence numbers in order
+PASS responses stream: a function_call on /etc/hosts
+PASS responses: the tool loop's next request is answered (mentions 3)
+PASS responses: its prompt is cached (input_tokens_details.cached_tokens >= the first prompt)
+PASS responses: previous_response_id continues a stored response
+PASS responses: an unknown previous_response_id is a 400
+PASS responses: a prompt over the context is 400 context_length_exceeded
+PASS responses: a max_output_tokens cut is status incomplete
+PASS /v1/models reports the requests that run at once (slots)
+PASS a request alone gives the same reply every time (greedy)
+PASS in flight together: the greedy reply is answered in full
+PASS in flight together: the sampled T=0.7 seed 11 reply is answered in full
+PASS in flight together: the greedy reply starts as it does alone
+SKIP in flight together: a 2K-token request sent during a long reply finishes first (--slots 1)
+PASS more requests than slots: every one is answered in full
+PASS a client gone mid-stream: the request beside it is answered, the next one starts at once
+PASS chat: a prompt over the context is a 400 context_length_exceeded
+PASS chat stream: a prompt over the context is a 400 context_length_exceeded
+PASS chat stream: while every slot is busy the stream starts at once, gets an empty chunk every 15 s, and its first token comes once a slot frees
+FAILED: 3
+
+===== logs/structured-api.log =====
+model qwen3.5-9b
+PASS person prompt 0 greedy: valid
+PASS person prompt 0 T=0.7 seed 7: valid
+PASS person prompt 0 T=0.7 seed 11: valid
+PASS person prompt 1 greedy: valid
+PASS person prompt 1 T=0.7 seed 7: valid
+PASS person prompt 1 T=0.7 seed 11: valid
+PASS person prompt 2 greedy: valid
+PASS person prompt 2 T=0.7 seed 7: valid
+PASS person prompt 2 T=0.7 seed 11: valid
+PASS weather prompt 0 greedy: valid
+PASS weather prompt 0 T=0.7 seed 7: valid
+PASS weather prompt 0 T=0.7 seed 11: valid
+PASS weather prompt 1 greedy: valid
+PASS weather prompt 1 T=0.7 seed 7: valid
+PASS weather prompt 1 T=0.7 seed 11: valid
+PASS weather prompt 2 greedy: valid
+PASS weather prompt 2 T=0.7 seed 7: valid
+PASS weather prompt 2 T=0.7 seed 11: valid
+PASS review prompt 0 greedy: valid
+PASS review prompt 0 T=0.7 seed 7: valid
+PASS review prompt 0 T=0.7 seed 11: valid
+PASS review prompt 1 greedy: valid
+PASS review prompt 1 T=0.7 seed 7: valid
+PASS review prompt 1 T=0.7 seed 11: valid
+PASS review prompt 2 greedy: valid
+PASS review prompt 2 T=0.7 seed 7: valid
+PASS review prompt 2 T=0.7 seed 11: valid
+PASS recipe prompt 0 greedy: valid
+PASS recipe prompt 0 T=0.7 seed 7: valid
+PASS recipe prompt 0 T=0.7 seed 11: valid
+PASS recipe prompt 1 greedy: valid
+PASS recipe prompt 1 T=0.7 seed 7: valid
+PASS recipe prompt 1 T=0.7 seed 11: valid
+PASS recipe prompt 2 greedy: valid
+PASS recipe prompt 2 T=0.7 seed 7: valid
+PASS recipe prompt 2 T=0.7 seed 11: valid
+PASS result prompt 0 greedy: valid
+PASS result prompt 0 T=0.7 seed 7: valid
+PASS result prompt 0 T=0.7 seed 11: valid
+PASS result prompt 1 greedy: valid
+PASS result prompt 1 T=0.7 seed 7: valid
+PASS result prompt 1 T=0.7 seed 11: valid
+PASS result prompt 2 greedy: valid
+PASS result prompt 2 T=0.7 seed 7: valid
+PASS result prompt 2 T=0.7 seed 11: valid
+PASS tree prompt 0 greedy: valid
+PASS tree prompt 0 T=0.7 seed 7: valid
+PASS tree prompt 0 T=0.7 seed 11: valid
+PASS tree prompt 1 greedy: valid
+PASS tree prompt 1 T=0.7 seed 7: valid
+PASS tree prompt 1 T=0.7 seed 11: valid
+PASS tree prompt 2 greedy: valid
+PASS tree prompt 2 T=0.7 seed 7: valid
+PASS tree prompt 2 T=0.7 seed 11: valid
+PASS schema-valid replies: 54 of 54 (172 s)
+PASS greedy: the streamed reply equals the reply
+PASS json_object 0: a JSON object
+PASS json_object 1: a JSON object
+PASS json_object 2: a JSON object
+PASS reasoning on: reasoning, then valid JSON
+PASS responses: text.format json_schema
+PASS chat tool_choice "required" (Hello! How are you today?): one valid call
+PASS chat tool_choice {"type": "function", "function": {"name": "get_weather"}} (What's 2+2?): one valid call
+PASS chat tool_choice "required" (I need the forecast for Paris for the next 3 days.): one valid call
+PASS reasoning on + tool_choice required: a valid call
+PASS messages tool_choice {"type": "any"}: valid tool_use
+PASS messages tool_choice {"type": "tool", "name": "get_weather"}: valid tool_use
+PASS responses tool_choice required: a valid function_call
+PASS strict tool, tool_choice auto: a call it makes is valid
+PASS a schema the server cannot hold: 400 with the field
+PASS at once with free requests: request 0 under the schema is valid
+PASS at once with free requests: request 1 under the schema is valid
+PASS at once: the free requests answer
+ALL PASSED
+
+===== logs/upstream-one-slot-api.log =====
+PASS GET / serves the chat page
+PASS chat page is self-contained (no external requests)
+PASS chat page carries the server's --timing (ttft, prefill or both; the placeholder is filled in)
+PASS /v1/models lists the model as qwen3.5-9b
+PASS chat page budgets the reply by the model's context, not the API's 16384 default
+PASS thinking: reasoning streamed separately
+PASS thinking: correct answer
+PASS thinking: finish=stop + usage
+PASS tool call: finish=tool_calls
+PASS tool call: read_file or run_shell on /etc/hosts
+PASS tool call: no markup in content
+PASS tool result: final answer mentions 3
+PASS tool result: prefix reused (cached >= first prompt, less the generation prompt's tail)
+PASS next turn: cached prefix
+PASS next turn: answer
+PASS non-stream tool call + int arg
+PASS int argument is a JSON number
+FAIL main slot survives side request  {"prompt_tokens": 506, "completion_tokens": 13, "total_tokens": 519, "prompt_tokens_details": {"cached_tokens": 0}, "kapitsa": {"prefill_ms": 1052.9, "kflash": {"source": "none", "cycles": 12}}}
+PASS thinking + tools: a call on /etc/hosts returned as a tool call
+FAIL one-offs keep the conversation in progress  {"prompt_tokens": 263, "completion_tokens": 25, "total_tokens": 288, "prompt_tokens_details": {"cached_tokens": 0}, "kapitsa": {"prefill_ms": 612.0, "kflash": {"source": "none", "cycles": 24}}}
+FAIL a side request sent beside a first request does not evict it  {"prompt_tokens": 636, "completion_tokens": 13, "total_tokens": 649, "prompt_tokens_details": {"cached_tokens": 0}, "kapitsa": {"prefill_ms": 1422.8, "kflash": {"source": "none", "cycles": 12}}}
+PASS anthropic: non-streamed tool call (stop_reason tool_use, tool_use on /etc/hosts, usage)
+PASS anthropic: display omitted: the thinking block has no text and a signature
+PASS anthropic: count_tokens counts the prompt
+PASS anthropic stream: message_start, ping, blocks, message_delta, message_stop
+PASS anthropic stream: message_start reports the tool loop's prompt as cached (the reply's tokens included)
+PASS anthropic stream: final answer mentions 3
+PASS anthropic: the next question's prompt continues the conversation (every turn's thinking kept)
+PASS anthropic: a prompt over the context is 400 "prompt is too long: N tokens > M maximum"
+PASS anthropic: streamed too, a plain 400 before any event
+PASS responses stream: created, in_progress, items, completed; sequence numbers in order
+PASS responses stream: a function_call on /etc/hosts
+PASS responses: the tool loop's next request is answered (mentions 3)
+PASS responses: its prompt is cached (input_tokens_details.cached_tokens >= the first prompt)
+PASS responses: previous_response_id continues a stored response
+PASS responses: an unknown previous_response_id is a 400
+PASS responses: a prompt over the context is 400 context_length_exceeded
+PASS responses: a max_output_tokens cut is status incomplete
+PASS /v1/models reports the requests that run at once (slots)
+PASS a request alone gives the same reply every time (greedy)
+PASS in flight together: the greedy reply is answered in full
+PASS in flight together: the sampled T=0.7 seed 11 reply is answered in full
+PASS in flight together: the greedy reply starts as it does alone
+SKIP in flight together: a 2K-token request sent during a long reply finishes first (--slots 1)
+PASS more requests than slots: every one is answered in full
+PASS a client gone mid-stream: the request beside it is answered, the next one starts at once
+PASS chat: a prompt over the context is a 400 context_length_exceeded
+PASS chat stream: a prompt over the context is a 400 context_length_exceeded
+PASS chat stream: while every slot is busy the stream starts at once, gets an empty chunk every 15 s, and its first token comes once a slot frees
+FAILED: 3
+
+===== logs/default-two-slot-api.log =====
+PASS GET / serves the chat page
+PASS chat page is self-contained (no external requests)
+PASS chat page carries the server's --timing (ttft, prefill or both; the placeholder is filled in)
+PASS /v1/models lists the model as qwen3.5-9b
+PASS chat page budgets the reply by the model's context, not the API's 16384 default
+PASS thinking: reasoning streamed separately
+PASS thinking: correct answer
+PASS thinking: finish=stop + usage
+PASS tool call: finish=tool_calls
+PASS tool call: read_file or run_shell on /etc/hosts
+PASS tool call: no markup in content
+PASS tool result: final answer mentions 3
+PASS tool result: prefix reused (cached >= first prompt, less the generation prompt's tail)
+PASS next turn: cached prefix
+PASS next turn: answer
+PASS non-stream tool call + int arg
+PASS int argument is a JSON number
+PASS main slot survives side request
+PASS thinking + tools: a call on /etc/hosts returned as a tool call
+PASS one-offs keep the conversation in progress
+PASS a side request sent beside a first request does not evict it
+PASS anthropic: non-streamed tool call (stop_reason tool_use, tool_use on /etc/hosts, usage)
+PASS anthropic: display omitted: the thinking block has no text and a signature
+PASS anthropic: count_tokens counts the prompt
+PASS anthropic stream: message_start, ping, blocks, message_delta, message_stop
+PASS anthropic stream: message_start reports the tool loop's prompt as cached (the reply's tokens included)
+PASS anthropic stream: final answer mentions 3
+PASS anthropic: the next question's prompt continues the conversation (every turn's thinking kept)
+PASS anthropic: a prompt over the context is 400 "prompt is too long: N tokens > M maximum"
+PASS anthropic: streamed too, a plain 400 before any event
+PASS responses stream: created, in_progress, items, completed; sequence numbers in order
+PASS responses stream: a function_call on /etc/hosts
+PASS responses: the tool loop's next request is answered (mentions 3)
+PASS responses: its prompt is cached (input_tokens_details.cached_tokens >= the first prompt)
+PASS responses: previous_response_id continues a stored response
+PASS responses: an unknown previous_response_id is a 400
+PASS responses: a prompt over the context is 400 context_length_exceeded
+PASS responses: a max_output_tokens cut is status incomplete
+PASS /v1/models reports the requests that run at once (slots)
+PASS a request alone gives the same reply every time (greedy)
+PASS in flight together: the greedy reply is answered in full
+PASS in flight together: the sampled T=0.7 seed 11 reply is answered in full
+PASS in flight together: the greedy reply starts as it does alone
+PASS in flight together: a 2K-token request sent during a long reply finishes first
+PASS more requests than slots: every one is answered in full
+PASS a client gone mid-stream: the request beside it is answered, the next one starts at once
+PASS chat: a prompt over the context is a 400 context_length_exceeded
+PASS chat stream: a prompt over the context is a 400 context_length_exceeded
+PASS chat stream: while every slot is busy the stream starts at once, gets an empty chunk every 15 s, and its first token comes once a slot frees
+ALL PASSED

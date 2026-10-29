@@ -1,0 +1,328 @@
+{
+  "final-cpu-complete": {
+    "head": "fac53c043ea5bcca7e3a40330ef40ca3c96e3dc8",
+    "results": [
+      {
+        "command": [
+          "$CANDIDATE/.dsh/skills/verify-kapitsa/scripts/vk",
+          "cpu-tests"
+        ],
+        "rc": 0,
+        "seconds": 760.3614373207092
+      },
+      {
+        "command": [
+          "python3",
+          "$RESULTS/extra_cpu.py"
+        ],
+        "rc": 0,
+        "seconds": 28.374874114990234
+      },
+      {
+        "command": [
+          "prek",
+          "run",
+          "--all-files"
+        ],
+        "rc": 0,
+        "seconds": 0.4574007987976074
+      },
+      {
+        "command": [
+          "git",
+          "diff",
+          "--check"
+        ],
+        "rc": 0,
+        "seconds": 0.0396571159362793
+      }
+    ],
+    "rc": 0,
+    "finished": 1793261344.084646
+  },
+  "api-cache-results": [
+    {
+      "check": "9B intentionally fails explicit zero-drift gate on all decode paths",
+      "passed": true,
+      "details": null
+    },
+    {
+      "check": "server-api",
+      "passed": false,
+      "details": {
+        "rc": 1,
+        "command": [
+          "python3",
+          "$CANDIDATE/tests/test_server.py",
+          "http://127.0.0.1:8198",
+          "--model-id",
+          "qwen3.5-9b"
+        ]
+      }
+    },
+    {
+      "check": "structured-api",
+      "passed": true,
+      "details": {
+        "rc": 0,
+        "command": [
+          "python3",
+          "$CANDIDATE/tests/test_structured.py",
+          "http://127.0.0.1:8198"
+        ]
+      }
+    },
+    {
+      "check": "default cache namespace contains numerical mode",
+      "passed": true,
+      "details": {
+        "ed4a58d3bd30cdf0c1de4ac4c4b6dfcc": "Kapitsa SSD prefix cache, state format 1 (src/engine/engine_disk.cpp)\nmodel: $MODEL_9B\n  config.json 3331 1793176825.794340277\n  model-00001-of-00002.safetensors 5349771292 1793178219.269207018\n  model-00002-of-00002.safetensors 600449850 1793177184.024940735\n  model.safetensors.index.json 123592 1793177151.194002380\n  tokenizer.json 19989325 1793177161.251929066\n  tokenizer_config.json 9187 1793177162.519636494\n  config.json CRC-32C 2297593881\nstates: qwen35 GGGAGGGAGGGAGGGAGGGAGGGAGGGAGGGA; attention: K, V f16 [4][cap][256]; GDN: conv f32 [3][8192], state f32 [32][128][128]; prefill: ANE W8A8 segmented input\ndecoding: no drafter\nKV rows per block: 512\n"
+      }
+    },
+    {
+      "check": "NI_ANE=0 uses a distinct namespace",
+      "passed": true,
+      "details": [
+        "becf94f6cac916bfda14bede0dadc66f"
+      ]
+    },
+    {
+      "check": "upstream GPU namespace matches new opt-out namespace",
+      "passed": true,
+      "details": null
+    },
+    {
+      "check": "default restart selects its existing namespace",
+      "passed": true,
+      "details": null
+    }
+  ],
+  "api-slots-results": [
+    {
+      "label": "upstream-one-slot",
+      "slots": 1,
+      "binary": "$REFERENCE/build/kapitsa",
+      "command": [
+        "python3",
+        "$CANDIDATE/tests/test_server.py",
+        "http://127.0.0.1:8198",
+        "--model-id",
+        "qwen3.5-9b"
+      ],
+      "rc": 1,
+      "seconds": 110.72988390922546,
+      "failures": [
+        "main slot survives side request",
+        "one-offs keep the conversation in progress",
+        "a side request sent beside a first request does not evict it"
+      ]
+    },
+    {
+      "label": "default-two-slot",
+      "slots": 2,
+      "binary": "$CANDIDATE/build/kapitsa",
+      "command": [
+        "python3",
+        "$CANDIDATE/tests/test_server.py",
+        "http://127.0.0.1:8198",
+        "--model-id",
+        "qwen3.5-9b"
+      ],
+      "rc": 0,
+      "seconds": 118.13879990577698,
+      "failures": []
+    }
+  ],
+  "api-slots-conclusion": {
+    "initial_failures": [
+      "main slot survives side request",
+      "one-offs keep the conversation in progress",
+      "a side request sent beside a first request does not evict it"
+    ],
+    "same_failures_on_upstream_one_slot": true,
+    "default_two_slot_suite_passed": true
+  },
+  "cache-limit": {
+    "namespace_only": true,
+    "limitation": "Actual saved-prefix replay is not claimed: the disk is below the engine's 10 GiB reserve.",
+    "no_room_logs": []
+  },
+  "complete": {
+    "completed": 1793263173.001247,
+    "commands": 43
+  },
+  "gpu-exit": {
+    "rc": 0,
+    "finished": 1793263173.0078468
+  },
+  "supplemental_cpu": [
+    {
+      "name": "execution_session_test",
+      "command": [
+        "$CANDIDATE/build/execution_session_test"
+      ],
+      "rc": 0,
+      "seconds": 0.02129507064819336
+    },
+    {
+      "name": "http_stream_test",
+      "command": [
+        "$CANDIDATE/build/http_stream_test"
+      ],
+      "rc": 0,
+      "seconds": 1.0275659561157227
+    },
+    {
+      "name": "exl3_test",
+      "command": [
+        "$CANDIDATE/build/exl3_test"
+      ],
+      "rc": 0,
+      "seconds": 0.4587979316711426
+    },
+    {
+      "name": "json_file_test",
+      "command": [
+        "$CANDIDATE/build/json_file_test"
+      ],
+      "rc": 0,
+      "seconds": 1.3085339069366455
+    },
+    {
+      "name": "splash_protocol_test",
+      "command": [
+        "$CANDIDATE/build/splash_protocol_test"
+      ],
+      "rc": 0,
+      "seconds": 0.011168956756591797
+    },
+    {
+      "name": "splash_runtime_test",
+      "command": [
+        "$CANDIDATE/build/splash_runtime_test"
+      ],
+      "rc": 0,
+      "seconds": 4.231462240219116
+    },
+    {
+      "name": "splash_discover_test",
+      "command": [
+        "$CANDIDATE/build/splash_discover_test"
+      ],
+      "rc": 0,
+      "seconds": 0.23984694480895996
+    },
+    {
+      "name": "splash_plan_test",
+      "command": [
+        "$CANDIDATE/build/splash_plan_test"
+      ],
+      "rc": 0,
+      "seconds": 0.02413797378540039
+    },
+    {
+      "name": "load_error_test",
+      "command": [
+        "$CANDIDATE/build/load_error_test"
+      ],
+      "rc": 0,
+      "seconds": 0.5048770904541016
+    },
+    {
+      "name": "ane_segment_check",
+      "command": [
+        "$CANDIDATE/build/ane_segment_check"
+      ],
+      "rc": 0,
+      "seconds": 0.02181720733642578
+    },
+    {
+      "name": "test_logit_dump",
+      "command": [
+        "python3",
+        "tests/test_logit_dump.py",
+        "build"
+      ],
+      "rc": 0,
+      "seconds": 0.13353586196899414
+    },
+    {
+      "name": "test_structured_tokenizer",
+      "command": [
+        "python3",
+        "tests/test_structured.py",
+        "--cli",
+        "build",
+        "$MODEL_4B"
+      ],
+      "rc": 0,
+      "seconds": 19.53787899017334
+    },
+    {
+      "name": "parser_tokenizer",
+      "command": [
+        "$CANDIDATE/build/parser_test",
+        "$MODEL_4B"
+      ],
+      "rc": 0,
+      "seconds": 0.7217259407043457
+    }
+  ],
+  "api_server_command_template": [
+    "BUILD/kapitsa",
+    "serve",
+    "--model",
+    "$MODEL_9B",
+    "--model-id",
+    "qwen3.5-9b",
+    "--port",
+    "8198",
+    "--ctx",
+    "32768",
+    "--slots",
+    "SLOTS",
+    "--disk-cache",
+    "2G",
+    "--dflash",
+    "none"
+  ],
+  "api_server_environment": {
+    "NI_ANE_ASYNC": "0",
+    "NI_ANE_KEEP_S": "0",
+    "note": "Caller-held GPU lock markers inherited; NI_ANE=0 for the opt-out namespace launch. SLOTS=1 except the candidate two-slot control. All namespace launches share the same isolated KAPITSA_HOME."
+  },
+  "geometry": {
+    "cpu_checks": 146,
+    "gpu_comparisons": 3872,
+    "data_and_guard_bytes": 83542976,
+    "failures": 0,
+    "widths": [
+      2048,
+      2560,
+      4096,
+      5120,
+      6144,
+      8192,
+      10240,
+      12288,
+      18432
+    ],
+    "rows": [
+      0,
+      1,
+      31,
+      32,
+      33,
+      127
+    ],
+    "env": {
+      "MTL_SHADER_VALIDATION": "1",
+      "MTL_DEBUG_LAYER": "1"
+    }
+  },
+  "restoration": {
+    "health_checked": true,
+    "model_listing_checked": true,
+    "generation_checked": true
+  }
+}

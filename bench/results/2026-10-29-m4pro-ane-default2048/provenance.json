@@ -1,0 +1,171 @@
+{
+  "head": "fac53c043ea5bcca7e3a40330ef40ca3c96e3dc8",
+  "base": "16ead4cf201acd8f321090db7c0c3aacbe7de95f",
+  "new_version": "kapitsa 0.2.24 (fac53c04)",
+  "old_version": "kapitsa 0.2.24 (16ead4cf)",
+  "binaries": {
+    "$CANDIDATE/build/kapitsa": "553028c0cc0cc21b97b2089c82fdba2881124a657cc0663ca6ddcac38528c3a2",
+    "$CANDIDATE/build/ane_segment_check": "a40bdcc9550a9fd1c012a151d5f05a33933927bf0bcebe15f3fb64a2d01d0a55",
+    "$CANDIDATE/build/logit_dump": "cd23b39cb57740b6c7e21e63f2954a02e153ddcc96f95d18da0510aa86055d98",
+    "$CANDIDATE/build/ni_eval": "66e6cfa1c510c9ae2b40fb73fbb5ef1709cebce980de0a7fc27f3ac579197894",
+    "$REFERENCE/build/kapitsa": "ba043356fcf3354020b5d6d73ff73fb5d5f1b12d7fe7468fef4e457e81d4bddb",
+    "$REFERENCE/build/logit_dump": "cfa8cb72366fd3504cc1b3d0811b729488a82c52321c2d9c1e9b8310ca70293f",
+    "$REFERENCE/build/ni_eval": "08b3c08e97c63ace2fdf9d05019a4939503995ba2d11056994d47b9ac3749a2e"
+  },
+  "macos": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+  "chip": "Apple M4 Pro",
+  "memory_bytes": 51539607552,
+  "tokenizer_sha256": {
+    "4b": "06b9509352d2af50381ab2247e083b80d32d5c0aba91c272ca9ff729b6a0e523",
+    "9b": "06b9509352d2af50381ab2247e083b80d32d5c0aba91c272ca9ff729b6a0e523",
+    "27b": "06b9509352d2af50381ab2247e083b80d32d5c0aba91c272ca9ff729b6a0e523"
+  },
+  "started": 1793260557.251078,
+  "mac": {
+    "identifier": "Mac16,8",
+    "name": "MacBook Pro (14-inch, 2024)",
+    "year": 2024,
+    "chip": "Apple M4 Pro",
+    "cpu_cores": 14,
+    "gpu_cores": 20,
+    "memory_gb": 48,
+    "macos": "26.4.1",
+    "macos_build": "25E253"
+  },
+  "models": [
+    {
+      "name": "qwen3.5-4b-4bit",
+      "repo": "lmstudio-community/Qwen3.5-4B-MLX-4bit",
+      "revision": "c43ee1d65576a5d98de1e8405cac93c371a655c1",
+      "files": [
+        {
+          "rfilename": "config.json",
+          "blobId": "cb3e1a878a5c4a0505e0c9967da45820b2ca6bd3",
+          "size": 3366
+        },
+        {
+          "rfilename": "model.safetensors",
+          "blobId": "8dca545f7a23dbc24af451db83a558c31a97ef09",
+          "size": 3034301037,
+          "lfs": {
+            "sha256": "52dc943eaf6093a2313271a7a0abc36d127b2a16609a0a7c54ee1b4e4ed06cb8",
+            "size": 3034301037,
+            "pointerSize": 135
+          }
+        },
+        {
+          "rfilename": "model.safetensors.index.json",
+          "blobId": "40196ba58595ef9b3fad25a8a6daf3288b953c19",
+          "size": 101944
+        },
+        {
+          "rfilename": "tokenizer.json",
+          "blobId": "5520bfd2dd834ce386c1312c410fa71af56db5ad",
+          "size": 19989325,
+          "lfs": {
+            "sha256": "06b9509352d2af50381ab2247e083b80d32d5c0aba91c272ca9ff729b6a0e523",
+            "size": 19989325,
+            "pointerSize": 133
+          }
+        },
+        {
+          "rfilename": "tokenizer_config.json",
+          "blobId": "803283d87369d6d9ff8d970a8a49a602ca306544",
+          "size": 9187
+        }
+      ]
+    },
+    {
+      "name": "qwen3.5-9b-4bit",
+      "repo": "lmstudio-community/Qwen3.5-9B-MLX-4bit",
+      "revision": "b455506b0f574c74616dbcd56879bde38fafcff3",
+      "files": [
+        {
+          "rfilename": "config.json",
+          "blobId": "0435ae3f4b3c8b907f7359a2f8f7150d316f3435",
+          "size": 3331
+        },
+        {
+          "rfilename": "model-00001-of-00002.safetensors",
+          "blobId": "ad03caa729d4df9ba4501cb94a8631ec3d3ad8b9",
+          "size": 5349771292,
+          "lfs": {
+            "sha256": "973cc1efdedb4d327993fb9c27865f0bcfd9015897d5f0ca9ffb6cda6a0768e5",
+            "size": 5349771292,
+            "pointerSize": 135
+          }
+        },
+        {
+          "rfilename": "model-00002-of-00002.safetensors",
+          "blobId": "f16af804e5a8bf2f7c7973af484367c5aa014d7f",
+          "size": 600449850,
+          "lfs": {
+            "sha256": "597dae0ed72b60acc07382e8ea0cdb9509c54128e07b0eaa9cf4996373d5ca7d",
+            "size": 600449850,
+            "pointerSize": 134
+          }
+        },
+        {
+          "rfilename": "model.safetensors.index.json",
+          "blobId": "d366fa524ccd8f4ed93a67c7857597dc56172b92",
+          "size": 123592
+        },
+        {
+          "rfilename": "tokenizer.json",
+          "blobId": "5520bfd2dd834ce386c1312c410fa71af56db5ad",
+          "size": 19989325,
+          "lfs": {
+            "sha256": "06b9509352d2af50381ab2247e083b80d32d5c0aba91c272ca9ff729b6a0e523",
+            "size": 19989325,
+            "pointerSize": 133
+          }
+        },
+        {
+          "rfilename": "tokenizer_config.json",
+          "blobId": "803283d87369d6d9ff8d970a8a49a602ca306544",
+          "size": 9187
+        }
+      ]
+    },
+    {
+      "name": "qwen3.8-27b-4bit",
+      "repo": "mlx-community/Qwen3.8-27B-4bit",
+      "revision": "3e6447f082e89cc7f0bc6e5441afd38dfce760ff"
+    }
+  ],
+  "quality_reference_files": {
+    "quality-27b-main-reference.json": {
+      "sha256": "16d2dde33b61107b8f296b8f5d8d408659e7573ec4197ae8e8da8036b382458d",
+      "bytes": 8413204
+    },
+    "quality-27b-math-reference.json": {
+      "sha256": "55d16007dab71359cd5b9b826e8650ba81f9960ec0bc793ebac8f69ae647415b",
+      "bytes": 2103316
+    },
+    "quality-27b-native-main-reference.json": {
+      "sha256": "058f2ca20d9202fa01fa1a7b5d3df07aa09476172bf4cc7c2b0478fd3d5e1cb1",
+      "bytes": 8413204
+    },
+    "quality-27b-native-math-reference.json": {
+      "sha256": "c0812863f31ac903bff8359c5c4361dbf250a1a669fa6f3e2a3060f560f40a78",
+      "bytes": 2103316
+    },
+    "quality-4b-main-reference.json": {
+      "sha256": "ce826dc043f535125311711afcbcafaaaf6783564bbf56da29a7f7d3247fd6f0",
+      "bytes": 8413204
+    },
+    "quality-4b-math-reference.json": {
+      "sha256": "7163921031b07c438f4abb19446d915e66d237accc979d2eaae94d7b14f4a66a",
+      "bytes": 2103316
+    },
+    "quality-main-reference.json": {
+      "sha256": "53494cca15b0239bc76cc6f65d663786c53a7122e18b9730dcdead04297931a9",
+      "bytes": 8413204
+    },
+    "quality-math-reference.json": {
+      "sha256": "c8a08eb58980e8c9be5d0414f0747e9f19b33ec98b079a21f9b543727c0055bf",
+      "bytes": 2103316
+    }
+  },
+  "path_note": "Local roots are replaced by the symbolic paths in README.md; numeric results are unmodified."
+}

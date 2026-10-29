@@ -1,0 +1,145 @@
+===== abort-servers/fault.log (selected runtime lines) =====
+[kapitsa] NI_ANE: compiling the Neural Engine program in the background; prefill uses the GPU alone until it is ready
+[kapitsa] NI_ANE: Neural Engine program ready in the background (program was cached, 0.1 s)
+[kapitsa] engine ready: qwen3.5-9b-4bit, context 32768, 1 slots, plain decoding, KFlash (none), images on
+[kapitsa] NI_ANE: 4096-hidden FFN on the Neural Engine (2048-channel input segments; W8A8 changes prefill numerics; NI_ANE=0 disables)
+[kapitsa] NI_ANE: Neural Engine FFN split (wavefront): 24/24 units (12288 channels; GPU 0) from the default for this chip, chunks >= 512 rows; row scales 1 ms, program cached 1 ms + load 96 ms (13 functions, MIL 115 KB); 374.7 MB Metal; ready in 0.1 s
+[kapitsa] NI_ANE_FAULT: the ANE job of layer 0 of the first split chunk will not start
+[kapitsa] NI_ANE: a split prefill chunk has not finished in 250 ms; giving up the Neural Engine split
+[kapitsa] NI_ANE: Neural Engine FFN split stopped (a split chunk did not finish within 250 ms); this chunk reruns on the GPU, which runs the prefill FFN alone from now on
+[kapitsa] prefill: Neural Engine busy 0% of 3633 ms over 1 split chunks (0 evaluations)
+
+===== abort-servers/gpu.log (selected runtime lines) =====
+[kapitsa] engine ready: qwen3.5-9b-4bit, context 32768, 1 slots, plain decoding, KFlash (none), images on
+
+===== abort-servers/split.log (selected runtime lines) =====
+[kapitsa] NI_ANE: compiling the Neural Engine program in the background; prefill uses the GPU alone until it is ready
+[kapitsa] NI_ANE: Neural Engine program ready in the background (program was cached, 0.1 s)
+[kapitsa] engine ready: qwen3.5-9b-4bit, context 32768, 1 slots, plain decoding, KFlash (none), images on
+[kapitsa] NI_ANE: 4096-hidden FFN on the Neural Engine (2048-channel input segments; W8A8 changes prefill numerics; NI_ANE=0 disables)
+[kapitsa] NI_ANE: Neural Engine FFN split (wavefront): 24/24 units (12288 channels; GPU 0) from the default for this chip, chunks >= 512 rows; row scales 14 ms, program cached 1 ms + load 92 ms (13 functions, MIL 115 KB); 374.7 MB Metal; ready in 0.1 s
+[kapitsa] NI_ANE: startup check 1.94% of the ANE's part from the GPU alone (2 functions, 329 ms)
+[kapitsa] prefill: Neural Engine busy 46% of 1050 ms over 1 split chunks (32 evaluations)
+[kapitsa] prefill: Neural Engine busy 98% of 760 ms over 1 split chunks (64 evaluations)
+
+===== homes/9b-bench-A1/logs/bench-56500-ctx32768.log (selected runtime lines) =====
+[kapitsa] NI_ANE: compiling the Neural Engine program in the background; prefill uses the GPU alone until it is ready
+[kapitsa] NI_ANE: Neural Engine split unavailable (hidden size is not whole 2560-channel segments); the GPU runs the prefill FFN alone
+[kapitsa] engine ready: qwen3.5-9b-4bit, context 32768, 1 slots, plain decoding, KFlash (none), images on
+
+===== homes/9b-bench-A2/logs/bench-56771-ctx32768.log (selected runtime lines) =====
+[kapitsa] NI_ANE: compiling the Neural Engine program in the background; prefill uses the GPU alone until it is ready
+[kapitsa] NI_ANE: Neural Engine split unavailable (hidden size is not whole 2560-channel segments); the GPU runs the prefill FFN alone
+[kapitsa] engine ready: qwen3.5-9b-4bit, context 32768, 1 slots, plain decoding, KFlash (none), images on
+
+===== homes/9b-bench-B1/logs/bench-56658-ctx32768.log (selected runtime lines) =====
+[kapitsa] NI_ANE: compiling the Neural Engine program in the background; prefill uses the GPU alone until it is ready
+[kapitsa] NI_ANE: Neural Engine program ready in the background (program was cached, 0.1 s)
+[kapitsa] engine ready: qwen3.5-9b-4bit, context 32768, 1 slots, plain decoding, KFlash (none), images on
+[kapitsa] NI_ANE: 4096-hidden FFN on the Neural Engine (2048-channel input segments; W8A8 changes prefill numerics; NI_ANE=0 disables)
+[kapitsa] NI_ANE: Neural Engine FFN split (wavefront): 24/24 units (12288 channels; GPU 0) from the default for this chip, chunks >= 512 rows; row scales 1 ms, program cached 1 ms + load 83 ms (13 functions, MIL 115 KB); 374.7 MB Metal; ready in 0.1 s
+[kapitsa] NI_ANE: startup check 1.94% of the ANE's part from the GPU alone (2 functions, 330 ms)
+[kapitsa] prefill: Neural Engine busy 87% of 2282 ms over 2 split chunks (128 evaluations)
+[kapitsa] prefill: Neural Engine busy 71% of 3637 ms over 2 split chunks (128 evaluations)
+
+===== homes/9b-bench-B2/logs/bench-57202-ctx32768.log (selected runtime lines) =====
+[kapitsa] NI_ANE: compiling the Neural Engine program in the background; prefill uses the GPU alone until it is ready
+[kapitsa] NI_ANE: Neural Engine program ready in the background (program was cached, 0.1 s)
+[kapitsa] engine ready: qwen3.5-9b-4bit, context 32768, 1 slots, plain decoding, KFlash (none), images on
+[kapitsa] NI_ANE: 4096-hidden FFN on the Neural Engine (2048-channel input segments; W8A8 changes prefill numerics; NI_ANE=0 disables)
+[kapitsa] NI_ANE: Neural Engine FFN split (wavefront): 24/24 units (12288 channels; GPU 0) from the default for this chip, chunks >= 512 rows; row scales 0 ms, program cached 1 ms + load 73 ms (13 functions, MIL 115 KB); 374.7 MB Metal; ready in 0.1 s
+[kapitsa] NI_ANE: startup check 1.94% of the ANE's part from the GPU alone (2 functions, 347 ms)
+[kapitsa] prefill: Neural Engine busy 87% of 2278 ms over 2 split chunks (128 evaluations)
+[kapitsa] prefill: Neural Engine busy 71% of 3589 ms over 2 split chunks (128 evaluations)
+
+===== logs/27b-native-quality-main-B.err (selected runtime lines) =====
+[kapitsa] NI_ANE: Neural Engine FFN split (wavefront): 34/34 units (17408 channels; GPU 0) from the default for this chip, chunks >= 512 rows; row scales 4 ms, program compiled 45330 ms + load 136 ms (13 functions, MIL 133 KB); 629.0 MB Metal; ready in 45.5 s
+[kapitsa] NI_ANE: startup check 0.75% of the ANE's part from the GPU alone (2 functions, 439 ms)
+
+===== logs/27b-native-quality-math-B.err (selected runtime lines) =====
+[kapitsa] NI_ANE: Neural Engine FFN split (wavefront): 34/34 units (17408 channels; GPU 0) from the default for this chip, chunks >= 512 rows; row scales 5 ms, program cached 3 ms + load 134 ms (13 functions, MIL 133 KB); 629.0 MB Metal; ready in 0.2 s
+[kapitsa] NI_ANE: startup check 0.75% of the ANE's part from the GPU alone (2 functions, 337 ms)
+
+===== logs/27b-quality-main-B.err (selected runtime lines) =====
+[kapitsa] NI_ANE: Neural Engine FFN split (wavefront): 34/34 units (17408 channels; GPU 0) from the default for this chip, chunks >= 512 rows; row scales 39 ms, program compiled 45368 ms + load 135 ms (13 functions, MIL 133 KB); 629.0 MB Metal; ready in 45.6 s
+[kapitsa] NI_ANE: startup check 0.75% of the ANE's part from the GPU alone (2 functions, 336 ms)
+
+===== logs/27b-quality-math-B.err (selected runtime lines) =====
+[kapitsa] NI_ANE: Neural Engine FFN split (wavefront): 34/34 units (17408 channels; GPU 0) from the default for this chip, chunks >= 512 rows; row scales 3 ms, program cached 3 ms + load 80 ms (13 functions, MIL 133 KB); 629.0 MB Metal; ready in 0.1 s
+[kapitsa] NI_ANE: startup check 0.75% of the ANE's part from the GPU alone (2 functions, 346 ms)
+
+===== logs/27b-standard-A.err (selected runtime lines) =====
+[kapitsa] NI_ANE: Neural Engine FFN split (wavefront): 34/34 units (17408 channels; GPU 0) from the default for this chip, chunks >= 512 rows; row scales 17 ms, program compiled 45452 ms + load 127 ms (13 functions, MIL 133 KB); 629.0 MB Metal; ready in 45.7 s
+[kapitsa] NI_ANE: startup check 0.75% of the ANE's part from the GPU alone (2 functions, 571 ms)
+
+===== logs/27b-standard-B.err (selected runtime lines) =====
+[kapitsa] NI_ANE: Neural Engine FFN split (wavefront): 34/34 units (17408 channels; GPU 0) from the default for this chip, chunks >= 512 rows; row scales 4 ms, program cached 3 ms + load 105 ms (13 functions, MIL 133 KB); 629.0 MB Metal; ready in 0.2 s
+[kapitsa] NI_ANE: startup check 0.75% of the ANE's part from the GPU alone (2 functions, 573 ms)
+
+===== logs/4b-quality-main-B.err (selected runtime lines) =====
+[kapitsa] NI_ANE: Neural Engine FFN split (wavefront): 18/18 units (9216 channels; GPU 0) from the default for this chip, chunks >= 512 rows; row scales 16 ms, program compiled 17780 ms + load 70 ms (13 functions, MIL 89 KB); 187.6 MB Metal; ready in 17.9 s
+[kapitsa] NI_ANE: startup check 2.11% of the ANE's part from the GPU alone (2 functions, 111 ms)
+
+===== logs/4b-quality-math-B.err (selected runtime lines) =====
+[kapitsa] NI_ANE: Neural Engine FFN split (wavefront): 18/18 units (9216 channels; GPU 0) from the default for this chip, chunks >= 512 rows; row scales 0 ms, program cached 1 ms + load 61 ms (13 functions, MIL 89 KB); 187.6 MB Metal; ready in 0.1 s
+[kapitsa] NI_ANE: startup check 2.11% of the ANE's part from the GPU alone (2 functions, 111 ms)
+
+===== logs/4b-standard-A.err (selected runtime lines) =====
+[kapitsa] NI_ANE: Neural Engine FFN split (wavefront): 18/18 units (9216 channels; GPU 0) from the default for this chip, chunks >= 512 rows; row scales 20 ms, program compiled 17894 ms + load 46 ms (13 functions, MIL 89 KB); 187.6 MB Metal; ready in 18.0 s
+[kapitsa] NI_ANE: startup check 2.11% of the ANE's part from the GPU alone (2 functions, 183 ms)
+
+===== logs/4b-standard-B.err (selected runtime lines) =====
+[kapitsa] NI_ANE: Neural Engine FFN split (wavefront): 18/18 units (9216 channels; GPU 0) from the default for this chip, chunks >= 512 rows; row scales 2 ms, program cached 1 ms + load 68 ms (13 functions, MIL 89 KB); 187.6 MB Metal; ready in 0.1 s
+[kapitsa] NI_ANE: startup check 2.11% of the ANE's part from the GPU alone (2 functions, 185 ms)
+
+===== logs/9b-bench-A1.err (selected runtime lines) =====
+Left out of the server, as the harness does: NI_LOCK_HELD, NI_ANE_ASYNC, NI_ANE_KEEP_S
+
+===== logs/9b-bench-A2.err (selected runtime lines) =====
+Left out of the server, as the harness does: NI_LOCK_HELD, NI_ANE_ASYNC, NI_ANE_KEEP_S
+
+===== logs/9b-bench-B1.err (selected runtime lines) =====
+Left out of the server, as the harness does: NI_LOCK_HELD, NI_ANE_ASYNC, NI_ANE_KEEP_S
+
+===== logs/9b-bench-B2.err (selected runtime lines) =====
+Left out of the server, as the harness does: NI_LOCK_HELD, NI_ANE_ASYNC, NI_ANE_KEEP_S
+
+===== logs/9b-quality-main-A.err (selected runtime lines) =====
+[kapitsa] NI_ANE: Neural Engine split unavailable (hidden size is not whole 2560-channel segments); the GPU runs the prefill FFN alone
+
+===== logs/9b-quality-main-B.err (selected runtime lines) =====
+[kapitsa] NI_ANE: 4096-hidden FFN on the Neural Engine (2048-channel input segments; W8A8 changes prefill numerics; NI_ANE=0 disables)
+[kapitsa] NI_ANE: Neural Engine FFN split (wavefront): 24/24 units (12288 channels; GPU 0) from the default for this chip, chunks >= 512 rows; row scales 2 ms, program compiled 31334 ms + load 78 ms (13 functions, MIL 115 KB); 374.7 MB Metal; ready in 31.4 s
+[kapitsa] NI_ANE: startup check 1.94% of the ANE's part from the GPU alone (2 functions, 197 ms)
+
+===== logs/9b-quality-math-A.err (selected runtime lines) =====
+[kapitsa] NI_ANE: Neural Engine split unavailable (hidden size is not whole 2560-channel segments); the GPU runs the prefill FFN alone
+
+===== logs/9b-quality-math-B.err (selected runtime lines) =====
+[kapitsa] NI_ANE: 4096-hidden FFN on the Neural Engine (2048-channel input segments; W8A8 changes prefill numerics; NI_ANE=0 disables)
+[kapitsa] NI_ANE: Neural Engine FFN split (wavefront): 24/24 units (12288 channels; GPU 0) from the default for this chip, chunks >= 512 rows; row scales 2 ms, program cached 2 ms + load 98 ms (13 functions, MIL 115 KB); 374.7 MB Metal; ready in 0.1 s
+[kapitsa] NI_ANE: startup check 1.94% of the ANE's part from the GPU alone (2 functions, 200 ms)
+
+===== logs/9b-standard-A1.err (selected runtime lines) =====
+[kapitsa] NI_ANE: Neural Engine split unavailable (hidden size is not whole 2560-channel segments); the GPU runs the prefill FFN alone
+
+===== logs/9b-standard-A2.err (selected runtime lines) =====
+[kapitsa] NI_ANE: Neural Engine split unavailable (hidden size is not whole 2560-channel segments); the GPU runs the prefill FFN alone
+
+===== logs/9b-standard-B1.err (selected runtime lines) =====
+[kapitsa] NI_ANE: 4096-hidden FFN on the Neural Engine (2048-channel input segments; W8A8 changes prefill numerics; NI_ANE=0 disables)
+[kapitsa] NI_ANE: Neural Engine FFN split (wavefront): 24/24 units (12288 channels; GPU 0) from the default for this chip, chunks >= 512 rows; row scales 13 ms, program compiled 31158 ms + load 65 ms (13 functions, MIL 115 KB); 374.7 MB Metal; ready in 31.3 s
+[kapitsa] NI_ANE: startup check 1.94% of the ANE's part from the GPU alone (2 functions, 343 ms)
+
+===== logs/9b-standard-B2.err (selected runtime lines) =====
+[kapitsa] NI_ANE: 4096-hidden FFN on the Neural Engine (2048-channel input segments; W8A8 changes prefill numerics; NI_ANE=0 disables)
+[kapitsa] NI_ANE: Neural Engine FFN split (wavefront): 24/24 units (12288 channels; GPU 0) from the default for this chip, chunks >= 512 rows; row scales 0 ms, program cached 1 ms + load 62 ms (13 functions, MIL 115 KB); 374.7 MB Metal; ready in 0.1 s
+[kapitsa] NI_ANE: startup check 1.94% of the ANE's part from the GPU alone (2 functions, 340 ms)
+
+===== logs/api-default-server.log (selected runtime lines) =====
+[kapitsa] NI_ANE: 4096-hidden FFN on the Neural Engine (2048-channel input segments; W8A8 changes prefill numerics; NI_ANE=0 disables)
+[kapitsa] NI_ANE: Neural Engine FFN split (wavefront): 24/24 units (12288 channels; GPU 0) from the default for this chip, chunks >= 512 rows; row scales 1 ms, program compiled 31635 ms + load 93 ms (13 functions, MIL 115 KB); 374.7 MB Metal; ready in 31.8 s
+[kapitsa] NI_ANE: startup check 1.94% of the ANE's part from the GPU alone (2 functions, 341 ms)
+[kapitsa] engine ready: qwen3.5-9b, context 32768, 1 slots, plain decoding, KFlash (none), images on
+[kapitsa] prefill: Neural Engine busy 40% of 1095 ms over 1 split chunks (32 evaluations)
+[kapitsa] prefill: Neural Engine busy 40% of 1079 ms over 1 split chunks (32 evaluations)

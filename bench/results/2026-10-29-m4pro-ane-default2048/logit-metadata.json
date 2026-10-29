@@ -1,0 +1,1438 @@
+{
+  "dumps": {
+    "27b-standard-A": {
+      "original_sha256": {
+        "verify/records.txt": "0b5d61b94a224bcee89f16dd288865c5c1023b745e6bb677913ab666d3a496dc",
+        "verify/logits.f32": "a30db4d50cbd07998f61a1f4a1eab20c76e23907aa57c92dd6af577d16806951",
+        "verify/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "verify/meta.json": "d9dc59215dd4e7435ac23f6546a51e64cd61b35b776ed0546db38d777afdfc0e",
+        "prefill/records.txt": "d88a452e2225770cf22d79152b7393595032f9bdc754d7532e190c082ec2834d",
+        "prefill/logits.f32": "9156e25099c23673a8db38893dd8daa475973fb27615261b668c1ad88e37c5cf",
+        "prefill/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "prefill/meta.json": "d2bdc5f7153f6d2215da6b4c80f3ecf739ba7c8969772676d8e7019716bb6bcc",
+        "step/records.txt": "0b5d61b94a224bcee89f16dd288865c5c1023b745e6bb677913ab666d3a496dc",
+        "step/logits.f32": "e2948eb1da79c1b3831c2d1e472431819f127b18f3efff3f6ec90e86c4873917",
+        "step/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "step/meta.json": "09817b13de04c2237c0c10159bfe7a8c0578346a2e4da4e3feb355db19c1f5aa",
+        "batch/records.txt": "0b5d61b94a224bcee89f16dd288865c5c1023b745e6bb677913ab666d3a496dc",
+        "batch/logits.f32": "15aba53f1f3d645441bbdfdaabc85dd8edd3dddf2d3fe258f6247b6712175b51",
+        "batch/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "batch/meta.json": "8991b3a68b0fae219afba88c08ef45e80f2db5c342fadd03832635717059e4ab"
+      },
+      "meta": {
+        "batch/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (16ead4cf)",
+          "model": "3e6447f082e89cc7f0bc6e5441afd38dfce760ff",
+          "model_dir": "$MODEL_27B",
+          "path": "batch",
+          "batch": {
+            "members": 4,
+            "rows": 2
+          },
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 10,
+            "evals": 1152,
+            "reruns": 0
+          },
+          "records": 192,
+          "vocab": 248320,
+          "source": "bench/corpus.txt",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T08:02:07Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        },
+        "prefill/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (16ead4cf)",
+          "model": "3e6447f082e89cc7f0bc6e5441afd38dfce760ff",
+          "model_dir": "$MODEL_27B",
+          "path": "prefill",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 10,
+            "evals": 1152,
+            "reruns": 0
+          },
+          "records": 8,
+          "vocab": 248320,
+          "source": "bench/corpus.txt",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T08:02:07Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        },
+        "step/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (16ead4cf)",
+          "model": "3e6447f082e89cc7f0bc6e5441afd38dfce760ff",
+          "model_dir": "$MODEL_27B",
+          "path": "step",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 10,
+            "evals": 1152,
+            "reruns": 0
+          },
+          "records": 192,
+          "vocab": 248320,
+          "source": "bench/corpus.txt",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T08:02:07Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        },
+        "verify/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (16ead4cf)",
+          "model": "3e6447f082e89cc7f0bc6e5441afd38dfce760ff",
+          "model_dir": "$MODEL_27B",
+          "path": "verify",
+          "verify": "KFlash tree (a chain of 8 live rows)",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 10,
+            "evals": 1152,
+            "reruns": 0
+          },
+          "records": 192,
+          "vocab": 248320,
+          "source": "bench/corpus.txt",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T08:02:07Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        }
+      }
+    },
+    "27b-standard-B": {
+      "original_sha256": {
+        "verify/records.txt": "0b5d61b94a224bcee89f16dd288865c5c1023b745e6bb677913ab666d3a496dc",
+        "verify/logits.f32": "a30db4d50cbd07998f61a1f4a1eab20c76e23907aa57c92dd6af577d16806951",
+        "verify/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "verify/meta.json": "ec57d11fbeb826262042b41f3321344024b62160f67c7fa97974a48507837f3d",
+        "prefill/records.txt": "d88a452e2225770cf22d79152b7393595032f9bdc754d7532e190c082ec2834d",
+        "prefill/logits.f32": "9156e25099c23673a8db38893dd8daa475973fb27615261b668c1ad88e37c5cf",
+        "prefill/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "prefill/meta.json": "8b55cc5c3d5d9d1c9c3b85c1b1acc2ad979c4a0c25b1bdcd2ef809a4274f2584",
+        "step/records.txt": "0b5d61b94a224bcee89f16dd288865c5c1023b745e6bb677913ab666d3a496dc",
+        "step/logits.f32": "e2948eb1da79c1b3831c2d1e472431819f127b18f3efff3f6ec90e86c4873917",
+        "step/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "step/meta.json": "07f11f6978c093d80d4379f7347846183baa7896b193a0e266761ee5991f4a57",
+        "batch/records.txt": "0b5d61b94a224bcee89f16dd288865c5c1023b745e6bb677913ab666d3a496dc",
+        "batch/logits.f32": "15aba53f1f3d645441bbdfdaabc85dd8edd3dddf2d3fe258f6247b6712175b51",
+        "batch/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "batch/meta.json": "3a3a5110159dd1147aa3091c828e2150138884d06e408ee03e21aafe7b082bca"
+      },
+      "meta": {
+        "batch/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (fac53c04)",
+          "model": "3e6447f082e89cc7f0bc6e5441afd38dfce760ff",
+          "model_dir": "$MODEL_27B",
+          "path": "batch",
+          "batch": {
+            "members": 4,
+            "rows": 2
+          },
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 10,
+            "evals": 1152,
+            "reruns": 0
+          },
+          "records": 192,
+          "vocab": 248320,
+          "source": "$RESULTS/dumps/27b-standard-A",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T08:03:15Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        },
+        "prefill/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (fac53c04)",
+          "model": "3e6447f082e89cc7f0bc6e5441afd38dfce760ff",
+          "model_dir": "$MODEL_27B",
+          "path": "prefill",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 10,
+            "evals": 1152,
+            "reruns": 0
+          },
+          "records": 8,
+          "vocab": 248320,
+          "source": "$RESULTS/dumps/27b-standard-A",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T08:03:15Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        },
+        "step/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (fac53c04)",
+          "model": "3e6447f082e89cc7f0bc6e5441afd38dfce760ff",
+          "model_dir": "$MODEL_27B",
+          "path": "step",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 10,
+            "evals": 1152,
+            "reruns": 0
+          },
+          "records": 192,
+          "vocab": 248320,
+          "source": "$RESULTS/dumps/27b-standard-A",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T08:03:15Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        },
+        "verify/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (fac53c04)",
+          "model": "3e6447f082e89cc7f0bc6e5441afd38dfce760ff",
+          "model_dir": "$MODEL_27B",
+          "path": "verify",
+          "verify": "KFlash tree (a chain of 8 live rows)",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 10,
+            "evals": 1152,
+            "reruns": 0
+          },
+          "records": 192,
+          "vocab": 248320,
+          "source": "$RESULTS/dumps/27b-standard-A",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T08:03:15Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        }
+      }
+    },
+    "4b-standard-A": {
+      "original_sha256": {
+        "verify/records.txt": "0b5d61b94a224bcee89f16dd288865c5c1023b745e6bb677913ab666d3a496dc",
+        "verify/logits.f32": "58c2f1eb28946d34788158d402875bc703e259183261eb4ee52c1b0e74b1bb8a",
+        "verify/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "verify/meta.json": "84b607eb5edbf475bb13fc69f3a2dfeed4f80cd0abf0b3b5d95d408c96a9f371",
+        "prefill/records.txt": "d88a452e2225770cf22d79152b7393595032f9bdc754d7532e190c082ec2834d",
+        "prefill/logits.f32": "eba49cce8a4242f4ed85ce7f89ec70ce76d991981c138350fb6cd095581742ac",
+        "prefill/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "prefill/meta.json": "1d8dda23ecb93d454dee662600ea85cb10f7ef8b7c17969ccdcc9c9f1b9d4c5a",
+        "step/records.txt": "0b5d61b94a224bcee89f16dd288865c5c1023b745e6bb677913ab666d3a496dc",
+        "step/logits.f32": "858b233ee80c3a83154ea71f9fea3ef814c1b725e5351643ec8fc233e31278f5",
+        "step/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "step/meta.json": "a9f9d0fba7a5a4a6faab7446ea237b2a6a5823c73c993760ffddcafba606cdb0",
+        "batch/records.txt": "0b5d61b94a224bcee89f16dd288865c5c1023b745e6bb677913ab666d3a496dc",
+        "batch/logits.f32": "e9a669e132b79ea6b851ea4d3ed0aba6fe07b8527981ab1e7eb0924811f3ebdd",
+        "batch/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "batch/meta.json": "4304507f4e0c89561be46791ab8330a6cedaf7e934efa991728809eb77529e8a"
+      },
+      "meta": {
+        "batch/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (16ead4cf)",
+          "model": "qwen3.5-4b-4bit",
+          "model_dir": "$MODEL_4B",
+          "path": "batch",
+          "batch": {
+            "members": 4,
+            "rows": 2
+          },
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 10,
+            "evals": 576,
+            "reruns": 0
+          },
+          "records": 192,
+          "vocab": 248320,
+          "source": "bench/corpus.txt",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T08:00:00Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        },
+        "prefill/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (16ead4cf)",
+          "model": "qwen3.5-4b-4bit",
+          "model_dir": "$MODEL_4B",
+          "path": "prefill",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 10,
+            "evals": 576,
+            "reruns": 0
+          },
+          "records": 8,
+          "vocab": 248320,
+          "source": "bench/corpus.txt",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T08:00:00Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        },
+        "step/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (16ead4cf)",
+          "model": "qwen3.5-4b-4bit",
+          "model_dir": "$MODEL_4B",
+          "path": "step",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 10,
+            "evals": 576,
+            "reruns": 0
+          },
+          "records": 192,
+          "vocab": 248320,
+          "source": "bench/corpus.txt",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T08:00:00Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        },
+        "verify/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (16ead4cf)",
+          "model": "qwen3.5-4b-4bit",
+          "model_dir": "$MODEL_4B",
+          "path": "verify",
+          "verify": "KFlash tree (a chain of 8 live rows)",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 10,
+            "evals": 576,
+            "reruns": 0
+          },
+          "records": 192,
+          "vocab": 248320,
+          "source": "bench/corpus.txt",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T08:00:00Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        }
+      }
+    },
+    "4b-standard-B": {
+      "original_sha256": {
+        "verify/records.txt": "0b5d61b94a224bcee89f16dd288865c5c1023b745e6bb677913ab666d3a496dc",
+        "verify/logits.f32": "58c2f1eb28946d34788158d402875bc703e259183261eb4ee52c1b0e74b1bb8a",
+        "verify/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "verify/meta.json": "f62bcedfb896432701c15c1259db49f1303453f25db2157e50e1ce0fdd6f2bd5",
+        "prefill/records.txt": "d88a452e2225770cf22d79152b7393595032f9bdc754d7532e190c082ec2834d",
+        "prefill/logits.f32": "eba49cce8a4242f4ed85ce7f89ec70ce76d991981c138350fb6cd095581742ac",
+        "prefill/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "prefill/meta.json": "ab6f6e5880966844d72714ce38d943c48785dabd59b60013678b5f8aba3463b7",
+        "step/records.txt": "0b5d61b94a224bcee89f16dd288865c5c1023b745e6bb677913ab666d3a496dc",
+        "step/logits.f32": "858b233ee80c3a83154ea71f9fea3ef814c1b725e5351643ec8fc233e31278f5",
+        "step/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "step/meta.json": "9175512b82d1d2ac959397b9f55c23bf0936621dc0760933e34b57ccc25f14b2",
+        "batch/records.txt": "0b5d61b94a224bcee89f16dd288865c5c1023b745e6bb677913ab666d3a496dc",
+        "batch/logits.f32": "e9a669e132b79ea6b851ea4d3ed0aba6fe07b8527981ab1e7eb0924811f3ebdd",
+        "batch/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "batch/meta.json": "e04b3078b6d039e13d24a15e96efe1e9bf95c4545cc28229c707e3b5f072e218"
+      },
+      "meta": {
+        "batch/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (fac53c04)",
+          "model": "qwen3.5-4b-4bit",
+          "model_dir": "$MODEL_4B",
+          "path": "batch",
+          "batch": {
+            "members": 4,
+            "rows": 2
+          },
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 10,
+            "evals": 576,
+            "reruns": 0
+          },
+          "records": 192,
+          "vocab": 248320,
+          "source": "$RESULTS/dumps/4b-standard-A",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T08:00:13Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        },
+        "prefill/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (fac53c04)",
+          "model": "qwen3.5-4b-4bit",
+          "model_dir": "$MODEL_4B",
+          "path": "prefill",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 10,
+            "evals": 576,
+            "reruns": 0
+          },
+          "records": 8,
+          "vocab": 248320,
+          "source": "$RESULTS/dumps/4b-standard-A",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T08:00:13Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        },
+        "step/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (fac53c04)",
+          "model": "qwen3.5-4b-4bit",
+          "model_dir": "$MODEL_4B",
+          "path": "step",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 10,
+            "evals": 576,
+            "reruns": 0
+          },
+          "records": 192,
+          "vocab": 248320,
+          "source": "$RESULTS/dumps/4b-standard-A",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T08:00:13Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        },
+        "verify/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (fac53c04)",
+          "model": "qwen3.5-4b-4bit",
+          "model_dir": "$MODEL_4B",
+          "path": "verify",
+          "verify": "KFlash tree (a chain of 8 live rows)",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 10,
+            "evals": 576,
+            "reruns": 0
+          },
+          "records": 192,
+          "vocab": 248320,
+          "source": "$RESULTS/dumps/4b-standard-A",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T08:00:13Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        }
+      }
+    },
+    "9b-long-A": {
+      "original_sha256": {
+        "prefill/records.txt": "09c2e87235618f321ba0eccdb77ff21588ee896900a1bb1b87922ac6481230b9",
+        "prefill/logits.f32": "cb048211c5020ada61dbc61e042de6302798f293500c8735f73b229e517aa5c3",
+        "prefill/sequences.txt": "42ac4ed52e81242b2843a2d0858abe618b6b9b122009bfe2df371086fc249e0b",
+        "prefill/meta.json": "5847d7030a488d45f1032297daca197a4d57a0ba0540ce91d4cc3e4d4f93ec66",
+        "step/records.txt": "4754c2edc746bb7a527bf8119ac174b807aeb88ddff06bd552f793d306c52907",
+        "step/logits.f32": "17c4637af25603b39c38bb7fa217ba18d7e945c5fb83fd2e6f196910e23d44e5",
+        "step/sequences.txt": "42ac4ed52e81242b2843a2d0858abe618b6b9b122009bfe2df371086fc249e0b",
+        "step/meta.json": "c03d0327edd47bf74e9f9836de39b1494f66c0369c880e339a0eaa2e2ef669bf"
+      },
+      "meta": {
+        "prefill/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (16ead4cf)",
+          "model": "qwen3.5-9b-4bit",
+          "model_dir": "$MODEL_9B",
+          "path": "prefill",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 0,
+            "evals": 0,
+            "reruns": 0
+          },
+          "records": 4,
+          "vocab": 248320,
+          "source": "$HISTORICAL_RESULTS/inputs/long",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T08:04:58Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        },
+        "step/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (16ead4cf)",
+          "model": "qwen3.5-9b-4bit",
+          "model_dir": "$MODEL_9B",
+          "path": "step",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 0,
+            "evals": 0,
+            "reruns": 0
+          },
+          "records": 256,
+          "vocab": 248320,
+          "source": "$HISTORICAL_RESULTS/inputs/long",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T08:04:58Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        }
+      }
+    },
+    "9b-long-B": {
+      "original_sha256": {
+        "prefill/records.txt": "09c2e87235618f321ba0eccdb77ff21588ee896900a1bb1b87922ac6481230b9",
+        "prefill/logits.f32": "64ac489428e9eb5fbafe5cf27cf303cd6c623d7f3317448a7fbdbbfe35830fa8",
+        "prefill/sequences.txt": "42ac4ed52e81242b2843a2d0858abe618b6b9b122009bfe2df371086fc249e0b",
+        "prefill/meta.json": "9d1b24e6b29052867e4fa6a38f1ff552242b8a9bbb3f19a28d404ebfb09156c3",
+        "step/records.txt": "4754c2edc746bb7a527bf8119ac174b807aeb88ddff06bd552f793d306c52907",
+        "step/logits.f32": "4c1966d91de35e248e349a1d4ae225b157bec7558c26a1234e7cf2c835b7d991",
+        "step/sequences.txt": "42ac4ed52e81242b2843a2d0858abe618b6b9b122009bfe2df371086fc249e0b",
+        "step/meta.json": "54c587a70eeb2320909943b00ecb3067486d61c236e991827c4a849daf1a1b85"
+      },
+      "meta": {
+        "prefill/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (fac53c04)",
+          "model": "qwen3.5-9b-4bit",
+          "model_dir": "$MODEL_9B",
+          "path": "prefill",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 20,
+            "evals": 1280,
+            "reruns": 0
+          },
+          "records": 4,
+          "vocab": 248320,
+          "source": "$RESULTS/dumps/9b-long-A",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T08:05:46Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        },
+        "step/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (fac53c04)",
+          "model": "qwen3.5-9b-4bit",
+          "model_dir": "$MODEL_9B",
+          "path": "step",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 20,
+            "evals": 1280,
+            "reruns": 0
+          },
+          "records": 256,
+          "vocab": 248320,
+          "source": "$RESULTS/dumps/9b-long-A",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T08:05:46Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        }
+      }
+    },
+    "9b-standard-A1": {
+      "original_sha256": {
+        "verify/records.txt": "0b5d61b94a224bcee89f16dd288865c5c1023b745e6bb677913ab666d3a496dc",
+        "verify/logits.f32": "b70dd0514767becd9e84a479c7817da5c4c80dcc21df7a06fc5b18459b8ba1b2",
+        "verify/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "verify/meta.json": "40089ecd14b83f618ea482bca6977b2a37d1b3f19cf16a92250293188baafef9",
+        "prefill/records.txt": "d88a452e2225770cf22d79152b7393595032f9bdc754d7532e190c082ec2834d",
+        "prefill/logits.f32": "ef1c3b40ee3c48605e75d5abfb214ddb79c700632990d7ce70c5d2979374f21e",
+        "prefill/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "prefill/meta.json": "47ffc874bc56da87c249420f03f745403ad2903bf845992747bf67761358731c",
+        "step/records.txt": "0b5d61b94a224bcee89f16dd288865c5c1023b745e6bb677913ab666d3a496dc",
+        "step/logits.f32": "b3c8346c3ddcebbbeb68897a8d0ada5e64b8261b66fd0f3812ae500464e5ade0",
+        "step/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "step/meta.json": "5704c9867a1465726ff9657f89fc5a6cb1919646609dad07e3fc7aa72d75f51f",
+        "batch/records.txt": "0b5d61b94a224bcee89f16dd288865c5c1023b745e6bb677913ab666d3a496dc",
+        "batch/logits.f32": "066e7c596dc04d18bd3b1b7c1cb43f8059bc8e45c5841a8048caeb039895dc26",
+        "batch/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "batch/meta.json": "cec211d7e1434a5d89c8e5d4212307ece20e2d90d2688b9655f2c66d32473e98"
+      },
+      "meta": {
+        "batch/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (16ead4cf)",
+          "model": "qwen3.5-9b-4bit",
+          "model_dir": "$MODEL_9B",
+          "path": "batch",
+          "batch": {
+            "members": 4,
+            "rows": 2
+          },
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 0,
+            "evals": 0,
+            "reruns": 0
+          },
+          "records": 192,
+          "vocab": 248320,
+          "source": "bench/corpus.txt",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T07:56:56Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        },
+        "prefill/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (16ead4cf)",
+          "model": "qwen3.5-9b-4bit",
+          "model_dir": "$MODEL_9B",
+          "path": "prefill",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 0,
+            "evals": 0,
+            "reruns": 0
+          },
+          "records": 8,
+          "vocab": 248320,
+          "source": "bench/corpus.txt",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T07:56:56Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        },
+        "step/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (16ead4cf)",
+          "model": "qwen3.5-9b-4bit",
+          "model_dir": "$MODEL_9B",
+          "path": "step",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 0,
+            "evals": 0,
+            "reruns": 0
+          },
+          "records": 192,
+          "vocab": 248320,
+          "source": "bench/corpus.txt",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T07:56:56Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        },
+        "verify/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (16ead4cf)",
+          "model": "qwen3.5-9b-4bit",
+          "model_dir": "$MODEL_9B",
+          "path": "verify",
+          "verify": "KFlash tree (a chain of 8 live rows)",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 0,
+            "evals": 0,
+            "reruns": 0
+          },
+          "records": 192,
+          "vocab": 248320,
+          "source": "bench/corpus.txt",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T07:56:56Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        }
+      }
+    },
+    "9b-standard-A2": {
+      "original_sha256": {
+        "verify/records.txt": "0b5d61b94a224bcee89f16dd288865c5c1023b745e6bb677913ab666d3a496dc",
+        "verify/logits.f32": "b70dd0514767becd9e84a479c7817da5c4c80dcc21df7a06fc5b18459b8ba1b2",
+        "verify/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "verify/meta.json": "e4c65466d2f6497189cf6171a037eaeea1643f6159e98d6d8989d6366e210215",
+        "prefill/records.txt": "d88a452e2225770cf22d79152b7393595032f9bdc754d7532e190c082ec2834d",
+        "prefill/logits.f32": "ef1c3b40ee3c48605e75d5abfb214ddb79c700632990d7ce70c5d2979374f21e",
+        "prefill/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "prefill/meta.json": "4a39108c83285e8ac0b765162f7f98872a506d39ebb3fa5a00a815c59a3b2e12",
+        "step/records.txt": "0b5d61b94a224bcee89f16dd288865c5c1023b745e6bb677913ab666d3a496dc",
+        "step/logits.f32": "b3c8346c3ddcebbbeb68897a8d0ada5e64b8261b66fd0f3812ae500464e5ade0",
+        "step/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "step/meta.json": "c337f0f816e421c5046ea723361eaf756cfa72d75884abbb430922643c7fff3c",
+        "batch/records.txt": "0b5d61b94a224bcee89f16dd288865c5c1023b745e6bb677913ab666d3a496dc",
+        "batch/logits.f32": "066e7c596dc04d18bd3b1b7c1cb43f8059bc8e45c5841a8048caeb039895dc26",
+        "batch/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "batch/meta.json": "5d8bb7fc260e91ef2f92f3f36753284abc87321936d7bbadcce6c721600d00dd"
+      },
+      "meta": {
+        "batch/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (16ead4cf)",
+          "model": "qwen3.5-9b-4bit",
+          "model_dir": "$MODEL_9B",
+          "path": "batch",
+          "batch": {
+            "members": 4,
+            "rows": 2
+          },
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 0,
+            "evals": 0,
+            "reruns": 0
+          },
+          "records": 192,
+          "vocab": 248320,
+          "source": "$RESULTS/dumps/9b-standard-A1",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T07:58:27Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        },
+        "prefill/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (16ead4cf)",
+          "model": "qwen3.5-9b-4bit",
+          "model_dir": "$MODEL_9B",
+          "path": "prefill",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 0,
+            "evals": 0,
+            "reruns": 0
+          },
+          "records": 8,
+          "vocab": 248320,
+          "source": "$RESULTS/dumps/9b-standard-A1",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T07:58:27Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        },
+        "step/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (16ead4cf)",
+          "model": "qwen3.5-9b-4bit",
+          "model_dir": "$MODEL_9B",
+          "path": "step",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 0,
+            "evals": 0,
+            "reruns": 0
+          },
+          "records": 192,
+          "vocab": 248320,
+          "source": "$RESULTS/dumps/9b-standard-A1",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T07:58:27Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        },
+        "verify/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (16ead4cf)",
+          "model": "qwen3.5-9b-4bit",
+          "model_dir": "$MODEL_9B",
+          "path": "verify",
+          "verify": "KFlash tree (a chain of 8 live rows)",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 0,
+            "evals": 0,
+            "reruns": 0
+          },
+          "records": 192,
+          "vocab": 248320,
+          "source": "$RESULTS/dumps/9b-standard-A1",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T07:58:27Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        }
+      }
+    },
+    "9b-standard-B1": {
+      "original_sha256": {
+        "verify/records.txt": "0b5d61b94a224bcee89f16dd288865c5c1023b745e6bb677913ab666d3a496dc",
+        "verify/logits.f32": "575435ded5e26bd0b15a7defe24d10804d38a229704e8826176504377441462e",
+        "verify/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "verify/meta.json": "31b9607dc219ab1695ff2f1a0ad19756642b384d79816481ea17a8c63a9e6406",
+        "prefill/records.txt": "d88a452e2225770cf22d79152b7393595032f9bdc754d7532e190c082ec2834d",
+        "prefill/logits.f32": "6c930446fc61f9a14d0bf52f250f1629d8ae19fb046d43f695e1f26fc47b4015",
+        "prefill/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "prefill/meta.json": "a4dd06f6906fc089a4f98357660feb483a2fc6dfa6a3b29851c08cd446bac0bd",
+        "step/records.txt": "0b5d61b94a224bcee89f16dd288865c5c1023b745e6bb677913ab666d3a496dc",
+        "step/logits.f32": "180fc7ea8d3a2c183550f566ce3e656b828101fd7b7943a763e2aa64e4509f44",
+        "step/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "step/meta.json": "3aec14d5e017f06000c81e228a635ccc3d6a0b7ab0eb375316af81b4b43bb539",
+        "batch/records.txt": "0b5d61b94a224bcee89f16dd288865c5c1023b745e6bb677913ab666d3a496dc",
+        "batch/logits.f32": "227085cc612d01a69344a014b79626e5b5ed4ec8f0e8d5389e8b4e3054aa1e66",
+        "batch/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "batch/meta.json": "e7ef020a6e653e0bba12025fd97a06961097851227687291a54a788dec5afe77"
+      },
+      "meta": {
+        "batch/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (fac53c04)",
+          "model": "qwen3.5-9b-4bit",
+          "model_dir": "$MODEL_9B",
+          "path": "batch",
+          "batch": {
+            "members": 4,
+            "rows": 2
+          },
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 10,
+            "evals": 576,
+            "reruns": 0
+          },
+          "records": 192,
+          "vocab": 248320,
+          "source": "$RESULTS/dumps/9b-standard-A1",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T07:57:47Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        },
+        "prefill/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (fac53c04)",
+          "model": "qwen3.5-9b-4bit",
+          "model_dir": "$MODEL_9B",
+          "path": "prefill",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 10,
+            "evals": 576,
+            "reruns": 0
+          },
+          "records": 8,
+          "vocab": 248320,
+          "source": "$RESULTS/dumps/9b-standard-A1",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T07:57:47Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        },
+        "step/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (fac53c04)",
+          "model": "qwen3.5-9b-4bit",
+          "model_dir": "$MODEL_9B",
+          "path": "step",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 10,
+            "evals": 576,
+            "reruns": 0
+          },
+          "records": 192,
+          "vocab": 248320,
+          "source": "$RESULTS/dumps/9b-standard-A1",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T07:57:47Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        },
+        "verify/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (fac53c04)",
+          "model": "qwen3.5-9b-4bit",
+          "model_dir": "$MODEL_9B",
+          "path": "verify",
+          "verify": "KFlash tree (a chain of 8 live rows)",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 10,
+            "evals": 576,
+            "reruns": 0
+          },
+          "records": 192,
+          "vocab": 248320,
+          "source": "$RESULTS/dumps/9b-standard-A1",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T07:57:47Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        }
+      }
+    },
+    "9b-standard-B2": {
+      "original_sha256": {
+        "verify/records.txt": "0b5d61b94a224bcee89f16dd288865c5c1023b745e6bb677913ab666d3a496dc",
+        "verify/logits.f32": "575435ded5e26bd0b15a7defe24d10804d38a229704e8826176504377441462e",
+        "verify/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "verify/meta.json": "c9d29d782e9a63ea4091ea219e38d8e42a9b5c48c59214d366fc0f2cd4dcb4de",
+        "prefill/records.txt": "d88a452e2225770cf22d79152b7393595032f9bdc754d7532e190c082ec2834d",
+        "prefill/logits.f32": "6c930446fc61f9a14d0bf52f250f1629d8ae19fb046d43f695e1f26fc47b4015",
+        "prefill/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "prefill/meta.json": "741028e10db09590c50bdb735a1163b7c314f0598874f5b413b791c0ed4941ae",
+        "step/records.txt": "0b5d61b94a224bcee89f16dd288865c5c1023b745e6bb677913ab666d3a496dc",
+        "step/logits.f32": "180fc7ea8d3a2c183550f566ce3e656b828101fd7b7943a763e2aa64e4509f44",
+        "step/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "step/meta.json": "5d44fd0b1c0405552df1c11d43c758010f4277c2e643fd3a718149b3e59b3abe",
+        "batch/records.txt": "0b5d61b94a224bcee89f16dd288865c5c1023b745e6bb677913ab666d3a496dc",
+        "batch/logits.f32": "227085cc612d01a69344a014b79626e5b5ed4ec8f0e8d5389e8b4e3054aa1e66",
+        "batch/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "batch/meta.json": "32347047284d1a93290d4e8fd540198c621ec2b15f684a868f23c4d9071ee841"
+      },
+      "meta": {
+        "batch/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (fac53c04)",
+          "model": "qwen3.5-9b-4bit",
+          "model_dir": "$MODEL_9B",
+          "path": "batch",
+          "batch": {
+            "members": 4,
+            "rows": 2
+          },
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 10,
+            "evals": 576,
+            "reruns": 0
+          },
+          "records": 192,
+          "vocab": 248320,
+          "source": "$RESULTS/dumps/9b-standard-A1",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T07:58:48Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        },
+        "prefill/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (fac53c04)",
+          "model": "qwen3.5-9b-4bit",
+          "model_dir": "$MODEL_9B",
+          "path": "prefill",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 10,
+            "evals": 576,
+            "reruns": 0
+          },
+          "records": 8,
+          "vocab": 248320,
+          "source": "$RESULTS/dumps/9b-standard-A1",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T07:58:48Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        },
+        "step/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (fac53c04)",
+          "model": "qwen3.5-9b-4bit",
+          "model_dir": "$MODEL_9B",
+          "path": "step",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 10,
+            "evals": 576,
+            "reruns": 0
+          },
+          "records": 192,
+          "vocab": 248320,
+          "source": "$RESULTS/dumps/9b-standard-A1",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T07:58:48Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        },
+        "verify/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (fac53c04)",
+          "model": "qwen3.5-9b-4bit",
+          "model_dir": "$MODEL_9B",
+          "path": "verify",
+          "verify": "KFlash tree (a chain of 8 live rows)",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 10,
+            "evals": 576,
+            "reruns": 0
+          },
+          "records": 192,
+          "vocab": 248320,
+          "source": "$RESULTS/dumps/9b-standard-A1",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T07:58:48Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        }
+      }
+    },
+    "9b-standard-off": {
+      "original_sha256": {
+        "verify/records.txt": "0b5d61b94a224bcee89f16dd288865c5c1023b745e6bb677913ab666d3a496dc",
+        "verify/logits.f32": "b70dd0514767becd9e84a479c7817da5c4c80dcc21df7a06fc5b18459b8ba1b2",
+        "verify/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "verify/meta.json": "31eb8cb27bab99b351956cfc909abd0ea2a9d62464e9dee685b88b119b4ff978",
+        "prefill/records.txt": "d88a452e2225770cf22d79152b7393595032f9bdc754d7532e190c082ec2834d",
+        "prefill/logits.f32": "ef1c3b40ee3c48605e75d5abfb214ddb79c700632990d7ce70c5d2979374f21e",
+        "prefill/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "prefill/meta.json": "083c2f5fd5876d0c0ff5a447d4962ca029c83c942e364681e84393b65fbdca80",
+        "step/records.txt": "0b5d61b94a224bcee89f16dd288865c5c1023b745e6bb677913ab666d3a496dc",
+        "step/logits.f32": "b3c8346c3ddcebbbeb68897a8d0ada5e64b8261b66fd0f3812ae500464e5ade0",
+        "step/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "step/meta.json": "607c84930eda4af4da391597b406ea58b292e32cfc046e906fa9e036fd68b187",
+        "batch/records.txt": "0b5d61b94a224bcee89f16dd288865c5c1023b745e6bb677913ab666d3a496dc",
+        "batch/logits.f32": "066e7c596dc04d18bd3b1b7c1cb43f8059bc8e45c5841a8048caeb039895dc26",
+        "batch/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "batch/meta.json": "05d924935c067267ab3c6cb1ec8cae58d5b111f0d1553ca2fdcba3e404062026"
+      },
+      "meta": {
+        "batch/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (fac53c04)",
+          "model": "qwen3.5-9b-4bit",
+          "model_dir": "$MODEL_9B",
+          "path": "batch",
+          "batch": {
+            "members": 4,
+            "rows": 2
+          },
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 0,
+            "evals": 0,
+            "reruns": 0
+          },
+          "records": 192,
+          "vocab": 248320,
+          "source": "$RESULTS/dumps/9b-standard-A1",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T07:59:28Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0",
+            "NI_ANE": "0"
+          }
+        },
+        "prefill/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (fac53c04)",
+          "model": "qwen3.5-9b-4bit",
+          "model_dir": "$MODEL_9B",
+          "path": "prefill",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 0,
+            "evals": 0,
+            "reruns": 0
+          },
+          "records": 8,
+          "vocab": 248320,
+          "source": "$RESULTS/dumps/9b-standard-A1",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T07:59:28Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0",
+            "NI_ANE": "0"
+          }
+        },
+        "step/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (fac53c04)",
+          "model": "qwen3.5-9b-4bit",
+          "model_dir": "$MODEL_9B",
+          "path": "step",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 0,
+            "evals": 0,
+            "reruns": 0
+          },
+          "records": 192,
+          "vocab": 248320,
+          "source": "$RESULTS/dumps/9b-standard-A1",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T07:59:28Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0",
+            "NI_ANE": "0"
+          }
+        },
+        "verify/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (fac53c04)",
+          "model": "qwen3.5-9b-4bit",
+          "model_dir": "$MODEL_9B",
+          "path": "verify",
+          "verify": "KFlash tree (a chain of 8 live rows)",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 0,
+            "evals": 0,
+            "reruns": 0
+          },
+          "records": 192,
+          "vocab": 248320,
+          "source": "$RESULTS/dumps/9b-standard-A1",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T07:59:28Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0",
+            "NI_ANE": "0"
+          }
+        }
+      }
+    },
+    "9b-zero-A": {
+      "original_sha256": {
+        "verify/records.txt": "0b5d61b94a224bcee89f16dd288865c5c1023b745e6bb677913ab666d3a496dc",
+        "verify/logits.f32": "b70dd0514767becd9e84a479c7817da5c4c80dcc21df7a06fc5b18459b8ba1b2",
+        "verify/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "verify/meta.json": "ed0013daaf27918226826d5cb82eb7bed5bf2bc0211ee4c18a74421863815e4c",
+        "prefill/records.txt": "d88a452e2225770cf22d79152b7393595032f9bdc754d7532e190c082ec2834d",
+        "prefill/logits.f32": "ef1c3b40ee3c48605e75d5abfb214ddb79c700632990d7ce70c5d2979374f21e",
+        "prefill/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "prefill/meta.json": "49df5eb9cb4f29b5e2746d0dc46cde22583437f204fbebb56b176ee5b0fc43f1",
+        "step/records.txt": "0b5d61b94a224bcee89f16dd288865c5c1023b745e6bb677913ab666d3a496dc",
+        "step/logits.f32": "b3c8346c3ddcebbbeb68897a8d0ada5e64b8261b66fd0f3812ae500464e5ade0",
+        "step/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "step/meta.json": "3299bd45d3b8e1efb04c7ac8c35f5bd4086ae80a437bfb4b8fa443709c7b9153",
+        "batch/records.txt": "0b5d61b94a224bcee89f16dd288865c5c1023b745e6bb677913ab666d3a496dc",
+        "batch/logits.f32": "066e7c596dc04d18bd3b1b7c1cb43f8059bc8e45c5841a8048caeb039895dc26",
+        "batch/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "batch/meta.json": "4ee7db486a704aafa2ece786bf1a125d4e16ecd186a21fcfd96309bf1f617566"
+      },
+      "meta": {
+        "batch/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (16ead4cf)",
+          "model": "qwen3.5-9b-4bit",
+          "model_dir": "$MODEL_9B",
+          "path": "batch",
+          "batch": {
+            "members": 4,
+            "rows": 2
+          },
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 0,
+            "evals": 0,
+            "reruns": 0
+          },
+          "records": 192,
+          "vocab": 248320,
+          "source": "$RESULTS/dumps/9b-standard-A1",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T08:15:12Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        },
+        "prefill/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (16ead4cf)",
+          "model": "qwen3.5-9b-4bit",
+          "model_dir": "$MODEL_9B",
+          "path": "prefill",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 0,
+            "evals": 0,
+            "reruns": 0
+          },
+          "records": 8,
+          "vocab": 248320,
+          "source": "$RESULTS/dumps/9b-standard-A1",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T08:15:12Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        },
+        "step/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (16ead4cf)",
+          "model": "qwen3.5-9b-4bit",
+          "model_dir": "$MODEL_9B",
+          "path": "step",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 0,
+            "evals": 0,
+            "reruns": 0
+          },
+          "records": 192,
+          "vocab": 248320,
+          "source": "$RESULTS/dumps/9b-standard-A1",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T08:15:12Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        },
+        "verify/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (16ead4cf)",
+          "model": "qwen3.5-9b-4bit",
+          "model_dir": "$MODEL_9B",
+          "path": "verify",
+          "verify": "KFlash tree (a chain of 8 live rows)",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 0,
+            "evals": 0,
+            "reruns": 0
+          },
+          "records": 192,
+          "vocab": 248320,
+          "source": "$RESULTS/dumps/9b-standard-A1",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T08:15:12Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        }
+      }
+    },
+    "9b-zero-B": {
+      "original_sha256": {
+        "verify/records.txt": "0b5d61b94a224bcee89f16dd288865c5c1023b745e6bb677913ab666d3a496dc",
+        "verify/logits.f32": "575435ded5e26bd0b15a7defe24d10804d38a229704e8826176504377441462e",
+        "verify/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "verify/meta.json": "8637df71a663db8863b7ddd7fe675339aebecd992ad9567f91f3d38f4596d3c5",
+        "prefill/records.txt": "d88a452e2225770cf22d79152b7393595032f9bdc754d7532e190c082ec2834d",
+        "prefill/logits.f32": "6c930446fc61f9a14d0bf52f250f1629d8ae19fb046d43f695e1f26fc47b4015",
+        "prefill/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "prefill/meta.json": "a40e571dccbaa3ebee2c14bfb73a506847ad18bb3feb2ed56e23e3bdccc08a6d",
+        "step/records.txt": "0b5d61b94a224bcee89f16dd288865c5c1023b745e6bb677913ab666d3a496dc",
+        "step/logits.f32": "180fc7ea8d3a2c183550f566ce3e656b828101fd7b7943a763e2aa64e4509f44",
+        "step/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "step/meta.json": "2e253c27c4eecb46b70a060b2d24fbdbe9c092bb1a4da3ad2fa208e7766f60a0",
+        "batch/records.txt": "0b5d61b94a224bcee89f16dd288865c5c1023b745e6bb677913ab666d3a496dc",
+        "batch/logits.f32": "227085cc612d01a69344a014b79626e5b5ed4ec8f0e8d5389e8b4e3054aa1e66",
+        "batch/sequences.txt": "c1bf15d26cd329e77bd9931248961155921e320627e50f1ef22c8d4efe45b1d6",
+        "batch/meta.json": "da5c9456224e59f3fb925d64690a1ad00bcf37913380b2e94fa6d46ceaca3594"
+      },
+      "meta": {
+        "batch/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (fac53c04)",
+          "model": "qwen3.5-9b-4bit",
+          "model_dir": "$MODEL_9B",
+          "path": "batch",
+          "batch": {
+            "members": 4,
+            "rows": 2
+          },
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 10,
+            "evals": 576,
+            "reruns": 0
+          },
+          "records": 192,
+          "vocab": 248320,
+          "source": "$RESULTS/dumps/9b-zero-A",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T08:15:32Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        },
+        "prefill/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (fac53c04)",
+          "model": "qwen3.5-9b-4bit",
+          "model_dir": "$MODEL_9B",
+          "path": "prefill",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 10,
+            "evals": 576,
+            "reruns": 0
+          },
+          "records": 8,
+          "vocab": 248320,
+          "source": "$RESULTS/dumps/9b-zero-A",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T08:15:32Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        },
+        "step/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (fac53c04)",
+          "model": "qwen3.5-9b-4bit",
+          "model_dir": "$MODEL_9B",
+          "path": "step",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 10,
+            "evals": 576,
+            "reruns": 0
+          },
+          "records": 192,
+          "vocab": 248320,
+          "source": "$RESULTS/dumps/9b-zero-A",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T08:15:32Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        },
+        "verify/meta.json": {
+          "engine": "kapitsa",
+          "build": "0.2.24 (fac53c04)",
+          "model": "qwen3.5-9b-4bit",
+          "model_dir": "$MODEL_9B",
+          "path": "verify",
+          "verify": "KFlash tree (a chain of 8 live rows)",
+          "prefill_chunk": 2048,
+          "ane": {
+            "chunks": 10,
+            "evals": 576,
+            "reruns": 0
+          },
+          "records": 192,
+          "vocab": 248320,
+          "source": "$RESULTS/dumps/9b-zero-A",
+          "mac": "MacBook Pro (14-inch, 2024), M4 Pro (20-core GPU), 48 GB",
+          "macos": "26.4.1",
+          "date": "2026-10-29T08:15:32Z",
+          "env": {
+            "NI_ANE_ASYNC": "0",
+            "NI_ANE_KEEP_S": "0"
+          }
+        }
+      }
+    }
+  },
+  "note": "Original SHA256 values were recorded before raw logits were removed. meta.json paths in this archive are normalized, so their original hashes apply to the measured local metadata, not the normalized JSON object. records.txt/sequences.txt bytes in inputs.json retain their original hashes."
+}
