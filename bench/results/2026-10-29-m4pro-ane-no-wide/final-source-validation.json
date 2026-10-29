@@ -1,0 +1,110 @@
+{
+  "measured_head": "93b2bd7c078ec37f767b1ee6753683811db8045c",
+  "source_head": "a6e2d3138d0c48dea085fe6815a9357c063f115e",
+  "changed_files": [
+    "src/ane/ffn_split.h"
+  ],
+  "note": "The only follow-up changes one comment. Rebuilt all 27 named targets with the recorded build ID retained; every executable SHA256 equals its tested binary. No executable code or build settings changed.",
+  "build_id_retained": "93b2bd7c",
+  "identical_executables": 27,
+  "binary_sha256": {
+    "kapitsa": "3b421a4fb86cc12272a85a835231111ead1e43dff90ed2e8b7f35d3f0d807ec8",
+    "execution_session_test": "2c059b118f2092927d5b7448685e1f7eb4e9d7f30e0ecb8f7c7f673674dd95ed",
+    "http_stream_test": "ead40909439963e06ac186dab3a3b2f46545fd09efb087f5723b39b05a161557",
+    "api_test": "5cef358c7aa77bdc60a32d028e00f79cd64aa63453e2c0ef51e7cbe749a4d17d",
+    "bench_test": "7229408d92b22c108565c9bb0c0e577ce5c2b30263c9c18a8d0c3acd98647c18",
+    "update_test": "b1c148f17f793bdc16cb4ccdcfaabbab516eafa6a0cd1456bbd2f066a32c786d",
+    "prefix_cache_test": "f3e1db9276eb699a5eeb46d0401a0207d1628cad1e85ecaf3286d20c76d141db",
+    "grammar_test": "29d7cd242a66770f6ed3ad7bb287479647a5a31c8e71008e0aea78df76834fb0",
+    "structured_check": "6f539c24c8335574ef2e427c1dfc2b2c6e65098df8f747205f264f3b4aba8d32",
+    "fn_store_test": "48f8174602193967cce216ceb44eaef72c87fddc2b9a1dcc679b59306ae0560c",
+    "fn_dflash_test": "f53649d7516755d82a487bd88b6fac7e432820dda7f77fae922a06b37c27eef5",
+    "tokenizer_test": "62bef87a5f13497d590bfa46ec5c4d1764937b234b5b117f5e9d9b76a50c76f8",
+    "iq_layout_test": "1ee9dac454a038f9d0f9843d15897a5978f9474cd6b3af00fba9c66d4d321148",
+    "exl3_test": "08d4c66628863aef52681687762241c7e2a3c12071c9a7bad4a4c216ed199f5a",
+    "remote_test": "b0170221f8e1172af970b13caec96092d85ea985b916aface61df5bdfd92384d",
+    "cluster_test": "a80f360211e0cdefd93c2ddeac0e3fc022d75604f0b2e1cb09978aba6106aa11",
+    "split_place_test": "c94344d54257556548be5f2fc7bfadabc00029c947b99ee2e7b3cdb2d1025930",
+    "qwen4_config_test": "fb59608ced9736bc2c97fdbc5ae3339d3f35471a9a7510dfb5e91b00abfb22bf",
+    "json_file_test": "bcaab890149ecae57fd4530d151302af37c64fe3f137904c7a1e08cd190c5e64",
+    "splash_protocol_test": "89e5f6f49c4a13efa9c59669024ccba6db2d73468522fa2a08dd2d21f0185921",
+    "splash_runtime_test": "42498adea48c05081d0a74ec1f3dfdc49eabddba0f09c6fad377ab81f7705a74",
+    "splash_discover_test": "724f3c56dd12b6c50916afca3de412bf67401d35e7d3bdd320bc1e8aa69ca71f",
+    "splash_plan_test": "54b68b955f4a85dfbf0c44f36513b38a9e034f5cfa18d41762fd8ce1c440646d",
+    "logit_dump": "ffe12445719dcec36ca7a45a9b8cfaf635511cc1b909ad9a575cf964acb2809d",
+    "ane_segment_check": "376dde33c2198a3f818c9aeb0901992b984e4dcb3dc513e2e70ff9a80a4a6592",
+    "load_error_test": "548de4e1b07321f8550a6c9171eaa2396e8f4792a2be3908bc036bee840374ae",
+    "parser_test": "5e6e977ccdbf99622501f793e934622302cb5b61691ab4401614595fece9023d"
+  },
+  "checks": [
+    {
+      "label": "comment-rebuild",
+      "command": [
+        "cmake",
+        "--build",
+        "$CANDIDATE/build",
+        "-j",
+        "--target",
+        "kapitsa",
+        "execution_session_test",
+        "http_stream_test",
+        "api_test",
+        "bench_test",
+        "update_test",
+        "prefix_cache_test",
+        "grammar_test",
+        "structured_check",
+        "fn_store_test",
+        "fn_dflash_test",
+        "tokenizer_test",
+        "iq_layout_test",
+        "exl3_test",
+        "remote_test",
+        "cluster_test",
+        "split_place_test",
+        "qwen4_config_test",
+        "json_file_test",
+        "splash_protocol_test",
+        "splash_runtime_test",
+        "splash_discover_test",
+        "splash_plan_test",
+        "logit_dump",
+        "ane_segment_check",
+        "load_error_test",
+        "parser_test"
+      ],
+      "rc": 0,
+      "seconds": 15.29008173942566
+    },
+    {
+      "label": "comment-geometry-cpu",
+      "command": [
+        "$CANDIDATE/build/ane_segment_check"
+      ],
+      "rc": 0,
+      "seconds": 0.48271799087524414
+    },
+    {
+      "label": "comment-lint",
+      "command": [
+        "prek",
+        "run",
+        "--all-files"
+      ],
+      "rc": 0,
+      "seconds": 0.29297304153442383
+    },
+    {
+      "label": "comment-diff-check",
+      "command": [
+        "git",
+        "diff",
+        "--check",
+        "origin/main...HEAD"
+      ],
+      "rc": 0,
+      "seconds": 0.03829479217529297
+    }
+  ],
+  "finished": 1793267392.831265
+}

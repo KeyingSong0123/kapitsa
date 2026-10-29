@@ -1,0 +1,357 @@
+{
+  "current": {
+    "head": "93b2bd7c078ec37f767b1ee6753683811db8045c",
+    "main": "16ead4cf201acd8f321090db7c0c3aacbe7de95f",
+    "before": "fac53c043ea5bcca7e3a40330ef40ca3c96e3dc8",
+    "binary_sha256": {
+      "kapitsa": "3b421a4fb86cc12272a85a835231111ead1e43dff90ed2e8b7f35d3f0d807ec8",
+      "logit_dump": "ffe12445719dcec36ca7a45a9b8cfaf635511cc1b909ad9a575cf964acb2809d",
+      "ane_segment_check": "376dde33c2198a3f818c9aeb0901992b984e4dcb3dc513e2e70ff9a80a4a6592"
+    },
+    "version": "kapitsa 0.2.24 (93b2bd7c)",
+    "mac": "MacBook Pro (14-inch, 2024), M4 Pro, 20 GPU cores, 48 GiB",
+    "macos": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+    "started": 1793266359.5483541
+  },
+  "before": {
+    "head": "fac53c043ea5bcca7e3a40330ef40ca3c96e3dc8",
+    "binaries": {
+      "kapitsa": "553028c0cc0cc21b97b2089c82fdba2881124a657cc0663ca6ddcac38528c3a2",
+      "logit_dump": "cd23b39cb57740b6c7e21e63f2954a02e153ddcc96f95d18da0510aa86055d98",
+      "ane_segment_check": "a40bdcc9550a9fd1c012a151d5f05a33933927bf0bcebe15f3fb64a2d01d0a55"
+    }
+  },
+  "models": [
+    {
+      "name": "qwen3.5-4b-4bit",
+      "repo": "lmstudio-community/Qwen3.5-4B-MLX-4bit",
+      "revision": "c43ee1d65576a5d98de1e8405cac93c371a655c1",
+      "files": [
+        {
+          "rfilename": "config.json",
+          "blobId": "cb3e1a878a5c4a0505e0c9967da45820b2ca6bd3",
+          "size": 3366
+        },
+        {
+          "rfilename": "model.safetensors",
+          "blobId": "8dca545f7a23dbc24af451db83a558c31a97ef09",
+          "size": 3034301037,
+          "lfs": {
+            "sha256": "52dc943eaf6093a2313271a7a0abc36d127b2a16609a0a7c54ee1b4e4ed06cb8",
+            "size": 3034301037,
+            "pointerSize": 135
+          }
+        },
+        {
+          "rfilename": "model.safetensors.index.json",
+          "blobId": "40196ba58595ef9b3fad25a8a6daf3288b953c19",
+          "size": 101944
+        },
+        {
+          "rfilename": "tokenizer.json",
+          "blobId": "5520bfd2dd834ce386c1312c410fa71af56db5ad",
+          "size": 19989325,
+          "lfs": {
+            "sha256": "06b9509352d2af50381ab2247e083b80d32d5c0aba91c272ca9ff729b6a0e523",
+            "size": 19989325,
+            "pointerSize": 133
+          }
+        },
+        {
+          "rfilename": "tokenizer_config.json",
+          "blobId": "803283d87369d6d9ff8d970a8a49a602ca306544",
+          "size": 9187
+        }
+      ]
+    },
+    {
+      "name": "qwen3.5-9b-4bit",
+      "repo": "lmstudio-community/Qwen3.5-9B-MLX-4bit",
+      "revision": "b455506b0f574c74616dbcd56879bde38fafcff3",
+      "files": [
+        {
+          "rfilename": "config.json",
+          "blobId": "0435ae3f4b3c8b907f7359a2f8f7150d316f3435",
+          "size": 3331
+        },
+        {
+          "rfilename": "model-00001-of-00002.safetensors",
+          "blobId": "ad03caa729d4df9ba4501cb94a8631ec3d3ad8b9",
+          "size": 5349771292,
+          "lfs": {
+            "sha256": "973cc1efdedb4d327993fb9c27865f0bcfd9015897d5f0ca9ffb6cda6a0768e5",
+            "size": 5349771292,
+            "pointerSize": 135
+          }
+        },
+        {
+          "rfilename": "model-00002-of-00002.safetensors",
+          "blobId": "f16af804e5a8bf2f7c7973af484367c5aa014d7f",
+          "size": 600449850,
+          "lfs": {
+            "sha256": "597dae0ed72b60acc07382e8ea0cdb9509c54128e07b0eaa9cf4996373d5ca7d",
+            "size": 600449850,
+            "pointerSize": 134
+          }
+        },
+        {
+          "rfilename": "model.safetensors.index.json",
+          "blobId": "d366fa524ccd8f4ed93a67c7857597dc56172b92",
+          "size": 123592
+        },
+        {
+          "rfilename": "tokenizer.json",
+          "blobId": "5520bfd2dd834ce386c1312c410fa71af56db5ad",
+          "size": 19989325,
+          "lfs": {
+            "sha256": "06b9509352d2af50381ab2247e083b80d32d5c0aba91c272ca9ff729b6a0e523",
+            "size": 19989325,
+            "pointerSize": 133
+          }
+        },
+        {
+          "rfilename": "tokenizer_config.json",
+          "blobId": "803283d87369d6d9ff8d970a8a49a602ca306544",
+          "size": 9187
+        }
+      ]
+    },
+    {
+      "name": "qwen3.8-27b-4bit",
+      "repo": "mlx-community/Qwen3.8-27B-4bit",
+      "revision": "3e6447f082e89cc7f0bc6e5441afd38dfce760ff"
+    }
+  ],
+  "tokenizer_sha256": {
+    "4b": "06b9509352d2af50381ab2247e083b80d32d5c0aba91c272ca9ff729b6a0e523",
+    "9b": "06b9509352d2af50381ab2247e083b80d32d5c0aba91c272ca9ff729b6a0e523",
+    "27b": "06b9509352d2af50381ab2247e083b80d32d5c0aba91c272ca9ff729b6a0e523"
+  },
+  "current_cpu": {
+    "head": "93b2bd7c078ec37f767b1ee6753683811db8045c",
+    "version": "kapitsa 0.2.24 (93b2bd7c)",
+    "rc": 0,
+    "binary_sha256": {
+      "kapitsa": "3b421a4fb86cc12272a85a835231111ead1e43dff90ed2e8b7f35d3f0d807ec8",
+      "logit_dump": "ffe12445719dcec36ca7a45a9b8cfaf635511cc1b909ad9a575cf964acb2809d",
+      "ane_segment_check": "376dde33c2198a3f818c9aeb0901992b984e4dcb3dc513e2e70ff9a80a4a6592"
+    },
+    "commands": [
+      {
+        "label": "configure",
+        "command": [
+          "cmake",
+          "-S",
+          "$CANDIDATE",
+          "-B",
+          "$CANDIDATE/build",
+          "-DCMAKE_BUILD_TYPE=Release",
+          "-DKAPITSA_GIT=93b2bd7c"
+        ],
+        "rc": 0,
+        "seconds": 0.8967199325561523
+      },
+      {
+        "label": "build",
+        "command": [
+          "$CANDIDATE/.dsh/skills/verify-kapitsa/scripts/vk",
+          "build",
+          "kapitsa",
+          "execution_session_test",
+          "http_stream_test",
+          "api_test",
+          "bench_test",
+          "update_test",
+          "prefix_cache_test",
+          "grammar_test",
+          "structured_check",
+          "fn_store_test",
+          "fn_dflash_test",
+          "tokenizer_test",
+          "iq_layout_test",
+          "exl3_test",
+          "remote_test",
+          "cluster_test",
+          "split_place_test",
+          "qwen4_config_test",
+          "json_file_test",
+          "splash_protocol_test",
+          "splash_runtime_test",
+          "splash_discover_test",
+          "splash_plan_test",
+          "logit_dump",
+          "ane_segment_check",
+          "load_error_test",
+          "parser_test"
+        ],
+        "rc": 0,
+        "seconds": 57.80910277366638
+      },
+      {
+        "label": "required-checks",
+        "command": [
+          "$CANDIDATE/.dsh/skills/verify-kapitsa/scripts/vk",
+          "checks"
+        ],
+        "rc": 0,
+        "seconds": 0.3972618579864502
+      },
+      {
+        "label": "cpu-suite",
+        "command": [
+          "$CANDIDATE/.dsh/skills/verify-kapitsa/scripts/vk",
+          "cpu-tests"
+        ],
+        "rc": 0,
+        "seconds": 760.5472588539124
+      },
+      {
+        "label": "execution_session_test",
+        "command": [
+          "$CANDIDATE/build/execution_session_test"
+        ],
+        "rc": 0,
+        "seconds": 0.020807981491088867
+      },
+      {
+        "label": "http_stream_test",
+        "command": [
+          "$CANDIDATE/build/http_stream_test"
+        ],
+        "rc": 0,
+        "seconds": 1.0447032451629639
+      },
+      {
+        "label": "exl3_test",
+        "command": [
+          "$CANDIDATE/build/exl3_test"
+        ],
+        "rc": 0,
+        "seconds": 0.5112619400024414
+      },
+      {
+        "label": "qwen4_config_test",
+        "command": [
+          "$CANDIDATE/build/qwen4_config_test"
+        ],
+        "rc": 0,
+        "seconds": 0.3917679786682129
+      },
+      {
+        "label": "json_file_test",
+        "command": [
+          "$CANDIDATE/build/json_file_test"
+        ],
+        "rc": 0,
+        "seconds": 1.1417279243469238
+      },
+      {
+        "label": "splash_protocol_test",
+        "command": [
+          "$CANDIDATE/build/splash_protocol_test"
+        ],
+        "rc": 0,
+        "seconds": 0.021235942840576172
+      },
+      {
+        "label": "splash_runtime_test",
+        "command": [
+          "$CANDIDATE/build/splash_runtime_test"
+        ],
+        "rc": 0,
+        "seconds": 4.243815183639526
+      },
+      {
+        "label": "splash_discover_test",
+        "command": [
+          "$CANDIDATE/build/splash_discover_test"
+        ],
+        "rc": 0,
+        "seconds": 0.13515806198120117
+      },
+      {
+        "label": "splash_plan_test",
+        "command": [
+          "$CANDIDATE/build/splash_plan_test"
+        ],
+        "rc": 0,
+        "seconds": 0.011227130889892578
+      },
+      {
+        "label": "load_error_test",
+        "command": [
+          "$CANDIDATE/build/load_error_test"
+        ],
+        "rc": 0,
+        "seconds": 0.4975759983062744
+      },
+      {
+        "label": "ane_segment_check",
+        "command": [
+          "$CANDIDATE/build/ane_segment_check"
+        ],
+        "rc": 0,
+        "seconds": 0.45563483238220215
+      },
+      {
+        "label": "logit-dump-cli",
+        "command": [
+          "python3",
+          "tests/test_logit_dump.py",
+          "build"
+        ],
+        "rc": 0,
+        "seconds": 0.6123530864715576
+      },
+      {
+        "label": "structured-tokenizer",
+        "command": [
+          "python3",
+          "tests/test_structured.py",
+          "--cli",
+          "build",
+          "$MODEL_4B"
+        ],
+        "rc": 0,
+        "seconds": 19.252886056900024
+      },
+      {
+        "label": "parser-tokenizer",
+        "command": [
+          "$CANDIDATE/build/parser_test",
+          "$MODEL_4B"
+        ],
+        "rc": 0,
+        "seconds": 0.7284858226776123
+      },
+      {
+        "label": "lint",
+        "command": [
+          "prek",
+          "run",
+          "--all-files"
+        ],
+        "rc": 0,
+        "seconds": 0.39724206924438477
+      },
+      {
+        "label": "diff-check",
+        "command": [
+          "git",
+          "diff",
+          "--check"
+        ],
+        "rc": 0,
+        "seconds": 0.021307945251464844
+      }
+    ],
+    "finished": 1793266358.3832488
+  },
+  "completion": {
+    "head": "93b2bd7c078ec37f767b1ee6753683811db8045c",
+    "rc": 0,
+    "finished": 1793267323.098142,
+    "commands": 22,
+    "fixed_request_sha256": "14d716a878d157133545aeb78864ad34839727f0f951f6c4045346c7a896f424"
+  }
+}

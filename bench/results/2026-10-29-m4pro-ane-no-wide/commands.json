@@ -1,0 +1,716 @@
+{
+  "gpu": [
+    {
+      "label": "geometry",
+      "command": [
+        "$CANDIDATE/build/ane_segment_check",
+        "--gpu"
+      ],
+      "started": 1793266359.5494778,
+      "env": {
+        "NI_LOCK_HELD": "1",
+        "NACE_GPU_LOCK_HELD": "1",
+        "BENCH_GPU_LOCK": "/tmp/kapitsa-gpu.lock",
+        "KAPITSA_NO_AUTO_UPDATE": "1",
+        "KAPITSA_NO_PROMPT": "1",
+        "KAPITSA_HOME": "$RESULTS/homes/geometry",
+        "NI_ANE_ASYNC": "0",
+        "NI_ANE_KEEP_S": "0",
+        "MTL_SHADER_VALIDATION": "1",
+        "MTL_DEBUG_LAYER": "1"
+      },
+      "rc": 0,
+      "seconds": 3.8460652828216553
+    },
+    {
+      "label": "9b-abort",
+      "command": [
+        "python3",
+        "$CANDIDATE/tests/test_ane_split_abort.py",
+        "$CANDIDATE/build/kapitsa",
+        "$MODEL_9B",
+        "--port",
+        "8209",
+        "--keep"
+      ],
+      "started": 1793266363.396505,
+      "env": {
+        "NI_LOCK_HELD": "1",
+        "NACE_GPU_LOCK_HELD": "1",
+        "BENCH_GPU_LOCK": "/tmp/kapitsa-gpu.lock",
+        "KAPITSA_NO_AUTO_UPDATE": "1",
+        "KAPITSA_NO_PROMPT": "1",
+        "KAPITSA_HOME": "$RESULTS/homes/9b-abort",
+        "NI_ANE_ASYNC": "0",
+        "NI_ANE_KEEP_S": "0"
+      },
+      "rc": 0,
+      "seconds": 52.070552825927734
+    },
+    {
+      "label": "4b-before",
+      "command": [
+        "$RESULTS/before/logit_dump",
+        "$MODEL_4B",
+        "$RESULTS/dumps/4b-before",
+        "--chunk",
+        "2048",
+        "--from",
+        "$PREVIOUS_RESULTS/dumps/4b-standard-B"
+      ],
+      "started": 1793266415.475486,
+      "env": {
+        "NI_LOCK_HELD": "1",
+        "NACE_GPU_LOCK_HELD": "1",
+        "BENCH_GPU_LOCK": "/tmp/kapitsa-gpu.lock",
+        "KAPITSA_NO_AUTO_UPDATE": "1",
+        "KAPITSA_NO_PROMPT": "1",
+        "KAPITSA_HOME": "$RESULTS/homes/4b-before",
+        "NI_ANE_ASYNC": "0",
+        "NI_ANE_KEEP_S": "0"
+      },
+      "rc": 0,
+      "seconds": 34.19361090660095
+    },
+    {
+      "label": "4b-after",
+      "command": [
+        "$CANDIDATE/build/logit_dump",
+        "$MODEL_4B",
+        "$RESULTS/dumps/4b-after",
+        "--chunk",
+        "2048",
+        "--from",
+        "$RESULTS/dumps/4b-before"
+      ],
+      "started": 1793266449.927407,
+      "env": {
+        "NI_LOCK_HELD": "1",
+        "NACE_GPU_LOCK_HELD": "1",
+        "BENCH_GPU_LOCK": "/tmp/kapitsa-gpu.lock",
+        "KAPITSA_NO_AUTO_UPDATE": "1",
+        "KAPITSA_NO_PROMPT": "1",
+        "KAPITSA_HOME": "$RESULTS/homes/4b-after",
+        "NI_ANE_ASYNC": "0",
+        "NI_ANE_KEEP_S": "0"
+      },
+      "rc": 0,
+      "seconds": 12.167819738388062
+    },
+    {
+      "label": "4b-unchanged",
+      "command": [
+        "python3",
+        "$CANDIDATE/tools/logit_compare.py",
+        "$RESULTS/dumps/4b-before",
+        "$RESULTS/dumps/4b-after",
+        "--json",
+        "$RESULTS/comparisons/4b-unchanged.json"
+      ],
+      "started": 1793266462.36378,
+      "env": {
+        "NI_LOCK_HELD": "1",
+        "NACE_GPU_LOCK_HELD": "1",
+        "BENCH_GPU_LOCK": "/tmp/kapitsa-gpu.lock",
+        "KAPITSA_NO_AUTO_UPDATE": "1",
+        "KAPITSA_NO_PROMPT": "1",
+        "KAPITSA_HOME": "$RESULTS/homes/4b-unchanged",
+        "NI_ANE_ASYNC": "0",
+        "NI_ANE_KEEP_S": "0"
+      },
+      "rc": 0,
+      "seconds": 1.5906410217285156
+    },
+    {
+      "label": "9b-before",
+      "command": [
+        "$RESULTS/before/logit_dump",
+        "$MODEL_9B",
+        "$RESULTS/dumps/9b-before",
+        "--chunk",
+        "2048",
+        "--from",
+        "$PREVIOUS_RESULTS/dumps/9b-standard-B1"
+      ],
+      "started": 1793266464.016494,
+      "env": {
+        "NI_LOCK_HELD": "1",
+        "NACE_GPU_LOCK_HELD": "1",
+        "BENCH_GPU_LOCK": "/tmp/kapitsa-gpu.lock",
+        "KAPITSA_NO_AUTO_UPDATE": "1",
+        "KAPITSA_NO_PROMPT": "1",
+        "KAPITSA_HOME": "$RESULTS/homes/9b-before",
+        "NI_ANE_ASYNC": "0",
+        "NI_ANE_KEEP_S": "0"
+      },
+      "rc": 0,
+      "seconds": 49.9644079208374
+    },
+    {
+      "label": "9b-after",
+      "command": [
+        "$CANDIDATE/build/logit_dump",
+        "$MODEL_9B",
+        "$RESULTS/dumps/9b-after",
+        "--chunk",
+        "2048",
+        "--from",
+        "$RESULTS/dumps/9b-before"
+      ],
+      "started": 1793266514.276427,
+      "env": {
+        "NI_LOCK_HELD": "1",
+        "NACE_GPU_LOCK_HELD": "1",
+        "BENCH_GPU_LOCK": "/tmp/kapitsa-gpu.lock",
+        "KAPITSA_NO_AUTO_UPDATE": "1",
+        "KAPITSA_NO_PROMPT": "1",
+        "KAPITSA_HOME": "$RESULTS/homes/9b-after",
+        "NI_ANE_ASYNC": "0",
+        "NI_ANE_KEEP_S": "0"
+      },
+      "rc": 0,
+      "seconds": 19.00023603439331
+    },
+    {
+      "label": "9b-unchanged",
+      "command": [
+        "python3",
+        "$CANDIDATE/tools/logit_compare.py",
+        "$RESULTS/dumps/9b-before",
+        "$RESULTS/dumps/9b-after",
+        "--json",
+        "$RESULTS/comparisons/9b-unchanged.json"
+      ],
+      "started": 1793266533.570776,
+      "env": {
+        "NI_LOCK_HELD": "1",
+        "NACE_GPU_LOCK_HELD": "1",
+        "BENCH_GPU_LOCK": "/tmp/kapitsa-gpu.lock",
+        "KAPITSA_NO_AUTO_UPDATE": "1",
+        "KAPITSA_NO_PROMPT": "1",
+        "KAPITSA_HOME": "$RESULTS/homes/9b-unchanged",
+        "NI_ANE_ASYNC": "0",
+        "NI_ANE_KEEP_S": "0"
+      },
+      "rc": 0,
+      "seconds": 1.6468088626861572
+    },
+    {
+      "label": "9b-main",
+      "command": [
+        "$MAIN/build/logit_dump",
+        "$MODEL_9B",
+        "$RESULTS/dumps/9b-main",
+        "--chunk",
+        "2048",
+        "--from",
+        "$PREVIOUS_RESULTS/dumps/9b-standard-B1"
+      ],
+      "started": 1793266535.255167,
+      "env": {
+        "NI_LOCK_HELD": "1",
+        "NACE_GPU_LOCK_HELD": "1",
+        "BENCH_GPU_LOCK": "/tmp/kapitsa-gpu.lock",
+        "KAPITSA_NO_AUTO_UPDATE": "1",
+        "KAPITSA_NO_PROMPT": "1",
+        "KAPITSA_HOME": "$RESULTS/homes/9b-main",
+        "NI_ANE_ASYNC": "0",
+        "NI_ANE_KEEP_S": "0"
+      },
+      "rc": 0,
+      "seconds": 37.54760193824768
+    },
+    {
+      "label": "9b-default-vs-main",
+      "command": [
+        "python3",
+        "$CANDIDATE/tools/logit_compare.py",
+        "$RESULTS/dumps/9b-main",
+        "$RESULTS/dumps/9b-after",
+        "--json",
+        "$RESULTS/comparisons/9b-default-vs-main.json"
+      ],
+      "started": 1793266573.044799,
+      "env": {
+        "NI_LOCK_HELD": "1",
+        "NACE_GPU_LOCK_HELD": "1",
+        "BENCH_GPU_LOCK": "/tmp/kapitsa-gpu.lock",
+        "KAPITSA_NO_AUTO_UPDATE": "1",
+        "KAPITSA_NO_PROMPT": "1",
+        "KAPITSA_HOME": "$RESULTS/homes/9b-default-vs-main",
+        "NI_ANE_ASYNC": "0",
+        "NI_ANE_KEEP_S": "0"
+      },
+      "rc": 0,
+      "seconds": 1.5978889465332031
+    },
+    {
+      "label": "9b-zero-gate",
+      "command": [
+        "python3",
+        "$CANDIDATE/tools/logit_compare.py",
+        "$RESULTS/dumps/9b-main",
+        "$RESULTS/dumps/9b-after",
+        "--json",
+        "$RESULTS/comparisons/9b-zero-gate.json",
+        "--min-top1",
+        "1",
+        "--max-mean-kl",
+        "0",
+        "--max-p99-kl",
+        "0",
+        "--max-nll-change",
+        "0"
+      ],
+      "started": 1793266574.646496,
+      "env": {
+        "NI_LOCK_HELD": "1",
+        "NACE_GPU_LOCK_HELD": "1",
+        "BENCH_GPU_LOCK": "/tmp/kapitsa-gpu.lock",
+        "KAPITSA_NO_AUTO_UPDATE": "1",
+        "KAPITSA_NO_PROMPT": "1",
+        "KAPITSA_HOME": "$RESULTS/homes/9b-zero-gate",
+        "NI_ANE_ASYNC": "0",
+        "NI_ANE_KEEP_S": "0"
+      },
+      "rc": 1,
+      "seconds": 1.5961239337921143
+    },
+    {
+      "label": "9b-off",
+      "command": [
+        "$CANDIDATE/build/logit_dump",
+        "$MODEL_9B",
+        "$RESULTS/dumps/9b-off",
+        "--chunk",
+        "2048",
+        "--from",
+        "$RESULTS/dumps/9b-main"
+      ],
+      "started": 1793266576.247326,
+      "env": {
+        "NI_LOCK_HELD": "1",
+        "NACE_GPU_LOCK_HELD": "1",
+        "BENCH_GPU_LOCK": "/tmp/kapitsa-gpu.lock",
+        "KAPITSA_NO_AUTO_UPDATE": "1",
+        "KAPITSA_NO_PROMPT": "1",
+        "KAPITSA_HOME": "$RESULTS/homes/9b-off",
+        "NI_ANE_ASYNC": "0",
+        "NI_ANE_KEEP_S": "0",
+        "NI_ANE": "0"
+      },
+      "rc": 0,
+      "seconds": 37.04142618179321
+    },
+    {
+      "label": "9b-off-vs-main",
+      "command": [
+        "python3",
+        "$CANDIDATE/tools/logit_compare.py",
+        "$RESULTS/dumps/9b-main",
+        "$RESULTS/dumps/9b-off",
+        "--json",
+        "$RESULTS/comparisons/9b-off-vs-main.json"
+      ],
+      "started": 1793266613.57541,
+      "env": {
+        "NI_LOCK_HELD": "1",
+        "NACE_GPU_LOCK_HELD": "1",
+        "BENCH_GPU_LOCK": "/tmp/kapitsa-gpu.lock",
+        "KAPITSA_NO_AUTO_UPDATE": "1",
+        "KAPITSA_NO_PROMPT": "1",
+        "KAPITSA_HOME": "$RESULTS/homes/9b-off-vs-main",
+        "NI_ANE_ASYNC": "0",
+        "NI_ANE_KEEP_S": "0"
+      },
+      "rc": 0,
+      "seconds": 1.6004562377929688
+    },
+    {
+      "label": "27b-before",
+      "command": [
+        "$RESULTS/before/logit_dump",
+        "$MODEL_27B",
+        "$RESULTS/dumps/27b-before",
+        "--chunk",
+        "2048",
+        "--from",
+        "$PREVIOUS_RESULTS/dumps/27b-standard-B"
+      ],
+      "started": 1793266615.286665,
+      "env": {
+        "NI_LOCK_HELD": "1",
+        "NACE_GPU_LOCK_HELD": "1",
+        "BENCH_GPU_LOCK": "/tmp/kapitsa-gpu.lock",
+        "KAPITSA_NO_AUTO_UPDATE": "1",
+        "KAPITSA_NO_PROMPT": "1",
+        "KAPITSA_HOME": "$RESULTS/homes/27b-before",
+        "NI_ANE_ASYNC": "0",
+        "NI_ANE_KEEP_S": "0"
+      },
+      "rc": 0,
+      "seconds": 112.61036801338196
+    },
+    {
+      "label": "27b-after",
+      "command": [
+        "$CANDIDATE/build/logit_dump",
+        "$MODEL_27B",
+        "$RESULTS/dumps/27b-after",
+        "--chunk",
+        "2048",
+        "--from",
+        "$RESULTS/dumps/27b-before"
+      ],
+      "started": 1793266728.164181,
+      "env": {
+        "NI_LOCK_HELD": "1",
+        "NACE_GPU_LOCK_HELD": "1",
+        "BENCH_GPU_LOCK": "/tmp/kapitsa-gpu.lock",
+        "KAPITSA_NO_AUTO_UPDATE": "1",
+        "KAPITSA_NO_PROMPT": "1",
+        "KAPITSA_HOME": "$RESULTS/homes/27b-after",
+        "NI_ANE_ASYNC": "0",
+        "NI_ANE_KEEP_S": "0"
+      },
+      "rc": 0,
+      "seconds": 67.90190696716309
+    },
+    {
+      "label": "27b-unchanged",
+      "command": [
+        "python3",
+        "$CANDIDATE/tools/logit_compare.py",
+        "$RESULTS/dumps/27b-before",
+        "$RESULTS/dumps/27b-after",
+        "--json",
+        "$RESULTS/comparisons/27b-unchanged.json"
+      ],
+      "started": 1793266796.3624132,
+      "env": {
+        "NI_LOCK_HELD": "1",
+        "NACE_GPU_LOCK_HELD": "1",
+        "BENCH_GPU_LOCK": "/tmp/kapitsa-gpu.lock",
+        "KAPITSA_NO_AUTO_UPDATE": "1",
+        "KAPITSA_NO_PROMPT": "1",
+        "KAPITSA_HOME": "$RESULTS/homes/27b-unchanged",
+        "NI_ANE_ASYNC": "0",
+        "NI_ANE_KEEP_S": "0"
+      },
+      "rc": 0,
+      "seconds": 2.5335378646850586
+    },
+    {
+      "label": "native-api",
+      "command": [
+        "python3",
+        "$CANDIDATE/tests/test_server.py",
+        "http://127.0.0.1:8208",
+        "--model-id",
+        "qwen3.5-9b"
+      ],
+      "started": 1793266832.949703,
+      "env": {
+        "NI_LOCK_HELD": "1",
+        "NACE_GPU_LOCK_HELD": "1",
+        "BENCH_GPU_LOCK": "/tmp/kapitsa-gpu.lock",
+        "KAPITSA_NO_AUTO_UPDATE": "1",
+        "KAPITSA_NO_PROMPT": "1",
+        "KAPITSA_HOME": "$RESULTS/homes/native-api",
+        "NI_ANE_ASYNC": "0",
+        "NI_ANE_KEEP_S": "0"
+      },
+      "rc": 0,
+      "seconds": 117.97111487388611
+    },
+    {
+      "label": "structured-api",
+      "command": [
+        "python3",
+        "$CANDIDATE/tests/test_structured.py",
+        "http://127.0.0.1:8208"
+      ],
+      "started": 1793266950.92363,
+      "env": {
+        "NI_LOCK_HELD": "1",
+        "NACE_GPU_LOCK_HELD": "1",
+        "BENCH_GPU_LOCK": "/tmp/kapitsa-gpu.lock",
+        "KAPITSA_NO_AUTO_UPDATE": "1",
+        "KAPITSA_NO_PROMPT": "1",
+        "KAPITSA_HOME": "$RESULTS/homes/structured-api",
+        "NI_ANE_ASYNC": "0",
+        "NI_ANE_KEEP_S": "0"
+      },
+      "rc": 0,
+      "seconds": 232.85137391090393
+    },
+    {
+      "label": "fixed-A1",
+      "command": [
+        "python3",
+        "$RESULTS/fixed_prefill.py",
+        "$CANDIDATE",
+        "8208",
+        "11940",
+        "$RESULTS/fixed-prefill/A1.json",
+        "A1"
+      ],
+      "started": 1793267185.456417,
+      "env": {
+        "NI_LOCK_HELD": "1",
+        "NACE_GPU_LOCK_HELD": "1",
+        "BENCH_GPU_LOCK": "/tmp/kapitsa-gpu.lock",
+        "KAPITSA_NO_AUTO_UPDATE": "1",
+        "KAPITSA_NO_PROMPT": "1",
+        "KAPITSA_HOME": "$RESULTS/homes/fixed-A1",
+        "NI_ANE_ASYNC": "0",
+        "NI_ANE_KEEP_S": "0"
+      },
+      "rc": 0,
+      "seconds": 38.53001689910889
+    },
+    {
+      "label": "fixed-B1",
+      "command": [
+        "python3",
+        "$RESULTS/fixed_prefill.py",
+        "$CANDIDATE",
+        "8208",
+        "12419",
+        "$RESULTS/fixed-prefill/B1.json",
+        "B1"
+      ],
+      "started": 1793267225.641282,
+      "env": {
+        "NI_LOCK_HELD": "1",
+        "NACE_GPU_LOCK_HELD": "1",
+        "BENCH_GPU_LOCK": "/tmp/kapitsa-gpu.lock",
+        "KAPITSA_NO_AUTO_UPDATE": "1",
+        "KAPITSA_NO_PROMPT": "1",
+        "KAPITSA_HOME": "$RESULTS/homes/fixed-B1",
+        "NI_ANE_ASYNC": "0",
+        "NI_ANE_KEEP_S": "0"
+      },
+      "rc": 0,
+      "seconds": 29.004130125045776
+    },
+    {
+      "label": "fixed-A2",
+      "command": [
+        "python3",
+        "$RESULTS/fixed_prefill.py",
+        "$CANDIDATE",
+        "8208",
+        "12552",
+        "$RESULTS/fixed-prefill/A2.json",
+        "A2"
+      ],
+      "started": 1793267255.859586,
+      "env": {
+        "NI_LOCK_HELD": "1",
+        "NACE_GPU_LOCK_HELD": "1",
+        "BENCH_GPU_LOCK": "/tmp/kapitsa-gpu.lock",
+        "KAPITSA_NO_AUTO_UPDATE": "1",
+        "KAPITSA_NO_PROMPT": "1",
+        "KAPITSA_HOME": "$RESULTS/homes/fixed-A2",
+        "NI_ANE_ASYNC": "0",
+        "NI_ANE_KEEP_S": "0"
+      },
+      "rc": 0,
+      "seconds": 37.414966106414795
+    },
+    {
+      "label": "fixed-B2",
+      "command": [
+        "python3",
+        "$RESULTS/fixed_prefill.py",
+        "$CANDIDATE",
+        "8208",
+        "12739",
+        "$RESULTS/fixed-prefill/B2.json",
+        "B2"
+      ],
+      "started": 1793267294.938611,
+      "env": {
+        "NI_LOCK_HELD": "1",
+        "NACE_GPU_LOCK_HELD": "1",
+        "BENCH_GPU_LOCK": "/tmp/kapitsa-gpu.lock",
+        "KAPITSA_NO_AUTO_UPDATE": "1",
+        "KAPITSA_NO_PROMPT": "1",
+        "KAPITSA_HOME": "$RESULTS/homes/fixed-B2",
+        "NI_ANE_ASYNC": "0",
+        "NI_ANE_KEEP_S": "0"
+      },
+      "rc": 0,
+      "seconds": 28.119138956069946
+    }
+  ],
+  "servers": [
+    {
+      "label": "api-default",
+      "command": [
+        "$CANDIDATE/build/kapitsa",
+        "serve",
+        "--private",
+        "--model",
+        "$MODEL_9B",
+        "--model-id",
+        "qwen3.5-9b",
+        "--port",
+        "8208",
+        "--ctx",
+        "32768",
+        "--slots",
+        "2",
+        "--prefill-chunk",
+        "2048",
+        "--disk-cache",
+        "0",
+        "--dflash",
+        "none"
+      ],
+      "started": 1793266798.968363,
+      "env": {
+        "NI_LOCK_HELD": "1",
+        "NACE_GPU_LOCK_HELD": "1",
+        "BENCH_GPU_LOCK": "/tmp/kapitsa-gpu.lock",
+        "KAPITSA_NO_AUTO_UPDATE": "1",
+        "KAPITSA_NO_PROMPT": "1",
+        "KAPITSA_HOME": "$RESULTS/homes/api-default"
+      }
+    },
+    {
+      "label": "fixed-A1",
+      "command": [
+        "$MAIN/build/kapitsa",
+        "serve",
+        "--private",
+        "--model",
+        "$MODEL_9B",
+        "--model-id",
+        "qwen3.5-9b",
+        "--port",
+        "8208",
+        "--ctx",
+        "32768",
+        "--slots",
+        "1",
+        "--prefill-chunk",
+        "2048",
+        "--disk-cache",
+        "0",
+        "--dflash",
+        "none"
+      ],
+      "started": 1793267183.818775,
+      "env": {
+        "NI_LOCK_HELD": "1",
+        "NACE_GPU_LOCK_HELD": "1",
+        "BENCH_GPU_LOCK": "/tmp/kapitsa-gpu.lock",
+        "KAPITSA_NO_AUTO_UPDATE": "1",
+        "KAPITSA_NO_PROMPT": "1",
+        "KAPITSA_HOME": "$RESULTS/homes/fixed-A1"
+      }
+    },
+    {
+      "label": "fixed-B1",
+      "command": [
+        "$CANDIDATE/build/kapitsa",
+        "serve",
+        "--private",
+        "--model",
+        "$MODEL_9B",
+        "--model-id",
+        "qwen3.5-9b",
+        "--port",
+        "8208",
+        "--ctx",
+        "32768",
+        "--slots",
+        "1",
+        "--prefill-chunk",
+        "2048",
+        "--disk-cache",
+        "0",
+        "--dflash",
+        "none"
+      ],
+      "started": 1793267224.0674298,
+      "env": {
+        "NI_LOCK_HELD": "1",
+        "NACE_GPU_LOCK_HELD": "1",
+        "BENCH_GPU_LOCK": "/tmp/kapitsa-gpu.lock",
+        "KAPITSA_NO_AUTO_UPDATE": "1",
+        "KAPITSA_NO_PROMPT": "1",
+        "KAPITSA_HOME": "$RESULTS/homes/fixed-B1"
+      }
+    },
+    {
+      "label": "fixed-A2",
+      "command": [
+        "$MAIN/build/kapitsa",
+        "serve",
+        "--private",
+        "--model",
+        "$MODEL_9B",
+        "--model-id",
+        "qwen3.5-9b",
+        "--port",
+        "8208",
+        "--ctx",
+        "32768",
+        "--slots",
+        "1",
+        "--prefill-chunk",
+        "2048",
+        "--disk-cache",
+        "0",
+        "--dflash",
+        "none"
+      ],
+      "started": 1793267254.7284548,
+      "env": {
+        "NI_LOCK_HELD": "1",
+        "NACE_GPU_LOCK_HELD": "1",
+        "BENCH_GPU_LOCK": "/tmp/kapitsa-gpu.lock",
+        "KAPITSA_NO_AUTO_UPDATE": "1",
+        "KAPITSA_NO_PROMPT": "1",
+        "KAPITSA_HOME": "$RESULTS/homes/fixed-A2"
+      }
+    },
+    {
+      "label": "fixed-B2",
+      "command": [
+        "$CANDIDATE/build/kapitsa",
+        "serve",
+        "--private",
+        "--model",
+        "$MODEL_9B",
+        "--model-id",
+        "qwen3.5-9b",
+        "--port",
+        "8208",
+        "--ctx",
+        "32768",
+        "--slots",
+        "1",
+        "--prefill-chunk",
+        "2048",
+        "--disk-cache",
+        "0",
+        "--dflash",
+        "none"
+      ],
+      "started": 1793267293.353112,
+      "env": {
+        "NI_LOCK_HELD": "1",
+        "NACE_GPU_LOCK_HELD": "1",
+        "BENCH_GPU_LOCK": "/tmp/kapitsa-gpu.lock",
+        "KAPITSA_NO_AUTO_UPDATE": "1",
+        "KAPITSA_NO_PROMPT": "1",
+        "KAPITSA_HOME": "$RESULTS/homes/fixed-B2"
+      }
+    }
+  ],
+  "note": "Server records contain only these experiment servers. The original service configuration is not published. Logit tools use synchronous ANE initialization; timed servers retain shipping ANE defaults."
+}

@@ -1,0 +1,854 @@
+===== 27b-after.err =====
+[kapitsa] read 15.13 GB of weights in 4827 ms (3.1 GB/s)
+[kapitsa] read 0.00 GB of weights in 0 ms (0.0 GB/s)
+[kapitsa] no MTP head in $MODEL_27B; speculative decoding off
+[kapitsa] NI_QMM: dense prefill GEMM qmr_k32_w14_m32_n128 (M >= 64), qmr_k64_w14_m16_n64 / qmr_k64_w12_m8_n64 below
+[kapitsa] NI_QMM8=1: 8-bit prefill GEMMs on qmr8 (all but the MoE router)
+[kapitsa] compiled kernels in 21 ms
+[kapitsa] prewarmed 93 prefill pipelines in 29 ms
+[kapitsa] loaded $MODEL_27B: 64 layers, dense, 15.1 GB mapped in 6611 ms; weights 4-bit group 64 100%
+[kapitsa] NI_ANE: Neural Engine FFN split (wavefront): 34/34 units (17408 channels; GPU 0) from the default for this chip, chunks >= 512 rows; row scales 4 ms, program cached 2 ms + load 109 ms (13 functions, MIL 133 KB); 629.0 MB Metal; ready in 0.2 s
+[kapitsa] NI_ANE: startup check 0.75% of the ANE's part from the GPU alone (2 functions, 575 ms)
+[kapitsa] NI_QMM_GU: dense gate/up/SwiGLU fused (qmr_gu_k32_w14_m32_n64, m16_n64 / m8_n32 below 64 rows)
+
+===== 27b-after.out =====
+prefill 8 rows: next-token NLL 1.0096, top-1 = next token 0.7500 -> $RESULTS/dumps/27b-after/prefill
+step   192 rows: next-token NLL 0.4328, top-1 = next token 0.8698 -> $RESULTS/dumps/27b-after/step
+verify 192 rows: next-token NLL 0.4328, top-1 = next token 0.8698 -> $RESULTS/dumps/27b-after/verify
+batch  192 rows: next-token NLL 0.4327, top-1 = next token 0.8698 -> $RESULTS/dumps/27b-after/batch
+8 windows, 14848 prefilled tokens in 42.3 s; 60.3 s in all
+
+===== 27b-before.err =====
+[kapitsa] read 15.13 GB of weights in 4868 ms (3.1 GB/s)
+[kapitsa] read 0.00 GB of weights in 0 ms (0.0 GB/s)
+[kapitsa] no MTP head in $MODEL_27B; speculative decoding off
+[kapitsa] NI_QMM: dense prefill GEMM qmr_k32_w14_m32_n128 (M >= 64), qmr_k64_w14_m16_n64 / qmr_k64_w12_m8_n64 below
+[kapitsa] NI_QMM8=1: 8-bit prefill GEMMs on qmr8 (all but the MoE router)
+[kapitsa] compiled kernels in 32 ms
+[kapitsa] prewarmed 93 prefill pipelines in 39 ms
+[kapitsa] loaded $MODEL_27B: 64 layers, dense, 15.1 GB mapped in 6666 ms; weights 4-bit group 64 100%
+[kapitsa] NI_ANE: Neural Engine FFN split (wavefront): 34/34 units (17408 channels; GPU 0) from the default for this chip, chunks >= 512 rows; row scales 37 ms, program compiled 45441 ms + load 128 ms (13 functions, MIL 133 KB); 629.0 MB Metal; ready in 45.7 s
+[kapitsa] NI_ANE: startup check 0.75% of the ANE's part from the GPU alone (2 functions, 572 ms)
+[kapitsa] NI_QMM_GU: dense gate/up/SwiGLU fused (qmr_gu_k32_w14_m32_n64, m16_n64 / m8_n32 below 64 rows)
+
+===== 27b-before.out =====
+prefill 8 rows: next-token NLL 1.0096, top-1 = next token 0.7500 -> $RESULTS/dumps/27b-before/prefill
+step   192 rows: next-token NLL 0.4328, top-1 = next token 0.8698 -> $RESULTS/dumps/27b-before/step
+verify 192 rows: next-token NLL 0.4328, top-1 = next token 0.8698 -> $RESULTS/dumps/27b-before/verify
+batch  192 rows: next-token NLL 0.4327, top-1 = next token 0.8698 -> $RESULTS/dumps/27b-before/batch
+8 windows, 14848 prefilled tokens in 41.6 s; 59.4 s in all
+
+===== 27b-unchanged.out =====
+prefill: 8 records (3e6447f082e89cc7f0bc6e5441afd38dfce760ff)
+  reference: 0.2.24 (fac53c04), prefill_chunk 2048, ane {"chunks":10,"evals":1152,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  candidate: 0.2.24 (93b2bd7c), prefill_chunk 2048, ane {"chunks":10,"evals":1152,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  every row bitwise identical
+batch: 192 records (3e6447f082e89cc7f0bc6e5441afd38dfce760ff)
+  reference: 0.2.24 (fac53c04), batch {"members":4,"rows":2}, prefill_chunk 2048, ane {"chunks":10,"evals":1152,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  candidate: 0.2.24 (93b2bd7c), batch {"members":4,"rows":2}, prefill_chunk 2048, ane {"chunks":10,"evals":1152,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  every row bitwise identical
+step: 192 records (3e6447f082e89cc7f0bc6e5441afd38dfce760ff)
+  reference: 0.2.24 (fac53c04), prefill_chunk 2048, ane {"chunks":10,"evals":1152,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  candidate: 0.2.24 (93b2bd7c), prefill_chunk 2048, ane {"chunks":10,"evals":1152,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  every row bitwise identical
+verify: 192 records (3e6447f082e89cc7f0bc6e5441afd38dfce760ff)
+  reference: 0.2.24 (fac53c04), verify "KFlash tree (a chain of 8 live rows)", prefill_chunk 2048, ane {"chunks":10,"evals":1152,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  candidate: 0.2.24 (93b2bd7c), verify "KFlash tree (a chain of 8 live rows)", prefill_chunk 2048, ane {"chunks":10,"evals":1152,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  every row bitwise identical
+no noise floor for this model and no bounds given: reported only (tools/logit_floor.py measures one)
+
+===== 4b-after.err =====
+[kapitsa] read 2.37 GB of weights in 147 ms (16.1 GB/s)
+[kapitsa] converted 24 parameter tensors to bf16 at load (0 values not exactly representable)
+[kapitsa] read 0.00 GB of weights in 0 ms (0.0 GB/s)
+[kapitsa] no MTP head in $MODEL_4B; speculative decoding off
+[kapitsa] NI_QMM: dense prefill GEMM qmr_k32_w14_m32_n128 (M >= 64), qmr_k64_w14_m16_n64 / qmr_k64_w12_m8_n64 below
+[kapitsa] NI_QMM8=1: 8-bit prefill GEMMs on qmr8 (all but the MoE router)
+[kapitsa] compiled kernels in 11 ms
+[kapitsa] prewarmed 93 prefill pipelines in 18 ms
+[kapitsa] loaded $MODEL_4B: 32 layers, dense, 2.4 GB mapped in 192 ms; weights 4-bit group 64 100%
+[kapitsa] NI_ANE: Neural Engine FFN split (wavefront): 18/18 units (9216 channels; GPU 0) from the default for this chip, chunks >= 512 rows; row scales 2 ms, program cached 1 ms + load 41 ms (13 functions, MIL 89 KB); 187.6 MB Metal; ready in 0.1 s
+[kapitsa] NI_ANE: startup check 2.11% of the ANE's part from the GPU alone (2 functions, 172 ms)
+[kapitsa] NI_QMM_GU: dense gate/up/SwiGLU fused (qmr_gu_k32_w14_m32_n64, m16_n64 / m8_n32 below 64 rows)
+
+===== 4b-after.out =====
+prefill 8 rows: next-token NLL 1.7539, top-1 = next token 0.6250 -> $RESULTS/dumps/4b-after/prefill
+step   192 rows: next-token NLL 0.6746, top-1 = next token 0.8333 -> $RESULTS/dumps/4b-after/step
+verify 192 rows: next-token NLL 0.6746, top-1 = next token 0.8333 -> $RESULTS/dumps/4b-after/verify
+batch  192 rows: next-token NLL 0.6747, top-1 = next token 0.8333 -> $RESULTS/dumps/4b-after/batch
+8 windows, 14848 prefilled tokens in 7.8 s; 11.6 s in all
+
+===== 4b-before.err =====
+[kapitsa] read 2.37 GB of weights in 597 ms (4.0 GB/s)
+[kapitsa] converted 24 parameter tensors to bf16 at load (0 values not exactly representable)
+[kapitsa] read 0.00 GB of weights in 0 ms (0.0 GB/s)
+[kapitsa] no MTP head in $MODEL_4B; speculative decoding off
+[kapitsa] NI_QMM: dense prefill GEMM qmr_k32_w14_m32_n128 (M >= 64), qmr_k64_w14_m16_n64 / qmr_k64_w12_m8_n64 below
+[kapitsa] NI_QMM8=1: 8-bit prefill GEMMs on qmr8 (all but the MoE router)
+[kapitsa] compiled kernels in 3277 ms
+[kapitsa] prewarmed 93 prefill pipelines in 3284 ms
+[kapitsa] loaded $MODEL_4B: 32 layers, dense, 2.4 GB mapped in 3915 ms; weights 4-bit group 64 100%
+[kapitsa] NI_ANE: Neural Engine FFN split (wavefront): 18/18 units (9216 channels; GPU 0) from the default for this chip, chunks >= 512 rows; row scales 17 ms, program compiled 17914 ms + load 60 ms (13 functions, MIL 89 KB); 187.6 MB Metal; ready in 18.0 s
+[kapitsa] NI_ANE: startup check 2.11% of the ANE's part from the GPU alone (2 functions, 185 ms)
+[kapitsa] NI_QMM_GU: dense gate/up/SwiGLU fused (qmr_gu_k32_w14_m32_n64, m16_n64 / m8_n32 below 64 rows)
+
+===== 4b-before.out =====
+prefill 8 rows: next-token NLL 1.7539, top-1 = next token 0.6250 -> $RESULTS/dumps/4b-before/prefill
+step   192 rows: next-token NLL 0.6746, top-1 = next token 0.8333 -> $RESULTS/dumps/4b-before/step
+verify 192 rows: next-token NLL 0.6746, top-1 = next token 0.8333 -> $RESULTS/dumps/4b-before/verify
+batch  192 rows: next-token NLL 0.6747, top-1 = next token 0.8333 -> $RESULTS/dumps/4b-before/batch
+8 windows, 14848 prefilled tokens in 7.8 s; 11.4 s in all
+
+===== 4b-unchanged.out =====
+prefill: 8 records (qwen3.5-4b-4bit)
+  reference: 0.2.24 (fac53c04), prefill_chunk 2048, ane {"chunks":10,"evals":576,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  candidate: 0.2.24 (93b2bd7c), prefill_chunk 2048, ane {"chunks":10,"evals":576,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  every row bitwise identical
+batch: 192 records (qwen3.5-4b-4bit)
+  reference: 0.2.24 (fac53c04), batch {"members":4,"rows":2}, prefill_chunk 2048, ane {"chunks":10,"evals":576,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  candidate: 0.2.24 (93b2bd7c), batch {"members":4,"rows":2}, prefill_chunk 2048, ane {"chunks":10,"evals":576,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  every row bitwise identical
+  PASS (tools/logit_floors/qwen3.5-4b-4bit.json: the decode passes' gate (the prefill rows are bitwise the same))
+step: 192 records (qwen3.5-4b-4bit)
+  reference: 0.2.24 (fac53c04), prefill_chunk 2048, ane {"chunks":10,"evals":576,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  candidate: 0.2.24 (93b2bd7c), prefill_chunk 2048, ane {"chunks":10,"evals":576,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  every row bitwise identical
+  PASS (tools/logit_floors/qwen3.5-4b-4bit.json: the decode passes' gate (the prefill rows are bitwise the same))
+verify: 192 records (qwen3.5-4b-4bit)
+  reference: 0.2.24 (fac53c04), verify "KFlash tree (a chain of 8 live rows)", prefill_chunk 2048, ane {"chunks":10,"evals":576,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  candidate: 0.2.24 (93b2bd7c), verify "KFlash tree (a chain of 8 live rows)", prefill_chunk 2048, ane {"chunks":10,"evals":576,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  every row bitwise identical
+  PASS (tools/logit_floors/qwen3.5-4b-4bit.json: the decode passes' gate (the prefill rows are bitwise the same))
+
+===== 9b-abort.out =====
+logs in $TMP/kap-ane-abort-zsbti6jm
+PASS gpu alone: prompt 0 replies (24 tokens, 2.0 s)
+PASS gpu alone: prompt 1 replies (24 tokens, 2.2 s)
+PASS gpu alone: no split chunk in the log
+PASS split: prompt 0 ran split chunks that held (1.5 s)
+PASS split: prompt 1 ran split chunks that held (1.2 s)
+PASS split: no chunk was given up
+PASS fault: the injected fault is armed
+PASS fault: prompt 0 gives the GPU-alone reply again (24 tokens, 4.1 s)
+PASS fault: prompt 0 came back right after the bound (4.1 s)
+PASS fault: the 250 ms bound gave the chunk up
+PASS fault: the abort, not the per-job watchdog, retired the split
+PASS fault: the given-up chunk counted no evaluation
+PASS fault: the bound and the rerun were reported once each
+PASS fault: prompt 1 gives the GPU-alone reply again (24 tokens, 2.2 s)
+PASS fault: prompt 1 came back right after the bound (2.2 s)
+PASS fault: the second prompt does not split (and so does not bound) again
+PASS fault: no split chunk after the split was given up
+kept $TMP/kap-ane-abort-zsbti6jm
+OK
+
+===== 9b-after.err =====
+[kapitsa] read 5.04 GB of weights in 232 ms (21.7 GB/s)
+[kapitsa] converted 24 parameter tensors to bf16 at load (0 values not exactly representable)
+[kapitsa] read 0.00 GB of weights in 0 ms (0.0 GB/s)
+[kapitsa] no MTP head in $MODEL_9B; speculative decoding off
+[kapitsa] NI_QMM: dense prefill GEMM qmr_k32_w14_m32_n128 (M >= 64), qmr_k64_w14_m16_n64 / qmr_k64_w12_m8_n64 below
+[kapitsa] NI_QMM8=1: 8-bit prefill GEMMs on qmr8 (all but the MoE router)
+[kapitsa] compiled kernels in 12 ms
+[kapitsa] prewarmed 93 prefill pipelines in 17 ms
+[kapitsa] loaded $MODEL_9B: 32 layers, dense, 5.0 GB mapped in 314 ms; weights 4-bit group 64 100%
+[kapitsa] NI_ANE: 4096-hidden FFN on the Neural Engine (2048-channel input segments; W8A8 changes prefill numerics; NI_ANE=0 disables)
+[kapitsa] NI_ANE: Neural Engine FFN split (wavefront): 24/24 units (12288 channels; GPU 0) from the default for this chip, chunks >= 512 rows; row scales 3 ms, program cached 1 ms + load 89 ms (13 functions, MIL 115 KB); 374.7 MB Metal; ready in 0.1 s
+[kapitsa] NI_ANE: startup check 1.94% of the ANE's part from the GPU alone (2 functions, 330 ms)
+[kapitsa] NI_QMM_GU: dense gate/up/SwiGLU fused (qmr_gu_k32_w14_m32_n64, m16_n64 / m8_n32 below 64 rows)
+
+===== 9b-after.out =====
+prefill 8 rows: next-token NLL 1.6070, top-1 = next token 0.6250 -> $RESULTS/dumps/9b-after/prefill
+step   192 rows: next-token NLL 0.6160, top-1 = next token 0.8125 -> $RESULTS/dumps/9b-after/step
+verify 192 rows: next-token NLL 0.6161, top-1 = next token 0.8125 -> $RESULTS/dumps/9b-after/verify
+batch  192 rows: next-token NLL 0.6160, top-1 = next token 0.8125 -> $RESULTS/dumps/9b-after/batch
+8 windows, 14848 prefilled tokens in 12.3 s; 18.1 s in all
+
+===== 9b-before.err =====
+[kapitsa] read 5.04 GB of weights in 238 ms (21.2 GB/s)
+[kapitsa] converted 24 parameter tensors to bf16 at load (0 values not exactly representable)
+[kapitsa] read 0.00 GB of weights in 0 ms (0.0 GB/s)
+[kapitsa] no MTP head in $MODEL_9B; speculative decoding off
+[kapitsa] NI_QMM: dense prefill GEMM qmr_k32_w14_m32_n128 (M >= 64), qmr_k64_w14_m16_n64 / qmr_k64_w12_m8_n64 below
+[kapitsa] NI_QMM8=1: 8-bit prefill GEMMs on qmr8 (all but the MoE router)
+[kapitsa] compiled kernels in 12 ms
+[kapitsa] prewarmed 93 prefill pipelines in 19 ms
+[kapitsa] loaded $MODEL_9B: 32 layers, dense, 5.0 GB mapped in 335 ms; weights 4-bit group 64 100%
+[kapitsa] NI_ANE: 4096-hidden FFN on the Neural Engine (2048-channel input segments; W8A8 changes prefill numerics; NI_ANE=0 disables)
+[kapitsa] NI_ANE: Neural Engine FFN split (wavefront): 24/24 units (12288 channels; GPU 0) from the default for this chip, chunks >= 512 rows; row scales 3 ms, program compiled 31182 ms + load 95 ms (13 functions, MIL 115 KB); 374.7 MB Metal; ready in 31.3 s
+[kapitsa] NI_ANE: startup check 1.94% of the ANE's part from the GPU alone (2 functions, 340 ms)
+[kapitsa] NI_QMM_GU: dense gate/up/SwiGLU fused (qmr_gu_k32_w14_m32_n64, m16_n64 / m8_n32 below 64 rows)
+
+===== 9b-before.out =====
+prefill 8 rows: next-token NLL 1.6070, top-1 = next token 0.6250 -> $RESULTS/dumps/9b-before/prefill
+step   192 rows: next-token NLL 0.6160, top-1 = next token 0.8125 -> $RESULTS/dumps/9b-before/step
+verify 192 rows: next-token NLL 0.6161, top-1 = next token 0.8125 -> $RESULTS/dumps/9b-before/verify
+batch  192 rows: next-token NLL 0.6160, top-1 = next token 0.8125 -> $RESULTS/dumps/9b-before/batch
+8 windows, 14848 prefilled tokens in 12.2 s; 17.8 s in all
+
+===== 9b-default-vs-main.out =====
+prefill: 8 records (qwen3.5-9b-4bit)
+  reference: 0.2.24 (16ead4cf), prefill_chunk 2048, ane {"chunks":0,"evals":0,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  candidate: 0.2.24 (93b2bd7c), prefill_chunk 2048, ane {"chunks":10,"evals":576,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  bitwise identical rows 0 of 8; max |logit diff| 0.8047
+  top-1 agreement 1.0000 (0 flips)
+  KL mean 4.785e-04 median 8.722e-05 p99 1.989e-03 max 2.064e-03; top-2 margin change up to 0.3214
+  next-token NLL change +7.510e-05 nats per record (candidate minus reference)
+batch: 192 records (qwen3.5-9b-4bit)
+  reference: 0.2.24 (16ead4cf), batch {"members":4,"rows":2}, prefill_chunk 2048, ane {"chunks":0,"evals":0,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  candidate: 0.2.24 (93b2bd7c), batch {"members":4,"rows":2}, prefill_chunk 2048, ane {"chunks":10,"evals":576,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  bitwise identical rows 0 of 192; max |logit diff| 3.283
+  top-1 agreement 0.9896 (2 flips)
+  KL mean 3.639e-04 median 1.331e-05 p99 6.973e-03 max 9.528e-03; top-2 margin change up to 0.5129
+  next-token NLL change +1.631e-03 nats per record (candidate minus reference)
+    flip at sequence 3 prefix 2067: top-1 460 -> 413, reference margin 0.1295
+    flip at sequence 0 prefix 3210: top-1 4211 -> 51319, reference margin 0.03107
+step: 192 records (qwen3.5-9b-4bit)
+  reference: 0.2.24 (16ead4cf), prefill_chunk 2048, ane {"chunks":0,"evals":0,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  candidate: 0.2.24 (93b2bd7c), prefill_chunk 2048, ane {"chunks":10,"evals":576,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  bitwise identical rows 0 of 192; max |logit diff| 3.361
+  top-1 agreement 0.9896 (2 flips)
+  KL mean 3.691e-04 median 1.361e-05 p99 7.210e-03 max 9.697e-03; top-2 margin change up to 0.5207
+  next-token NLL change +1.680e-03 nats per record (candidate minus reference)
+    flip at sequence 3 prefix 2067: top-1 460 -> 413, reference margin 0.1269
+    flip at sequence 0 prefix 3210: top-1 4211 -> 51319, reference margin 0.04513
+verify: 192 records (qwen3.5-9b-4bit)
+  reference: 0.2.24 (16ead4cf), verify "KFlash tree (a chain of 8 live rows)", prefill_chunk 2048, ane {"chunks":0,"evals":0,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  candidate: 0.2.24 (93b2bd7c), verify "KFlash tree (a chain of 8 live rows)", prefill_chunk 2048, ane {"chunks":10,"evals":576,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  bitwise identical rows 0 of 192; max |logit diff| 3.315
+  top-1 agreement 0.9896 (2 flips)
+  KL mean 3.767e-04 median 1.382e-05 p99 7.341e-03 max 1.012e-02; top-2 margin change up to 0.5123
+  next-token NLL change +1.697e-03 nats per record (candidate minus reference)
+    flip at sequence 3 prefix 2067: top-1 460 -> 413, reference margin 0.1268
+    flip at sequence 0 prefix 3210: top-1 4211 -> 51319, reference margin 0.05923
+no noise floor for this model and no bounds given: reported only (tools/logit_floor.py measures one)
+
+===== 9b-main.err =====
+[kapitsa] read 5.04 GB of weights in 232 ms (21.7 GB/s)
+[kapitsa] converted 24 parameter tensors to bf16 at load (0 values not exactly representable)
+[kapitsa] read 0.00 GB of weights in 0 ms (0.0 GB/s)
+[kapitsa] no MTP head in $MODEL_9B; speculative decoding off
+[kapitsa] NI_QMM: dense prefill GEMM qmr_k32_w14_m32_n128 (M >= 64), qmr_k64_w14_m16_n64 / qmr_k64_w12_m8_n64 below
+[kapitsa] NI_QMM8=1: 8-bit prefill GEMMs on qmr8 (all but the MoE router)
+[kapitsa] compiled kernels in 21 ms
+[kapitsa] prewarmed 93 prefill pipelines in 28 ms
+[kapitsa] loaded $MODEL_9B: 32 layers, dense, 5.0 GB mapped in 329 ms; weights 4-bit group 64 100%
+[kapitsa] NI_ANE: Neural Engine split unavailable (hidden size is not whole 2560-channel segments); the GPU runs the prefill FFN alone
+[kapitsa] NI_QMM_GU: dense gate/up/SwiGLU fused (qmr_gu_k32_w14_m32_n64, m16_n64 / m8_n32 below 64 rows)
+
+===== 9b-main.out =====
+prefill 8 rows: next-token NLL 1.6069, top-1 = next token 0.6250 -> $RESULTS/dumps/9b-main/prefill
+step   192 rows: next-token NLL 0.6143, top-1 = next token 0.8177 -> $RESULTS/dumps/9b-main/step
+verify 192 rows: next-token NLL 0.6144, top-1 = next token 0.8177 -> $RESULTS/dumps/9b-main/verify
+batch  192 rows: next-token NLL 0.6144, top-1 = next token 0.8177 -> $RESULTS/dumps/9b-main/batch
+8 windows, 14848 prefilled tokens in 31.4 s; 37.0 s in all
+
+===== 9b-off-vs-main.out =====
+prefill: 8 records (qwen3.5-9b-4bit)
+  reference: 0.2.24 (16ead4cf), prefill_chunk 2048, ane {"chunks":0,"evals":0,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  candidate: 0.2.24 (93b2bd7c), prefill_chunk 2048, ane {"chunks":0,"evals":0,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0","NI_ANE":"0"}
+  every row bitwise identical
+batch: 192 records (qwen3.5-9b-4bit)
+  reference: 0.2.24 (16ead4cf), batch {"members":4,"rows":2}, prefill_chunk 2048, ane {"chunks":0,"evals":0,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  candidate: 0.2.24 (93b2bd7c), batch {"members":4,"rows":2}, prefill_chunk 2048, ane {"chunks":0,"evals":0,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0","NI_ANE":"0"}
+  every row bitwise identical
+step: 192 records (qwen3.5-9b-4bit)
+  reference: 0.2.24 (16ead4cf), prefill_chunk 2048, ane {"chunks":0,"evals":0,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  candidate: 0.2.24 (93b2bd7c), prefill_chunk 2048, ane {"chunks":0,"evals":0,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0","NI_ANE":"0"}
+  every row bitwise identical
+verify: 192 records (qwen3.5-9b-4bit)
+  reference: 0.2.24 (16ead4cf), verify "KFlash tree (a chain of 8 live rows)", prefill_chunk 2048, ane {"chunks":0,"evals":0,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  candidate: 0.2.24 (93b2bd7c), verify "KFlash tree (a chain of 8 live rows)", prefill_chunk 2048, ane {"chunks":0,"evals":0,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0","NI_ANE":"0"}
+  every row bitwise identical
+no noise floor for this model and no bounds given: reported only (tools/logit_floor.py measures one)
+
+===== 9b-off.err =====
+[kapitsa] read 5.04 GB of weights in 232 ms (21.7 GB/s)
+[kapitsa] converted 24 parameter tensors to bf16 at load (0 values not exactly representable)
+[kapitsa] read 0.00 GB of weights in 0 ms (0.0 GB/s)
+[kapitsa] no MTP head in $MODEL_9B; speculative decoding off
+[kapitsa] NI_QMM: dense prefill GEMM qmr_k32_w14_m32_n128 (M >= 64), qmr_k64_w14_m16_n64 / qmr_k64_w12_m8_n64 below
+[kapitsa] NI_QMM8=1: 8-bit prefill GEMMs on qmr8 (all but the MoE router)
+[kapitsa] compiled kernels in 12 ms
+[kapitsa] prewarmed 93 prefill pipelines in 18 ms
+[kapitsa] loaded $MODEL_9B: 32 layers, dense, 5.0 GB mapped in 315 ms; weights 4-bit group 64 100%
+[kapitsa] NI_QMM_GU: dense gate/up/SwiGLU fused (qmr_gu_k32_w14_m32_n64, m16_n64 / m8_n32 below 64 rows)
+
+===== 9b-off.out =====
+prefill 8 rows: next-token NLL 1.6069, top-1 = next token 0.6250 -> $RESULTS/dumps/9b-off/prefill
+step   192 rows: next-token NLL 0.6143, top-1 = next token 0.8177 -> $RESULTS/dumps/9b-off/step
+verify 192 rows: next-token NLL 0.6144, top-1 = next token 0.8177 -> $RESULTS/dumps/9b-off/verify
+batch  192 rows: next-token NLL 0.6144, top-1 = next token 0.8177 -> $RESULTS/dumps/9b-off/batch
+8 windows, 14848 prefilled tokens in 30.6 s; 36.6 s in all
+
+===== 9b-unchanged.out =====
+prefill: 8 records (qwen3.5-9b-4bit)
+  reference: 0.2.24 (fac53c04), prefill_chunk 2048, ane {"chunks":10,"evals":576,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  candidate: 0.2.24 (93b2bd7c), prefill_chunk 2048, ane {"chunks":10,"evals":576,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  every row bitwise identical
+batch: 192 records (qwen3.5-9b-4bit)
+  reference: 0.2.24 (fac53c04), batch {"members":4,"rows":2}, prefill_chunk 2048, ane {"chunks":10,"evals":576,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  candidate: 0.2.24 (93b2bd7c), batch {"members":4,"rows":2}, prefill_chunk 2048, ane {"chunks":10,"evals":576,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  every row bitwise identical
+step: 192 records (qwen3.5-9b-4bit)
+  reference: 0.2.24 (fac53c04), prefill_chunk 2048, ane {"chunks":10,"evals":576,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  candidate: 0.2.24 (93b2bd7c), prefill_chunk 2048, ane {"chunks":10,"evals":576,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  every row bitwise identical
+verify: 192 records (qwen3.5-9b-4bit)
+  reference: 0.2.24 (fac53c04), verify "KFlash tree (a chain of 8 live rows)", prefill_chunk 2048, ane {"chunks":10,"evals":576,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  candidate: 0.2.24 (93b2bd7c), verify "KFlash tree (a chain of 8 live rows)", prefill_chunk 2048, ane {"chunks":10,"evals":576,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  every row bitwise identical
+no noise floor for this model and no bounds given: reported only (tools/logit_floor.py measures one)
+
+===== 9b-zero-gate.out =====
+prefill: 8 records (qwen3.5-9b-4bit)
+  reference: 0.2.24 (16ead4cf), prefill_chunk 2048, ane {"chunks":0,"evals":0,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  candidate: 0.2.24 (93b2bd7c), prefill_chunk 2048, ane {"chunks":10,"evals":576,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  bitwise identical rows 0 of 8; max |logit diff| 0.8047
+  top-1 agreement 1.0000 (0 flips)
+  KL mean 4.785e-04 median 8.722e-05 p99 1.989e-03 max 2.064e-03; top-2 margin change up to 0.3214
+  next-token NLL change +7.510e-05 nats per record (candidate minus reference)
+batch: 192 records (qwen3.5-9b-4bit)
+  reference: 0.2.24 (16ead4cf), batch {"members":4,"rows":2}, prefill_chunk 2048, ane {"chunks":0,"evals":0,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  candidate: 0.2.24 (93b2bd7c), batch {"members":4,"rows":2}, prefill_chunk 2048, ane {"chunks":10,"evals":576,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  bitwise identical rows 0 of 192; max |logit diff| 3.283
+  top-1 agreement 0.9896 (2 flips)
+  KL mean 3.639e-04 median 1.331e-05 p99 6.973e-03 max 9.528e-03; top-2 margin change up to 0.5129
+  next-token NLL change +1.631e-03 nats per record (candidate minus reference)
+    flip at sequence 3 prefix 2067: top-1 460 -> 413, reference margin 0.1295
+    flip at sequence 0 prefix 3210: top-1 4211 -> 51319, reference margin 0.03107
+  FAIL: top-1 agreement 0.9896 < 1.0000
+  FAIL: mean KL 3.639e-04 > 0.000e+00
+  FAIL: p99 KL 6.973e-03 > 0.000e+00
+  FAIL: mean NLL change +0.002 nats > 0.000
+  FAIL (flags)
+step: 192 records (qwen3.5-9b-4bit)
+  reference: 0.2.24 (16ead4cf), prefill_chunk 2048, ane {"chunks":0,"evals":0,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  candidate: 0.2.24 (93b2bd7c), prefill_chunk 2048, ane {"chunks":10,"evals":576,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  bitwise identical rows 0 of 192; max |logit diff| 3.361
+  top-1 agreement 0.9896 (2 flips)
+  KL mean 3.691e-04 median 1.361e-05 p99 7.210e-03 max 9.697e-03; top-2 margin change up to 0.5207
+  next-token NLL change +1.680e-03 nats per record (candidate minus reference)
+    flip at sequence 3 prefix 2067: top-1 460 -> 413, reference margin 0.1269
+    flip at sequence 0 prefix 3210: top-1 4211 -> 51319, reference margin 0.04513
+  FAIL: top-1 agreement 0.9896 < 1.0000
+  FAIL: mean KL 3.691e-04 > 0.000e+00
+  FAIL: p99 KL 7.210e-03 > 0.000e+00
+  FAIL: mean NLL change +0.002 nats > 0.000
+  FAIL (flags)
+verify: 192 records (qwen3.5-9b-4bit)
+  reference: 0.2.24 (16ead4cf), verify "KFlash tree (a chain of 8 live rows)", prefill_chunk 2048, ane {"chunks":0,"evals":0,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  candidate: 0.2.24 (93b2bd7c), verify "KFlash tree (a chain of 8 live rows)", prefill_chunk 2048, ane {"chunks":10,"evals":576,"reruns":0}, env {"NI_ANE_ASYNC":"0","NI_ANE_KEEP_S":"0"}
+  bitwise identical rows 0 of 192; max |logit diff| 3.315
+  top-1 agreement 0.9896 (2 flips)
+  KL mean 3.767e-04 median 1.382e-05 p99 7.341e-03 max 1.012e-02; top-2 margin change up to 0.5123
+  next-token NLL change +1.697e-03 nats per record (candidate minus reference)
+    flip at sequence 3 prefix 2067: top-1 460 -> 413, reference margin 0.1268
+    flip at sequence 0 prefix 3210: top-1 4211 -> 51319, reference margin 0.05923
+  FAIL: top-1 agreement 0.9896 < 1.0000
+  FAIL: mean KL 3.767e-04 > 0.000e+00
+  FAIL: p99 KL 7.341e-03 > 0.000e+00
+  FAIL: mean NLL change +0.002 nats > 0.000
+  FAIL (flags)
+
+===== fixed-A1.out =====
+== A1
+  warm-up prefill~2.9k+decode64: ok (7.83s)
+  warm-up tools: ok (1.5s)
+  prefill 4000: 4134 tok (ref 4133), TTFT 9.30s -> 445 tok/s, cold cached=0 | cached TTFT median NAs over 0 turns (cached [])
+  memory: phys_footprint_peak 5.76 GB, resident mapped files 0.01 GB, swap used 15259.75 MB
+  -> $RESULTS/fixed-prefill/A1.json
+FIXED PREFILL A1 9.297847000008915 invalid [] flags []
+
+===== fixed-A2.out =====
+== A2
+  warm-up prefill~2.9k+decode64: ok (7.26s)
+  warm-up tools: ok (1.46s)
+  prefill 4000: 4134 tok (ref 4133), TTFT 8.62s -> 480 tok/s, cold cached=0 | cached TTFT median NAs over 0 turns (cached [])
+  memory: phys_footprint_peak 5.76 GB, resident mapped files 0.01 GB, swap used 15259.75 MB
+  -> $RESULTS/fixed-prefill/A2.json
+FIXED PREFILL A2 8.620804416947067 invalid [] flags []
+
+===== fixed-B1.out =====
+== B1
+  warm-up prefill~2.9k+decode64: ok (3.62s)
+  warm-up tools: ok (1.64s)
+  prefill 4000: 4134 tok (ref 4133), TTFT 3.43s -> 1205 tok/s, cold cached=0 | cached TTFT median NAs over 0 turns (cached [])
+  memory: phys_footprint_peak 6.20 GB, resident mapped files 0.01 GB, swap used 15259.75 MB
+  -> $RESULTS/fixed-prefill/B1.json
+FIXED PREFILL B1 3.4317725830478594 invalid [] flags []
+
+===== fixed-B2.out =====
+== B2
+  warm-up prefill~2.9k+decode64: ok (3.58s)
+  warm-up tools: ok (1.48s)
+  prefill 4000: 4134 tok (ref 4133), TTFT 3.16s -> 1310 tok/s, cold cached=0 | cached TTFT median NAs over 0 turns (cached [])
+  memory: phys_footprint_peak 6.20 GB, resident mapped files 0.01 GB, swap used 15259.75 MB
+  -> $RESULTS/fixed-prefill/B2.json
+FIXED PREFILL B2 3.156732917006593 invalid [] flags []
+
+===== geometry.err =====
+2026-10-29 17:32:39.561 ane_segment_check[7631:10767545] Metal API Validation Enabled
+2026-10-29 17:32:39.565 ane_segment_check[7631:10767545] Metal GPU Validation Enabled
+[kapitsa] compiled kernels in 3615 ms
+
+===== geometry.out =====
+CPU input selection: 50 checks, 0 failures
+GPU input segments: 2098 comparisons, 34105984 data/guard bytes checked, 0 failures
+
+===== native-api.out =====
+PASS GET / serves the chat page
+PASS chat page is self-contained (no external requests)
+PASS chat page carries the server's --timing (ttft, prefill or both; the placeholder is filled in)
+PASS /v1/models lists the model as qwen3.5-9b
+PASS chat page budgets the reply by the model's context, not the API's 16384 default
+PASS thinking: reasoning streamed separately
+PASS thinking: correct answer
+PASS thinking: finish=stop + usage
+PASS tool call: finish=tool_calls
+PASS tool call: read_file or run_shell on /etc/hosts
+PASS tool call: no markup in content
+PASS tool result: final answer mentions 3
+PASS tool result: prefix reused (cached >= first prompt, less the generation prompt's tail)
+PASS next turn: cached prefix
+PASS next turn: answer
+PASS non-stream tool call + int arg
+PASS int argument is a JSON number
+PASS main slot survives side request
+PASS thinking + tools: a call on /etc/hosts returned as a tool call
+PASS one-offs keep the conversation in progress
+PASS a side request sent beside a first request does not evict it
+PASS anthropic: non-streamed tool call (stop_reason tool_use, tool_use on /etc/hosts, usage)
+PASS anthropic: display omitted: the thinking block has no text and a signature
+PASS anthropic: count_tokens counts the prompt
+PASS anthropic stream: message_start, ping, blocks, message_delta, message_stop
+PASS anthropic stream: message_start reports the tool loop's prompt as cached (the reply's tokens included)
+PASS anthropic stream: final answer mentions 3
+PASS anthropic: the next question's prompt continues the conversation (every turn's thinking kept)
+PASS anthropic: a prompt over the context is 400 "prompt is too long: N tokens > M maximum"
+PASS anthropic: streamed too, a plain 400 before any event
+PASS responses stream: created, in_progress, items, completed; sequence numbers in order
+PASS responses stream: a function_call on /etc/hosts
+PASS responses: the tool loop's next request is answered (mentions 3)
+PASS responses: its prompt is cached (input_tokens_details.cached_tokens >= the first prompt)
+PASS responses: previous_response_id continues a stored response
+PASS responses: an unknown previous_response_id is a 400
+PASS responses: a prompt over the context is 400 context_length_exceeded
+PASS responses: a max_output_tokens cut is status incomplete
+PASS /v1/models reports the requests that run at once (slots)
+PASS a request alone gives the same reply every time (greedy)
+PASS in flight together: the greedy reply is answered in full
+PASS in flight together: the sampled T=0.7 seed 11 reply is answered in full
+PASS in flight together: the greedy reply starts as it does alone
+PASS in flight together: a 2K-token request sent during a long reply finishes first
+PASS more requests than slots: every one is answered in full
+PASS a client gone mid-stream: the request beside it is answered, the next one starts at once
+PASS chat: a prompt over the context is a 400 context_length_exceeded
+PASS chat stream: a prompt over the context is a 400 context_length_exceeded
+PASS chat stream: while every slot is busy the stream starts at once, gets an empty chunk every 15 s, and its first token comes once a slot frees
+ALL PASSED
+
+===== structured-api.out =====
+model qwen3.5-9b
+PASS person prompt 0 greedy: valid
+PASS person prompt 0 T=0.7 seed 7: valid
+PASS person prompt 0 T=0.7 seed 11: valid
+PASS person prompt 1 greedy: valid
+PASS person prompt 1 T=0.7 seed 7: valid
+PASS person prompt 1 T=0.7 seed 11: valid
+PASS person prompt 2 greedy: valid
+PASS person prompt 2 T=0.7 seed 7: valid
+PASS person prompt 2 T=0.7 seed 11: valid
+PASS weather prompt 0 greedy: valid
+PASS weather prompt 0 T=0.7 seed 7: valid
+PASS weather prompt 0 T=0.7 seed 11: valid
+PASS weather prompt 1 greedy: valid
+PASS weather prompt 1 T=0.7 seed 7: valid
+PASS weather prompt 1 T=0.7 seed 11: valid
+PASS weather prompt 2 greedy: valid
+PASS weather prompt 2 T=0.7 seed 7: valid
+PASS weather prompt 2 T=0.7 seed 11: valid
+PASS review prompt 0 greedy: valid
+PASS review prompt 0 T=0.7 seed 7: valid
+PASS review prompt 0 T=0.7 seed 11: valid
+PASS review prompt 1 greedy: valid
+PASS review prompt 1 T=0.7 seed 7: valid
+PASS review prompt 1 T=0.7 seed 11: valid
+PASS review prompt 2 greedy: valid
+PASS review prompt 2 T=0.7 seed 7: valid
+PASS review prompt 2 T=0.7 seed 11: valid
+PASS recipe prompt 0 greedy: valid
+PASS recipe prompt 0 T=0.7 seed 7: valid
+PASS recipe prompt 0 T=0.7 seed 11: valid
+PASS recipe prompt 1 greedy: valid
+PASS recipe prompt 1 T=0.7 seed 7: valid
+PASS recipe prompt 1 T=0.7 seed 11: valid
+PASS recipe prompt 2 greedy: valid
+PASS recipe prompt 2 T=0.7 seed 7: valid
+PASS recipe prompt 2 T=0.7 seed 11: valid
+PASS result prompt 0 greedy: valid
+PASS result prompt 0 T=0.7 seed 7: valid
+PASS result prompt 0 T=0.7 seed 11: valid
+PASS result prompt 1 greedy: valid
+PASS result prompt 1 T=0.7 seed 7: valid
+PASS result prompt 1 T=0.7 seed 11: valid
+PASS result prompt 2 greedy: valid
+PASS result prompt 2 T=0.7 seed 7: valid
+PASS result prompt 2 T=0.7 seed 11: valid
+PASS tree prompt 0 greedy: valid
+PASS tree prompt 0 T=0.7 seed 7: valid
+PASS tree prompt 0 T=0.7 seed 11: valid
+PASS tree prompt 1 greedy: valid
+PASS tree prompt 1 T=0.7 seed 7: valid
+PASS tree prompt 1 T=0.7 seed 11: valid
+PASS tree prompt 2 greedy: valid
+PASS tree prompt 2 T=0.7 seed 7: valid
+PASS tree prompt 2 T=0.7 seed 11: valid
+PASS schema-valid replies: 54 of 54 (178 s)
+PASS greedy: the streamed reply equals the reply
+PASS json_object 0: a JSON object
+PASS json_object 1: a JSON object
+PASS json_object 2: a JSON object
+PASS reasoning on: reasoning, then valid JSON
+PASS responses: text.format json_schema
+PASS chat tool_choice "required" (Hello! How are you today?): one valid call
+PASS chat tool_choice {"type": "function", "function": {"name": "get_weather"}} (What's 2+2?): one valid call
+PASS chat tool_choice "required" (I need the forecast for Paris for the next 3 days.): one valid call
+PASS reasoning on + tool_choice required: a valid call
+PASS messages tool_choice {"type": "any"}: valid tool_use
+PASS messages tool_choice {"type": "tool", "name": "get_weather"}: valid tool_use
+PASS responses tool_choice required: a valid function_call
+PASS strict tool, tool_choice auto: a call it makes is valid
+PASS a schema the server cannot hold: 400 with the field
+PASS at once with free requests: request 0 under the schema is valid
+PASS at once with free requests: request 1 under the schema is valid
+PASS at once: the free requests answer
+ALL PASSED
+
+===== cpu/ane_segment_check.log =====
+CPU input selection: 50 checks, 0 failures
+
+===== cpu/comment-diff-check.log =====
+
+===== cpu/comment-geometry-cpu.log =====
+CPU input selection: 50 checks, 0 failures
+
+===== cpu/comment-lint.log =====
+check for merge conflicts................................................Passed
+check yaml...............................................................Passed
+check for added large files..............................................Passed
+check for case conflicts.................................................Passed
+trim trailing whitespace.................................................Passed
+ruff check...............................................................Passed
+shell scripts parse (bash -n)............................................Passed
+
+===== cpu/comment-rebuild.log =====
+[  3%] Building CXX object CMakeFiles/naceinfer.dir/src/ane/ffn_split.cpp.o
+[  3%] Building CXX object CMakeFiles/naceinfer.dir/src/engine/doctor.cpp.o
+[  3%] Building CXX object CMakeFiles/naceinfer.dir/src/model/nemotron_h.cpp.o
+[  3%] Building CXX object CMakeFiles/naceinfer.dir/src/model/qwen35.cpp.o
+[  6%] Building CXX object CMakeFiles/naceinfer.dir/src/model/qwen35_ane.cpp.o
+[  9%] Linking CXX static library libnaceinfer.a
+[ 84%] Built target naceinfer
+[ 84%] Linking CXX executable kapitsa
+[100%] Built target kapitsa
+[100%] Built target execution_session_test
+[100%] Built target http_stream_test
+[100%] Built target naceinfer
+[100%] Linking CXX executable api_test
+[100%] Built target api_test
+[ 96%] Built target naceinfer
+[ 96%] Linking CXX executable bench_test
+[100%] Built target bench_test
+[100%] Built target naceinfer
+[100%] Linking CXX executable update_test
+[100%] Built target update_test
+[100%] Built target naceinfer
+[100%] Linking CXX executable prefix_cache_test
+[100%] Built target prefix_cache_test
+[ 96%] Built target naceinfer
+[100%] Linking CXX executable grammar_test
+[100%] Built target grammar_test
+[ 96%] Built target naceinfer
+[ 96%] Linking CXX executable structured_check
+[100%] Built target structured_check
+[ 96%] Built target naceinfer
+[ 96%] Linking CXX executable fn_store_test
+[100%] Built target fn_store_test
+[ 96%] Built target naceinfer
+[ 96%] Linking CXX executable fn_dflash_test
+[100%] Built target fn_dflash_test
+[ 96%] Built target naceinfer
+[ 96%] Linking CXX executable tokenizer_test
+[100%] Built target tokenizer_test
+[100%] Built target naceinfer
+[100%] Linking CXX executable iq_layout_test
+[100%] Built target iq_layout_test
+[ 96%] Built target naceinfer
+[ 96%] Linking CXX executable exl3_test
+[100%] Built target exl3_test
+[ 96%] Built target naceinfer
+[100%] Linking CXX executable remote_test
+[100%] Built target remote_test
+[100%] Built target naceinfer
+[100%] Linking CXX executable cluster_test
+[100%] Built target cluster_test
+[100%] Built target naceinfer
+[100%] Linking CXX executable split_place_test
+[100%] Built target split_place_test
+[ 96%] Built target naceinfer
+[ 96%] Linking CXX executable qwen4_config_test
+[100%] Built target qwen4_config_test
+[ 96%] Built target naceinfer
+[ 96%] Linking CXX executable json_file_test
+[100%] Built target json_file_test
+[100%] Built target splash_protocol_test
+[100%] Built target splash_runtime_test
+[100%] Built target splash_discover_test
+[100%] Built target splash_plan_test
+[100%] Built target naceinfer
+[100%] Linking CXX executable logit_dump
+[100%] Built target logit_dump
+[ 96%] Built target naceinfer
+[ 96%] Building CXX object CMakeFiles/ane_segment_check.dir/tools/ane_segment_check.cpp.o
+[100%] Linking CXX executable ane_segment_check
+[100%] Built target ane_segment_check
+[ 96%] Built target naceinfer
+[100%] Linking CXX executable load_error_test
+[100%] Built target load_error_test
+[ 96%] Built target naceinfer
+[100%] Linking CXX executable parser_test
+[100%] Built target parser_test
+
+===== cpu/cpu-suite.log =====
+PASS api_test
+PASS prefix_cache_test
+PASS fn_store_test
+PASS fn_dflash_test
+PASS tokenizer_test
+PASS iq_layout_test
+PASS remote_test
+PASS cluster_test
+PASS split_place_test
+PASS test_server_cli
+PASS test_sidecar
+PASS test_bench
+PASS test_update
+PASS test_community
+PASS test_reasoning
+PASS test_pr_size
+PASS test_logit_compare
+PASS test_structured_cli
+0 failed
+
+===== cpu/diff-check.log =====
+
+===== cpu/execution_session_test.log =====
+execution_session_test: prestart()
+execution_session_test: never_started()
+execution_session_test: normal_completion()
+execution_session_test: accepted_gate(false)
+execution_session_test: accepted_gate(true)
+execution_session_test: post_cancel()
+execution_session_test: terminal_order()
+execution_session_test: drain_and_lifetime()
+execution_session_test: exceptions()
+execution_session_test: error_without_allocations()
+execution_session_test: failed_launch()
+execution_session_test: self_wait()
+execution_session_test: repeated_requests_and_startup_race()
+execution_session_test: ok
+
+===== cpu/exl3_test.log =====
+PASS decode_tile: K2.5 window 12 tile 0 equals exllamav3's 256 weights (0 differ)
+PASS decode_tile: K3 window 16 tile 0 equals exllamav3's 256 weights (0 differ)
+PASS perm: the 256 codewords fill the 256 cells of a tile
+PASS mcg: codeword 0 is the half sum of 0x3B60 twice (0x3F60)
+PASS rate_of: the even rates 16-64 of a 4-D trellis
+PASS rate_of: an odd rate, one above 64 or below 16, a 3-D tensor: 0
+PASS shapes_ok: Flash-Next's experts ()
+PASS shapes_ok refuses a down trellis two bytes short: the trellis, suh or svh tensors are smaller than the experts' shapes need
+PASS shapes_ok refuses an up svh two bytes short: the trellis, suh or svh tensors are smaller than the experts' shapes need
+PASS shapes_ok refuses no experts: no experts
+PASS shapes_ok refuses a hidden size off the 512 grid: hidden must be a multiple of 512 and the expert width of 128 (H128 blocks)
+PASS shapes_ok refuses a 17-bit window: a codeword window of 17 bits (8-16)
+PASS shapes_ok refuses a rate of 66 halfwords: a rate of 66 halfwords a tile (16-64: K1-K4)
+PASS project: refuses a width off the 128 grid, takes 128 x 128
+PASS norm_offset: Nace AI's packs (-0.08 to -0.02) and the synthetic packs (0) are zero-centred: 1 + w
+PASS norm_offset: Sushi's packs (0.92 to 0.98) have the 1 added: w
+PASS norm_offset: a mean between 0.25 and 0.75 decides nothing
+17 passed, 0 failed
+
+===== cpu/http_stream_test.log =====
+{"case":"completion-setup-failure","passed":true,"started":false,"ran":false}
+{"case":"success","failures":[],"provider_ok":true,"chunk_ok":true,"sink_done":1,"after":1,"meter_done":1,"work_exited":true,"wire":"17\r\nevent: begin\ndata: {}\n\n\r\n1a\r\nevent: delta\ndata: token\n\n\r\n17\r\nevent: end\ndata: stop\n\n\r\n0\r\n\r\n"}
+{"case":"empty-end","failures":[],"provider_ok":true,"chunk_ok":true,"sink_done":1,"after":1,"meter_done":1,"work_exited":true,"wire":"17\r\nevent: begin\ndata: {}\n\n\r\n1a\r\nevent: delta\ndata: token\n\n\r\n0\r\n\r\n"}
+{"case":"framed-engine-error","failures":[],"provider_ok":true,"chunk_ok":true,"sink_done":1,"after":1,"meter_done":1,"work_exited":true,"wire":"17\r\nevent: begin\ndata: {}\n\n\r\n18\r\nevent: end\ndata: error\n\n\r\n0\r\n\r\n"}
+{"case":"pre-stream-error","failures":[],"provider_ok":false,"chunk_ok":false,"sink_done":0,"after":0,"meter_done":1,"work_exited":true,"wire":""}
+{"case":"begin-throws","failures":[],"provider_ok":false,"chunk_ok":false,"sink_done":0,"after":0,"meter_done":1,"work_exited":true,"wire":""}
+{"case":"delta-throws","failures":[],"provider_ok":false,"chunk_ok":false,"sink_done":0,"after":0,"meter_done":1,"work_exited":true,"wire":"17\r\nevent: begin\ndata: {}\n\n\r\n"}
+{"case":"end-throws","failures":[],"provider_ok":false,"chunk_ok":false,"sink_done":0,"after":0,"meter_done":1,"work_exited":true,"wire":"17\r\nevent: begin\ndata: {}\n\n\r\n1a\r\nevent: delta\ndata: token\n\n\r\n"}
+{"case":"early-success","failures":[],"provider_ok":true,"chunk_ok":true,"sink_done":1,"after":1,"meter_done":1,"work_exited":true,"wire":"17\r\nevent: begin\ndata: {}\n\n\r\n1a\r\nevent: delta\ndata: token\n\n\r\n17\r\nevent: end\ndata: stop\n\n\r\n0\r\n\r\n"}
+{"case":"early-failed-first-write","failures":[],"provider_ok":false,"chunk_ok":false,"sink_done":0,"after":0,"meter_done":1,"work_exited":true,"wire":""}
+{"case":"failed-first-write","failures":[],"provider_ok":false,"chunk_ok":false,"sink_done":0,"after":0,"meter_done":1,"work_exited":true,"wire":""}
+{"case":"idle-disconnect","failures":[],"provider_ok":false,"chunk_ok":false,"sink_done":0,"after":0,"meter_done":1,"work_exited":true,"wire":""}
+{"case":"abandoned-provider","failures":[],"provider_ok":false,"chunk_ok":false,"sink_done":0,"after":0,"meter_done":1,"work_exited":true,"wire":""}
+{"case":"completed-abandoned-provider","failures":[],"provider_ok":false,"chunk_ok":false,"sink_done":0,"after":0,"meter_done":1,"work_exited":true,"wire":""}
+{"case":"sink-throws","failures":[],"provider_ok":false,"chunk_ok":false,"sink_done":0,"after":0,"meter_done":1,"work_exited":true,"wire":""}
+{"case":"telemetry","failures":[],"provider_ok":true,"chunk_ok":true,"sink_done":1,"after":1,"meter_done":1,"work_exited":true,"wire":"b7\r\nevent: kapitsa_progress\ndata: {\"kapitsa_progress\":{\"phase\":0,\"prompt_tokens\":0,\"cached_tokens\":0,\"processed_tokens\":0,\"completion_tokens\":0,\"cycles\":0,\"speculative\":0,\"final\":true}}\n\n\r\n17\r\nevent: begin\ndata: {}\n\n\r\n1a\r\nevent: delta\ndata: token\n\n\r\n17\r\nevent: end\ndata: stop\n\n\r\n0\r\n\r\n"}
+{"case":"abandoned-throwing-meter","failures":[],"provider_ok":false,"chunk_ok":false,"sink_done":0,"after":0,"meter_done":1,"work_exited":true,"wire":""}
+{"case":"throwing-meter","failures":[],"provider_ok":true,"chunk_ok":true,"sink_done":1,"after":1,"meter_done":1,"work_exited":true,"wire":"17\r\nevent: begin\ndata: {}\n\n\r\n1a\r\nevent: delta\ndata: token\n\n\r\n17\r\nevent: end\ndata: stop\n\n\r\n0\r\n\r\n"}
+{"case":"throwing-token-meter","failures":[],"provider_ok":true,"chunk_ok":true,"sink_done":1,"after":1,"meter_done":1,"work_exited":true,"wire":"17\r\nevent: begin\ndata: {}\n\n\r\n1a\r\nevent: delta\ndata: token\n\n\r\n17\r\nevent: end\ndata: stop\n\n\r\n0\r\n\r\n"}
+
+===== cpu/json_file_test.log =====
+9744704-byte config: first read 51.1 ms, second 0.053 ms, 2000 reads 36.2 ms
+json_file_test: all checks passed
+
+===== cpu/lint.log =====
+check for merge conflicts................................................Passed
+check yaml...............................................................Passed
+check for added large files..............................................Passed
+check for case conflicts.................................................Passed
+trim trailing whitespace.................................................Passed
+ruff check...............................................................Passed
+shell scripts parse (bash -n)............................................Passed
+
+===== cpu/load_error_test.log =====
+PASS scoped errors, thread joining/isolation, loader FD cleanup, CLI exit 1
+
+===== cpu/logit-dump-cli.log =====
+PASS nested path: stops at the corpus
+PASS nested path: dumps/x/ref made with its parents
+PASS existing path: kept, stops at the corpus
+PASS path under a file: cannot make, before the corpus
+all passed
+
+===== cpu/parser-tokenizer.log =====
+[kapitsa] tokenizer: 248044 tokens, 247587 merges, 33 added (266 ms)
+PASS unchanged stream: think, answer
+PASS unchanged stream: think, call after </think>
+PASS unchanged stream: think, text and call
+PASS unchanged stream: thinking off: call
+PASS unchanged stream: thinking off: answer
+PASS unchanged stream: unterminated call after </think>
+PASS unclosed think, switch off: the call stays reasoning (old behaviour)
+PASS unclosed think, switch on: returned as a tool call
+PASS unclosed think, switch on: reasoning without the markup
+PASS unclosed think, switch on: no call markup streamed as reasoning
+PASS unclosed think + trailing newline: returned as a tool call
+PASS two calls at the end of an unclosed think block
+PASS integer argument typed from the tool schema
+PASS call then </think> then the end, switch off: no call
+PASS call then </think> then the end, switch on: returned as a tool call
+PASS same result as before: draft, more reasoning, real call
+PASS same result as before: draft, </think>, a different real call
+PASS same result as before: draft, </think>, an answer
+PASS same result as before: unknown function at the end
+PASS same result as before: unterminated call at the end
+PASS same result as before: cut by max_tokens after a call
+PASS same result as before: <tool_call> mentioned, reasoning goes on
+PASS same result as before: non-ASCII reasoning after a draft
+PASS same result as before: stray </tool_call> after a call
+PASS request without tools: unchanged
+PASS think_ws: the newline before </think> stays in the reasoning
+PASS deltas add up to the result
+PASS utf8_valid: U+FFFD per maximal subpart, well-formed text unchanged
+PASS a reply cut inside a character ends in U+FFFD
+PASS GLM: string, number, boolean, object and array arguments
+PASS GLM: typing: a string as written, a typed value that is no JSON as text, an untyped one as JSON, an unknown one as text
+PASS GLM: two calls
+PASS GLM: a call without arguments
+PASS GLM: GLM-4.5's newlines between the elements and the calls
+PASS GLM: spaces around the name and a key; the value as written
+PASS GLM: content, then the call
+PASS GLM: reasoning (the model's own <think>), content, then calls
+PASS GLM: reasoning in the prompt's think block, then a call
+PASS GLM: non-ASCII values
+PASS GLM: a string value with the call's tags in it
+PASS GLM: a malformed call, then a good one
+PASS GLM: malformed, a name with a space
+PASS GLM: malformed, no name
+PASS GLM: malformed, an empty call
+PASS GLM: malformed, a value left open
+PASS GLM: malformed, a key without a value
+PASS GLM: malformed, text between a key and its value
+PASS GLM: malformed, text after a value
+PASS GLM: malformed, a tag in a key
+PASS GLM: malformed, Qwen's markup
+PASS GLM: malformed, unterminated at the end of the turn
+PASS GLM: each turn the same a token per byte, cut every 2, 3, 5, 7 bytes, NI_THINK_TOOLCALLS on
+PASS GLM: the default call format reads no GLM call
+PASS GLM: unclosed think, switch off: the call stays reasoning
+PASS GLM: unclosed think, switch on: returned as a tool call
+PASS GLM: unclosed think, switch on: no markup streamed; the same in other tokens
+PASS GLM: same result as before: a draft, more reasoning, a real call
+PASS GLM: same result as before: an unknown function at the end
+PASS GLM: same result as before: a malformed call at the end
+PASS GLM: a draft stays reasoning, the call after </think> is the call
+ALL PASSED
+
+===== cpu/qwen4_config_test.log =====
+PASS (0 failed)
+
+===== cpu/splash_discover_test.log =====
+splash_discover_test: ok
+
+===== cpu/splash_plan_test.log =====
+splash_plan_test: ok
+
+===== cpu/splash_protocol_test.log =====
+splash_protocol_test: ok
+
+===== cpu/splash_runtime_test.log =====
+splash_runtime_test: ok
+
+===== cpu/structured-tokenizer.log =====
+PASS grammar_test: grammars, refusals, masks against brute force (mask time per token over 248320 tokens (1786 states, warm): mean 7.1 us, median 3.1, p90 14.9, p99 39.8, max 50.1; 308 passed, 0 failed)
+PASS structured_check answers every request
+PASS chat: json_object: JSON
+PASS chat: json_schema, strict: JSON
+PASS chat: text: no grammar
+PASS chat: no format, tools, auto: no grammar
+PASS chat: json_schema without a schema: any object: JSON
+PASS chat: unknown format type: 400 (response_format.type)
+PASS chat: format not an object: 400 (response_format)
+PASS chat: json_schema missing: 400 (response_format.json_schema)
+PASS chat: schema not a schema: 400 (response_format.json_schema.schema)
+PASS chat: strict not a boolean: 400 (response_format.json_schema.strict)
+PASS chat: unknown type in the schema: 400 (response_format)
+PASS chat: remote $ref: 400 (response_format)
+PASS chat: a schema no value satisfies: 400 (response_format)
+PASS chat: tool_choice required: tool calls (get_weather, run_shell)
+PASS chat: tool_choice named: tool calls (get_weather)
+PASS chat: one call (parallel_tool_calls false): tool calls (get_weather, run_shell; one call)
+PASS chat: a named tool the request lacks: 400 (tool_choice)
+PASS chat: required without tools: 400 (tool_choice)
+PASS chat: unknown tool_choice: 400 (tool_choice)
+PASS chat: tool_choice object without a name: 400 (tool_choice)
+PASS chat: tool_choice none with a format: the format: JSON,
+PASS chat: a strict tool, auto: text or tool calls (get_weather, run_shell free)
+PASS chat: a format beside tools: JSON or tool calls
+PASS chat: a strict tool with a schema it cannot hold: 400 (tools)
+PASS responses: text.format json_schema: JSON
+PASS responses: text.format json_object: JSON
+PASS responses: text.format text: no grammar
+PASS responses: text.format unknown: 400 (text.format.type)
+PASS responses: text.format bad schema: 400 (text.format)
+PASS responses: tool_choice required: tool calls (get_weather)
+PASS responses: tool_choice a function: tool calls (run_shell)
+PASS responses: allowed_tools required: tool calls (run_shell)
+PASS responses: a built-in tool choice: 400 (tool_choice)
+PASS responses: a strict function: text or tool calls (get_weather)
+PASS responses: a function without strict is not strict: no grammar
+PASS responses: a namespace's strict function: text or tool calls (wx__get_weather)
+PASS responses: a custom tool named: tool calls (apply_patch)
+PASS messages: tool_choice any: tool calls (get_weather)
+PASS messages: tool_choice tool, one call: tool calls (run_shell; one call)
+PASS messages: tool_choice tool without a name: 400
+PASS messages: unknown tool_choice: 400
+PASS messages: output_format: JSON
+PASS messages: output_config.format: JSON
+PASS messages: output_format of another type: 400
+PASS messages: a strict tool: text or tool calls (get_weather)
+PASS messages: tool_choice none: no grammar
+ALL PASSED
