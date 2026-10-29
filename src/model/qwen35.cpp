@@ -2275,9 +2275,17 @@ void Qwen35::enc_attn(Encoder& e, Seq& s, int li, const Layer& L, int pos) {
   e.buf(0, qo_); e.buf(1, s.kc[li]); e.buf(2, s.vc[li]); e.buf(3, part_o_); e.buf(4, part_ml_);
   e.val(5, dp);
   e.dispatch(nch, cfg_.hkv, 1, 32 * (cfg_.hq / cfg_.hkv));
-  e.use(red);
+  // The single-row layout matches attn_rows_reduce_shared. Reuse its split statistics
+  // for long contexts; retain the barrier-free reducer for fewer than eight splits.
+  const bool shared = nch >= 8 && nch <= 1024;
+  e.use(shared ? pipe("attn_rows_reduce_shared") : red);
   e.buf(0, part_o_); e.buf(1, part_ml_); e.buf(2, qg_); e.buf(3, attn_out_);
-  e.val(4, dp);
+  if (shared) {
+    kp::AttnRows rp{dp.Hq, dp.Hkv, uint32_t(pos), dp.chunk, dp.max_seq, dp.scale, dp.nchunks};
+    e.val(4, rp);
+  } else {
+    e.val(4, dp);
+  }
   e.dispatch(cfg_.hq, 1, 1, cfg_.head_dim);
   enc_qmv(e, L.o, attn_out_, x_, &x_, nullptr);
 }
