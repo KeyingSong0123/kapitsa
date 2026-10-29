@@ -34,6 +34,19 @@ class Encoder;
 
 class Gpu {
  public:
+  // SDK generation opts in only to library/pipeline creation errors. Other
+  // runtime fatal paths retain their existing behavior.
+  class PipelineRecovery {
+   public:
+    PipelineRecovery() : previous_(current()) { current() = this; }
+    ~PipelineRecovery() { current() = previous_; }
+    PipelineRecovery(const PipelineRecovery&) = delete;
+    PipelineRecovery& operator=(const PipelineRecovery&) = delete;
+    static PipelineRecovery*& current() { static thread_local PipelineRecovery* p = nullptr; return p; }
+    bool failed = false;
+   private:
+    PipelineRecovery* previous_;
+  };
   // The SDK owns one engine at a time. Release allocations made during its lifetime,
   // including buffers left by an incomplete constructor, after its workers are joined.
   // Construction does not initialize Metal; CPU-only validation remains CPU-only.
@@ -47,6 +60,7 @@ class Gpu {
     void* before_ = nullptr;
   };
   static Gpu& get();
+  void drain() noexcept;  // submitted work only; no new encoding, no fatal on a failed command
   std::string name() const;
   size_t recommended_working_set() const;
   // GPU cores: the AGXAccelerator IORegistry entry's "gpu-core-count" (NI_GPU_CORES=<n> overrides: tests of

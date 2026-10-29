@@ -419,7 +419,8 @@ class ExpertCache {
   enum Where : uint8_t { kNone = 0, kT1, kT2, kB1, kB2 };
 
   void turn_loop();
-  void reader_loop();
+  void reader_loop(uint8_t* stage);
+  void check_load();
   void serve(const Req& r);
   void wait_gpu(uint64_t value);
   void lst_remove(List& L, int k);
@@ -469,6 +470,8 @@ class ExpertCache {
   std::deque<Job> urgent_, normal_;
   std::atomic<bool> turn_stop_{false};
   bool io_closed_ = false;
+  std::atomic<bool> loading_{true}, load_failed_{false};
+  std::exception_ptr load_error_;  // initial fill only, protected by io_mu_
 
   mutable std::mutex st_mu_;
   StoreStats st_;

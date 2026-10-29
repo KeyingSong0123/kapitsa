@@ -10,7 +10,7 @@ Apple Silicon, macOS 14+, Xcode Command Line Tools and CMake 3.24+:
 
 ```sh
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DKAPITSA_BUILD_SDK=ON
-cmake --build build -j 6 --target kapitsa_sdk sdk_contract_test sdk_model_test load_error_test
+cmake --build build -j 6 --target kapitsa_sdk sdk_contract_test sdk_model_test sdk_deferred_test load_error_test
 ctest --test-dir build -R '^(sdk_contract_test|load_error_test)$' --output-on-failure
 ```
 
@@ -26,6 +26,8 @@ from the callback to cancel, or call `kapitsa_request_cancel` from another threa
 requests can generate on separate threads using the engine's native slots. Destroy each request
 after generation has returned, then destroy the engine. [The real-model test](c/model_test.cpp)
 shows reuse, streaming, concurrent requests and cancellation through these C functions.
+[The deferred-error test](c/deferred_test.cpp) exercises failure, concurrent cleanup and reload;
+its GPU modes are described in [CONTRIBUTING.md](../CONTRIBUTING.md#sdk-build-and-tests).
 
 ## Interface and ownership
 
@@ -47,13 +49,27 @@ A host already holding it sets `NI_LOCK_HELD=1` or `NACE_GPU_LOCK_HELD=1` to avo
 
 During `kapitsa_engine_create`, synchronous loader and Metal initialization failures return
 `KAPITSA_ERROR` with their diagnostic: missing or damaged weights, unsupported model data,
-insufficient memory, and device, library or pipeline creation failures. Joined loading workers
-return failures to the creating thread. Failed construction closes its files, releases its
+insufficient memory, and device, library or pipeline creation failures. Joined loading workers and the streamed-expert cache's initial fill
+return failures to the creating thread. Reader staging memory is allocated before creation returns,
+including with `NI_EXPERT_FILL=0`. Failed construction closes its files, releases its
 model buffers and GPU lock, and allows another creation attempt. Malformed SDK options still
 return `KAPITSA_INVALID_ARGUMENT`.
 
-Recovery is limited to construction. Fatal errors during generation or in independent
-background services (including streamed-expert I/O) can still terminate the host process.
+During `kapitsa_generate`, deferred Metal library/pipeline creation failures (including with
+`NI_PREWARM=0`) return `KAPITSA_ERROR`. The failing request retains the diagnostic; other
+in-flight or later requests report that the engine is unusable. Already delivered deltas may
+be incomplete. Submitted GPU work is drained, and the engine's state is not saved to the SSD
+prefix cache. Destroy **all** engine and request handles, then create a new engine to retry;
+the failed engine's GPU lock remains held until those handles are released.
+
+While an SDK allocation scope is alive, `Gpu::release` defers freeing buffers during
+exception unwinding, including calls from non-SDK threads. This process-wide condition
+keeps submitted work's unretained buffer references alive through queue drain and SDK
+allocation cleanup. It can extend buffer lifetimes on other threads in the host process.
+
+Other runtime fatal errors, including streamed-expert I/O after initial loading, can still
+terminate the host process. In particular, a failed live expert read must not unblock the GPU
+with incomplete weights.
 Applications requiring crash isolation should load the library inside their own worker process.
 The CLI and `serve` do not enable SDK recovery and keep their existing fatal-error behavior.
 

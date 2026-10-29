@@ -151,11 +151,28 @@ ExpertCache::ExpertCache(const std::vector<std::string>& files, const std::vecto
     for (uint32_t i = 0; i < nslots_; ++i) free_[i] = int32_t(nslots_ - 1 - i);  // slot 0 first
 
     const int nr = std::max(1, std::min(o.readers, 64));
+    const bool recover = FatalRecovery::enabled();
     for (int i = 0; i < nr; ++i) {
 #ifdef NI_EXPERT_CACHE_TEST
       ExpertCacheTestAccess::observe(*this, ExpertCacheTestAccess::Point::BeforeWorkerStart);
 #endif
-      readers_.emplace_back([this] { reader_loop(); });
+      // Allocate on the constructing thread: even a cold store must report a
+      // staging allocation failure before its constructor returns.
+      void* mem = nullptr;
+      const size_t cap = size_t(std::max(lay_.uc, lay_.ud - lay_.gd)) + 2 * kPage;
+      if (posix_memalign(&mem, kPage, cap)) fatal("expert store: out of memory");
+      std::unique_ptr<uint8_t, decltype(&free)> stage(static_cast<uint8_t*>(mem), free);
+      readers_.emplace_back([this, recover, stage = std::move(stage)] {
+        FatalRecovery scope(recover);
+        try { reader_loop(stage.get()); }
+        catch (...) {
+          if (!recover || !loading_) throw;
+          std::lock_guard<std::mutex> lk(io_mu_);
+          if (!load_error_) load_error_ = std::current_exception();
+          load_failed_ = true;
+          io_cv_.notify_all();
+        }
+      });
     }
 
     // fill: every expert, or the same share of each layer (experts 0, 1, ... of every layer in turn)
@@ -168,8 +185,10 @@ ExpertCache::ExpertCache(const std::vector<std::string>& files, const std::vecto
         ++filled_;
       }
       for (size_t k = 0; k < keys; ++k)
-        while (pending_[k].load(std::memory_order_acquire) > 0) usleep(500);
+        while (pending_[k].load(std::memory_order_acquire) > 0) { check_load(); usleep(500); }
     }
+    check_load();
+    loading_ = false;
     fill_ms_ = now_ms() - t0;
     if (!complete_) {
 #ifdef NI_EXPERT_CACHE_TEST
@@ -181,6 +200,12 @@ ExpertCache::ExpertCache(const std::vector<std::string>& files, const std::vecto
 }
 
 ExpertCache::~ExpertCache() { stop_workers(); }
+
+void ExpertCache::check_load() {
+  if (!load_failed_) return;
+  std::lock_guard<std::mutex> lk(io_mu_);
+  std::rethrow_exception(load_error_);
+}
 
 void ExpertCache::stop_workers() {
   {
@@ -525,24 +550,25 @@ void ExpertCache::load(int k, bool urgent) {
   io_cv_.notify_all();
 }
 
-void ExpertCache::reader_loop() {
+void ExpertCache::reader_loop(uint8_t* stage) {
   pthread_set_qos_class_self_np(QOS_CLASS_USER_INITIATED, 0);
   // widened reads: the whole pages around a piece into page-aligned staging (F_NOCACHE reads of whole pages: Splash
   // measured 9.3 vs 8.1 GB/s at under half the CPU)
-  const size_t cap = size_t(std::max(lay_.uc, lay_.ud - lay_.gd)) + 2 * kPage;
-  void* mem = nullptr;
-  if (posix_memalign(&mem, kPage, cap)) fatal("expert store: out of memory");
-  uint8_t* stage = static_cast<uint8_t*>(mem);
   for (;;) {
     Job j;
     {
       std::unique_lock<std::mutex> lk(io_mu_);
-      io_cv_.wait(lk, [&] { return io_closed_ || !urgent_.empty() || !normal_.empty(); });
+      io_cv_.wait(lk, [&] { return load_failed_ || io_closed_ || !urgent_.empty() || !normal_.empty(); });
+      if (load_failed_) return;
       if (io_closed_ && urgent_.empty() && normal_.empty()) break;
       std::deque<Job>& q = urgent_.empty() ? normal_ : urgent_;
       j = q.front();
       q.pop_front();
     }
+    // Recovery is limited to loading, before any GPU uses these bytes. A live
+    // streamed read failure still follows the CLI fatal path; it cannot release
+    // the GPU's wait and claim that incomplete expert weights are valid.
+    FatalRecovery read_scope(FatalRecovery::enabled() && loading_.load());
 #ifdef NI_EXPERT_CACHE_TEST
     ExpertCacheTestAccess::observe(*this, ExpertCacheTestAccess::Point::BeforeRead);
 #endif
@@ -563,7 +589,6 @@ void ExpertCache::reader_loop() {
     ExpertCacheTestAccess::observe(*this, ExpertCacheTestAccess::Point::ReadDone);
 #endif
   }
-  free(mem);
 }
 
 StoreStats ExpertCache::stats() const {

@@ -103,6 +103,7 @@ kapitsa_status kapitsa_generate(kapitsa_request* r, kapitsa_delta_callback callb
   if (r->started.exchange(true)) return fail(error, KAPITSA_BUSY, "request is one-shot");
   if (r->cancelled.load()) return KAPITSA_CANCELLED;
   try {
+    ni::Gpu::PipelineRecovery recover;
     const auto cancelled = [r] { return r->cancelled.load(); };
     auto response = r->state->engine->chat(r->request, [&](const ni::ChatDelta& delta) {
       if (cancelled()) return false;

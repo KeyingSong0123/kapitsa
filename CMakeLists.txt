@@ -205,6 +205,11 @@ if(KAPITSA_BUILD_SDK)
   add_executable(sdk_model_test sdk/c/model_test.cpp)
   target_include_directories(sdk_model_test PRIVATE third_party)
   target_link_libraries(sdk_model_test PRIVATE kapitsa_sdk)
+  # Fault hooks only in this test's objects, never in the CLI or shared library.
+  add_executable(sdk_deferred_test sdk/c/deferred_test.cpp sdk/c/kapitsa.cpp src/metal/gpu.mm src/engine/engine.cpp)
+  target_include_directories(sdk_deferred_test PRIVATE sdk/c src third_party)
+  target_compile_definitions(sdk_deferred_test PRIVATE NI_PIPELINE_TEST)
+  target_link_libraries(sdk_deferred_test PRIVATE naceinfer)
   # Real-model test: built in CI but run only with explicit GPU authorization.
   install(TARGETS kapitsa_sdk LIBRARY DESTINATION lib)
   install(FILES sdk/c/kapitsa.h DESTINATION include)

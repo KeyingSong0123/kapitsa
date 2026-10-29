@@ -33,8 +33,14 @@ See [sdk/README.md](sdk/README.md) for the opt-in C ABI build, usage and CPU tes
 Its optional `--gpu` mode checks real Metal failures and buffer cleanup under the GPU lock.
 `build/sdk_model_test MODEL_DIR` additionally checks streaming, retained handles,
 concurrent requests, cross-thread cancellation, failed loads and loading again after destruction.
-It loads a model, holds a temporary GPU lock,
-and requires authorization and an idle GPU under [AGENTS.md](AGENTS.md). Report actual runs in the PR.
+`build/sdk_deferred_test --small-gpu` checks deferred Metal compilation with tiny buffers.
+`build/sdk_deferred_test MODEL_DIR` injects missing pipelines during initial generation,
+concurrent requests and a real DFlash2 batch, then checks failure, teardown and reload; the model
+must have a compatible DFlash2 drafter. Fault hooks are compiled only into this test executable.
+CI compiles `sdk_model_test` and `sdk_deferred_test` but does not run their GPU modes;
+`fn_store_test` is built and run as a CPU test. All `sdk_deferred_test` modes use Metal.
+GPU modes require authorization, the shared GPU lock and an idle GPU under [AGENTS.md](AGENTS.md).
+The SDK model tests additionally exercise ownership on a temporary lock file. Report actual runs in the PR.
 
 ## Tests
 

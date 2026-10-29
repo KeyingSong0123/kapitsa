@@ -216,7 +216,11 @@ FILE* cb_lat_file() {
 }
 } // namespace
 
-// Every command buffer is committed here.
+// Retain the queue's last submission so error cleanup can wait without allocating
+// another command buffer (pipeline creation may have failed under memory pressure).
+static std::mutex submitted_mu;
+static id<MTLCommandBuffer> last_submission = nil;
+// Every compute command buffer is committed here.
 static void commit_cb(id<MTLCommandBuffer> cb) {
   if (Keeper* k = g_keeper.load(std::memory_order_acquire)) k->use();
   if (FILE* f = cb_lat_file()) {
@@ -227,7 +231,9 @@ static void commit_cb(id<MTLCommandBuffer> cb) {
       fprintf(f, "%llu %.4f %.4f %.4f\n", n, t, b.GPUStartTime * 1e3, b.GPUEndTime * 1e3);
     }];
   }
+  std::lock_guard<std::mutex> lock(submitted_mu);
   [cb commit];
+  last_submission = cb;
 }
 
 static std::atomic<Gpu*> initialized_gpu{nullptr};
@@ -255,8 +261,7 @@ Gpu::AllocationScope::~AllocationScope() {
     if (Gpu* g = initialized_gpu.load()) {
       // A loader may have submitted conversions before failing. Drain the queue
       // without fatal()/exceptions while unwinding; no worker may still submit.
-      id<MTLCommandBuffer> tail = [(__bridge id<MTLCommandQueue>)g->queue_ commandBuffer];
-      if (tail) { [tail commit]; [tail waitUntilCompleted]; }
+      g->drain();
       NSArray* buffers;
       {
         std::lock_guard<std::mutex> lock(g->impl_->mu);
@@ -272,6 +277,18 @@ Gpu::AllocationScope::~AllocationScope() {
     if (before_) CFRelease(before_);
   }
   --allocation_scopes;
+}
+
+void Gpu::drain() noexcept {
+  @autoreleasepool {
+    id<MTLCommandBuffer> tail;
+    {
+      std::lock_guard<std::mutex> lock(submitted_mu);
+      tail = last_submission;
+      last_submission = nil;
+    }
+    if (tail) [tail waitUntilCompleted];
+  }
 }
 
 Gpu::Gpu() : impl_(nullptr) {
@@ -511,9 +528,9 @@ void Gpu::keep_warm(double ms) {
 }
 
 void Gpu::release(Buffer& b) {
-  // Constructors unwind before the SDK can drain the queue. Its command buffers
-  // use unretained references: keep these buffers alive for AllocationScope's drain.
-  if (FatalRecovery::enabled() && std::uncaught_exceptions() && allocation_scopes.load()) {
+  // Loading/generation unwinds before the SDK drains the queue. Its command
+  // buffers use unretained references: keep these buffers until scope teardown.
+  if (std::uncaught_exceptions() && allocation_scopes.load()) {
     b = Buffer{};
     return;
   }
@@ -577,7 +594,18 @@ static id<MTLLibrary> compile_library(id<MTLDevice> d, const std::string& src, b
   return lib;
 }
 
+namespace {
+struct CompileErrors {
+  FatalRecovery recover{FatalRecovery::enabled() || Gpu::PipelineRecovery::current()};
+  int exceptions = std::uncaught_exceptions();
+  ~CompileErrors() {
+    if (auto* s = Gpu::PipelineRecovery::current(); s && std::uncaught_exceptions() > exceptions) s->failed = true;
+  }
+};
+}
+
 void Gpu::compile(const std::string& extra) {
+  CompileErrors errors;
   if (library_) return;
   @autoreleasepool {
     if (getenv("NI_MATH_SAFE") && atoi(getenv("NI_MATH_SAFE")) > 0) logi("NI_MATH_SAFE: kernels compiled without fast math");
@@ -589,6 +617,7 @@ void Gpu::compile(const std::string& extra) {
 }
 
 void Gpu::compile_formats() {
+  CompileErrors errors;
   compile();
   std::lock_guard<std::mutex> lk(impl_->wf_mu);
   if (impl_->wf) return;
@@ -600,6 +629,7 @@ void Gpu::compile_formats() {
 }
 
 void Gpu::compile_extra(const std::string& key, const char* source, bool metal4) {
+  CompileErrors errors;
   compile();
   std::lock_guard<std::mutex> lk(impl_->wf_mu);
   for (auto& [k, lib] : impl_->extra)
@@ -627,12 +657,21 @@ static id<MTLFunction> find_function(Gpu& g, void* base, Gpu::Impl* impl, const 
   return [impl->wf newFunctionWithName:n];
 }
 
-Pipeline Gpu::pipeline(const std::string& fn, bool required) {
+#ifdef NI_PIPELINE_TEST
+std::string pipeline_test_name(const std::string&);
+#endif
+Pipeline Gpu::pipeline(const std::string& name, bool required) {
+#ifdef NI_PIPELINE_TEST
+  const std::string fn = pipeline_test_name(name);
+#else
+  const std::string& fn = name;
+#endif
   {
     std::lock_guard<std::mutex> lk(impl_->mu);
     auto it = impl_->pipelines.find(fn);
     if (it != impl_->pipelines.end()) return it->second;
   }
+  CompileErrors errors;
   compile();
   @autoreleasepool {
     id<MTLFunction> f = find_function(*this, library_, impl_, fn);
@@ -645,11 +684,14 @@ Pipeline Gpu::pipeline(const std::string& fn, bool required) {
       return Pipeline{};
     }
     if (!pso) fatal("pipeline %s: %s", fn.c_str(), [[err description] UTF8String]);
-    Pipeline p{(__bridge_retained void*)pso, strdup(fn.c_str()), (uint32_t)pso.maxTotalThreadsPerThreadgroup,
+    std::unique_ptr<char, decltype(&free)> label(strdup(fn.c_str()), free);
+    if (!label) fatal("pipeline %s: out of memory", fn.c_str());
+    Pipeline p{(__bridge void*)pso, label.get(), (uint32_t)pso.maxTotalThreadsPerThreadgroup,
                (uint32_t)pso.threadExecutionWidth, (uint32_t)pso.staticThreadgroupMemoryLength};
     std::lock_guard<std::mutex> lk(impl_->mu);
-    impl_->pipelines[fn] = p;
-    return p;
+    auto [it, fresh] = impl_->pipelines.emplace(fn, p);
+    if (fresh) { CFRetain(p.pso); label.release(); }
+    return it->second;
   }
 }
 
@@ -660,25 +702,28 @@ Pipeline Gpu::pipeline_threads(const Pipeline& p, uint32_t threads) {
     auto it = impl_->wide.find(key);
     if (it != impl_->wide.end()) return it->second;
   }
+  CompileErrors errors;
   @autoreleasepool {
     id<MTLFunction> f = find_function(*this, library_, impl_, p.name);
+    if (!f) fatal("kernel %s not found", p.name);
     MTLComputePipelineDescriptor* d = [MTLComputePipelineDescriptor new];
     d.computeFunction = f;
     d.maxTotalThreadsPerThreadgroup = threads;
     NSError* err = nil;
     id<MTLComputePipelineState> pso =
-        f ? [dev(device_) newComputePipelineStateWithDescriptor:d options:MTLPipelineOptionNone reflection:nil error:&err]
-          : nil;
+        [dev(device_) newComputePipelineStateWithDescriptor:d options:MTLPipelineOptionNone reflection:nil error:&err];
     if (!pso || pso.maxTotalThreadsPerThreadgroup < threads)
       fatal("kernel %s: %u threads per threadgroup, this GPU allows %u%s%s", p.name, threads,
             pso ? (uint32_t)pso.maxTotalThreadsPerThreadgroup : p.max_threads, err ? ": " : "",
             err ? [[err description] UTF8String] : "");
-    Pipeline w{(__bridge_retained void*)pso, p.name, (uint32_t)pso.maxTotalThreadsPerThreadgroup,
+    Pipeline w{(__bridge void*)pso, p.name, (uint32_t)pso.maxTotalThreadsPerThreadgroup,
                (uint32_t)pso.threadExecutionWidth, (uint32_t)pso.staticThreadgroupMemoryLength};
     std::lock_guard<std::mutex> lk(impl_->mu);
     auto [it, fresh] = impl_->wide.emplace(key, w);
-    if (fresh) logi("kernel %s compiled for %u threads per threadgroup (this GPU's default: %u)", p.name, threads, p.max_threads);
-    else CFRelease(w.pso);  // another thread made it first
+    if (fresh) {
+      CFRetain(w.pso);
+      logi("kernel %s compiled for %u threads per threadgroup (this GPU's default: %u)", p.name, threads, p.max_threads);
+    }
     return it->second;
   }
 }
@@ -1102,6 +1147,10 @@ Encoder::~Encoder() {
   }
   if (cb_) CFRelease(cb_);
   for (void* p : prev_) CFRelease(p);
+  // Completed work no longer needs an extra reference for error cleanup (the
+  // validation layer can otherwise retain megabytes of per-command storage).
+  std::lock_guard<std::mutex> lock(submitted_mu);
+  if (last_submission && last_submission.status >= MTLCommandBufferStatusCompleted) last_submission = nil;
 }
 
 } // namespace ni

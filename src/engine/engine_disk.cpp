@@ -406,7 +406,7 @@ bool Engine::disk_wait_selftest(size_t slots) {
 
 std::unique_ptr<Engine::DiskPlan> Engine::disk_plan(const Slot& slot) const {
   const Disk& d = *disk_;
-  if (!slot.seq) return nullptr;
+  if (failed_ || !slot.seq) return nullptr;
   const int live = int(slot.tokens.size());
   struct C {
     int pos, src;
@@ -483,9 +483,9 @@ bool Engine::disk_save_slot(int i, bool held) {
   const double t0 = now_ms();
   // the GPU turn for a chunk: held throughout, or taken only while the engine is idle (no request in flight)
   auto take = [&] {
-    if (held) return true;
+    if (held) return !failed_;
     if (d.quit || !turn_.try_lock()) return false;
-    if (active_ > 0) {
+    if (failed_ || active_ > 0) {
       turn_.unlock();
       return false;
     }
@@ -662,6 +662,7 @@ void Engine::disk_leaving(Slot& slot, int start, bool wait_write) {
     ok = ok && d.store.put(*job, p->entry);
     const double w1 = now_ms();  // (the write alone: the write speed is not the time spent waiting for the turn)
     turn_.lock();
+    check_healthy();
     if (!ok) {
       if (wait_write) refused_a_moment_ago(p);
       logi("SSD cache: slot %d's conversation (%zu tokens) could not be written before it is replaced (no room within "
@@ -684,6 +685,7 @@ void Engine::disk_leaving(Slot& slot, int start, bool wait_write) {
     pc.g.out(0, pc.data.get(), pc.g.bytes);
   }
   if (slot.busy) turn_.lock();
+  check_healthy();
   c->at = t0;
   logd("SSD cache: slot %d's conversation (%zu tokens) copied for the SSD before it is replaced (%.0f MB in %.1f ms)",
        p->slot, p->entry.tokens.size(), bytes / 1e6, now_ms() - t0);
@@ -703,6 +705,7 @@ void Engine::disk_leaving(Slot& slot, int start, bool wait_write) {
   if (slot.busy) turn_.unlock();
   const bool ok = d.write_captured(*c);
   if (slot.busy) turn_.lock();
+  check_healthy();
   if (!ok) {  // not on the SSD: the slot keeps its unsaved version, and the caller gives up rather than lose it
     refused_a_moment_ago(c->plan);  // (`p` was moved into the capture)
     return;
@@ -797,7 +800,7 @@ void Engine::save_disk_cache(double budget_ms) {
   d.quit = true;
   d.cv.notify_all();
   if (d.thread.joinable()) d.thread.join();  // a save in progress gives up at its next chunk; copies are written below
-  if (!d.ready) return;
+  if (failed_ || !d.ready) return;
   const double t0 = now_ms();
   const uint64_t w0 = d.store.stats().written;
   int saved = 0;
@@ -890,6 +893,7 @@ pcache::Hit Engine::disk_lookup(const std::vector<int>& keys, int n, int ram, ui
                       [&] { return d.quit.load() || !continues(nullptr, nullptr); });
         lk.unlock();
         turn_.lock();
+        check_healthy();
         logi("SSD cache: the request waited %.0f ms for the copy of its conversation to be written (limit %.0f ms, %d "
              "rows saved)", now_ms() - t0, limit, rows);
       }
@@ -969,6 +973,7 @@ bool Engine::disk_restore(Slot& slot, const pcache::Hit& hit) {
     for (std::thread& t : more) t.join();
   }
   turn_.lock();
+  check_healthy();
   d.store.unpin(hit.entry, ok);
   const int idx = int(&slot - slots_.data());
   if (!ok) {
