@@ -695,9 +695,7 @@ DFlash2::DFlash2(Qwen35& target, const std::string& dir, int bits, bool rows16) 
 }
 
 void DFlash2::load_v8_packed_coeff() {
-  const bool dense_v1 = cfg_.NL == 6 && ((cfg_.H == 2560 && cfg_.I == 9216) ||
-                                       (cfg_.H == 4096 && cfg_.I == 12288));
-  if (!v8_ || bits_ != 4 || !cfg_.v1 || !dense_v1 ||
+  if (!v8_ || bits_ != 4 || !cfg_.v1 || cfg_.H != 2560 || cfg_.I != 9216 || cfg_.NL != 6 ||
       !Qwen35::v8_packed_coeff_on(tg_.config())) return;
   const double start = now_ms();
   size_t bytes = 0, count = 0, compressed = 0, blocks = 0;
@@ -1011,8 +1009,7 @@ size_t DFlash2::plan_bytes(const std::string& dir, const Qwen35Config& target, s
   // A native 4-bit group-64 head row includes its packed codes, scales and biases.
   const bool head_q4 = head_row_bytes == size_t(target.hidden) / 2 + size_t(target.hidden) / 64 * 4;
   const bool use_v8 = v8 && *v8 ? atoi(v8) != 0 : default_v8(H, target.moe, head_q4);
-  const bool dense_v1 = NL == 6 && ((H == 2560 && I == 9216) || (H == 4096 && I == 12288));
-  const bool packed_v8 = Bk == 8 && use_v8 && bits == 4 && dense_v1 &&
+  const bool packed_v8 = Bk == 8 && use_v8 && bits == 4 && H == 2560 && I == 9216 && NL == 6 &&
                          c.value("architectures", json::array()) == json::array({"DFlashDraftModel"}) &&
                          Qwen35::v8_packed_coeff_on(target);
   auto packed_bytes = [](size_t N, size_t K) {

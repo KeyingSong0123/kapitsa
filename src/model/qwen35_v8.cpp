@@ -648,9 +648,7 @@ void Qwen35::enc_qmm8(Encoder& e, const std::vector<Seg8>& segs, int R, const Bu
   const bool packed16 = cfg_.hidden >= 4096 && pre == "qmm8snb16" && pl.cs * pl.ks <= 16;
   bool packed = !x2 && !v8w_R_ && R > 0 && R <= 8 && (pre == "qmm8snb" || packed16) && bits == 4 &&
                 pl.nf == 2 && !(groups & 1u) && (packed16 || !(per_slice & 1u));
-  bool supplied_images = true;
   if (packed) for (size_t i = 0; i < segs.size(); ++i) {
-    supplied_images = supplied_images && bool(segs[i].packed);
     images[i] = segs[i].packed;
     if (!images[i]) {
       const auto it = v8_packed_coeff_.find(segs[i].L);
@@ -662,8 +660,7 @@ void Qwen35::enc_qmm8(Encoder& e, const std::vector<Seg8>& segs, int R, const Bu
     pre = packed16 ? "qmm8pc16" : "qmm8pc";
     // Large experimental targets retain the original 16-output grid. The established
     // 4B path retains its NF1 kernel and the original NF2 CS/KS partial sums.
-    const bool draft_nf1 = !packed16 && supplied_images && cfg_.hidden == 4096 && cfg_.dense_I == 12288;
-    pl.nf = cfg_.hidden >= 4096 && !draft_nf1 ? 2 : 1;
+    pl.nf = cfg_.hidden >= 4096 ? 2 : 1;
   }
   const std::string name = pre + "_b" + std::to_string(bits) + "_nf" + std::to_string(pl.nf);
   kp::Qmm8 p{};
