@@ -64,12 +64,20 @@ bool Qwen35::v8_packed_coeff_on(const Qwen35Config& c) {
   return sysctlbyname("hw.memsize", &ram, &len, nullptr, 0) == 0 && ram == (uint64_t(m4_pro ? 48 : 24) << 30);
 }
 
+bool Qwen35::v8_packed_coeff_K_on(const Qwen35Config& c, uint32_t K) {
+  // The 27B's default down plan has 16 slices of 17 groups, outside the packed
+  // paired-slice path. Keep those unused images out of the resident set. A K-plan
+  // override that could use one still safely retains the original kernel.
+  return !(c.hidden == 5120 && c.dense_I == 17408 && c.layers == 64 && K == 17408);
+}
+
 void Qwen35::load_v8_packed_coeff() {
   if (!v8_packed_coeff_on(cfg_)) return;
   const double start = now_ms();
   size_t bytes = 0, compressed = 0, blocks = 0;
   auto pack = [&](const QLinear& q) {
     if (!q || !q.q4() || q.exl3 || q.q20 || !q.N || !q.K || q.K % 64) return;
+    if (!v8_packed_coeff_K_on(cfg_, q.K)) return;
     const auto image = pack_affine_packed_coeff(q.w->buf.as<uint32_t>(), q.s->buf.as<uint16_t>(),
                                                q.b->buf.as<uint16_t>(), q.N, q.K / 64);
     Buffer payload = Gpu::get().alloc(image.words.size() * 4, "qmm8_packed_coeff_payload", false);
