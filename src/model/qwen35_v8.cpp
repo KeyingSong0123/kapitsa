@@ -57,6 +57,7 @@ bool Qwen35::v8_packed_coeff_on(const Qwen35Config& c) {
   const bool m4 = gpu.name() == "Apple M4" && gpu.core_count() == 10;
   const bool m4_pro = gpu.name() == "Apple M4 Pro" && gpu.core_count() == 20;
   if (!m4 && !m4_pro) return false;
+  if (expanded && !m4_pro) return false;
   if (flag && *flag) return true;
   uint64_t ram = 0;
   size_t len = sizeof(ram);
@@ -656,7 +657,9 @@ void Qwen35::enc_qmm8(Encoder& e, const std::vector<Seg8>& segs, int R, const Bu
   }
   if (packed) {
     pre = "qmm8pc";
-    pl.nf = 1;  // Preserve the original NF2 CS/KS plan and its partial sums.
+    // Large experimental targets retain the original 16-output grid. The established
+    // 4B path retains its NF1 kernel and the original NF2 CS/KS partial sums.
+    pl.nf = cfg_.hidden >= 4096 ? 2 : 1;
   }
   const std::string name = pre + "_b" + std::to_string(bits) + "_nf" + std::to_string(pl.nf);
   kp::Qmm8 p{};
