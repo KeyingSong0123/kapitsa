@@ -110,7 +110,7 @@ and should run with `MTL_SHADER_VALIDATION=1 MTL_DEBUG_LAYER=1`. `check-shapes` 
 outputs and fixed FP64 samples. Pass `check-shapes KERNEL SHAPES.json` to check other geometries; the JSON is a
 nonempty array of `[N, K]` pairs with positive N and K divisible by 64. The checker retains the production M4 K
 partitions, including the 16-slice fallback for K >= 16384. The default kernel is `qmm8pc_b4_nf1`; an explicit
-`qmm8snb_b4_nf2` checks the original path; `qmm8pc_b4_nf2` checks the experimental packed 16-output tile. Failures exit nonzero; dispatch counts distinguish candidate coverage from fallback. The kernel
+`qmm8snb_b4_nf2` checks the original path; `qmm8pc_b4_nf2` checks the experimental packed 16-output tile. `check-small16 qmm8pc16_b4_nf2` additionally checks 16-slice boundaries against the original 16-SIMD-group kernel. Failures exit nonzero; dispatch counts distinguish candidate coverage from fallback. The kernel
 retains the original K partitions, including when a geometry falls back to the original output tile.
 `NI_QMM_COEFF_FIXTURES=MANIFEST` enables `check-cpu-fixtures` (no GPU) and `check-real-coeff` (full GPU outputs and FP64).
 

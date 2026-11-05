@@ -469,7 +469,6 @@ class Qwen35 : public Model {
   // The 8-row verify GEMMs, for other 8-row passes (the DFlash2 drafter). Inputs are X8 tables
   // (verify8.metal layout: half operands in fragment order + per-64 group sums), R <= 8 live rows.
   static bool v8_packed_coeff_on(const Qwen35Config& c);
-  static bool v8_packed_coeff_K_on(const Qwen35Config& c, uint32_t K);
   struct PackedCoeffBuffers {
     Buffer payload, headers;
     explicit operator bool() const { return bool(payload) && bool(headers); }

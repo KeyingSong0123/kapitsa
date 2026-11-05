@@ -490,7 +490,10 @@ void Qwen35::prewarm_pipelines() {
                                  "qmr_gu_k32_w14_m32_n64", "qmr_gu_k64_w14_m16_n64", "qmr_gu_k64_w12_m8_n32",
                                  "qmm_b8_m32_n32", "qmm_moe_gu_b4_m64_n32", "qmm_moe_dn_b4_m64_n64"};
   if (sample_sg_) names.insert("topk_stage1_rows_sg");
-  if (!v8_packed_coeff_.empty()) names.insert(cfg_.hidden >= 4096 ? "qmm8pc_b4_nf2" : "qmm8pc_b4_nf1");
+  if (!v8_packed_coeff_.empty()) {
+    names.insert(cfg_.hidden >= 4096 ? "qmm8pc_b4_nf2" : "qmm8pc_b4_nf1");
+    if (cfg_.hidden >= 4096) names.insert("qmm8pc16_b4_nf2");
+  }
   if (qmm8_on())
     for (const char* n : {"qmr8_k32_w14_m32_n128", "qmr8_k32_w14_m16_n64", "qmr8_gu_k32_w14_m32_n64", "qmr8_gu_k32_w14_m16_n64"})
       names.insert(n);
@@ -1361,7 +1364,6 @@ Qwen35::MemPlan Qwen35::plan(const std::string& dir, int chunk, bool rows16) {
                                  : size_t(c.hidden) + size_t(c.hidden / 64) * 4;
   if (packed) {
     auto add_image = [&](const std::string& name, uint32_t K) {
-      if (!v8_packed_coeff_K_on(c, K)) return;
       auto w = metas.find(name + ".weight"), s = metas.find(name + ".scales");
       if (!K || K % 64 || w == metas.end() || s == metas.end() || w->second.dtype != "U32" ||
           w->second.shape.size() != 2 || s->second.shape.size() != 2 || w->second.shape[0] <= 0 ||

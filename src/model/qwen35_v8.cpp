@@ -64,20 +64,12 @@ bool Qwen35::v8_packed_coeff_on(const Qwen35Config& c) {
   return sysctlbyname("hw.memsize", &ram, &len, nullptr, 0) == 0 && ram == (uint64_t(m4_pro ? 48 : 24) << 30);
 }
 
-bool Qwen35::v8_packed_coeff_K_on(const Qwen35Config& c, uint32_t K) {
-  // The 27B's default down plan has 16 slices of 17 groups, outside the packed
-  // paired-slice path. Keep those unused images out of the resident set. A K-plan
-  // override that could use one still safely retains the original kernel.
-  return !(c.hidden == 5120 && c.dense_I == 17408 && c.layers == 64 && K == 17408);
-}
-
 void Qwen35::load_v8_packed_coeff() {
   if (!v8_packed_coeff_on(cfg_)) return;
   const double start = now_ms();
   size_t bytes = 0, compressed = 0, blocks = 0;
   auto pack = [&](const QLinear& q) {
     if (!q || !q.q4() || q.exl3 || q.q20 || !q.N || !q.K || q.K % 64) return;
-    if (!v8_packed_coeff_K_on(cfg_, q.K)) return;
     const auto image = pack_affine_packed_coeff(q.w->buf.as<uint32_t>(), q.s->buf.as<uint16_t>(),
                                                q.b->buf.as<uint16_t>(), q.N, q.K / 64);
     Buffer payload = Gpu::get().alloc(image.words.size() * 4, "qmm8_packed_coeff_payload", false);
@@ -653,8 +645,9 @@ void Qwen35::enc_qmm8(Encoder& e, const std::vector<Seg8>& segs, int R, const Bu
   }
   const uint32_t groups = K / 64, per_slice = (groups + pl.ks - 1) / pl.ks;
   PackedCoeffBuffers images[4];
-  bool packed = !x2 && !v8w_R_ && R > 0 && R <= 8 && pre == "qmm8snb" && bits == 4 && pl.nf == 2 &&
-                pl.cs * pl.ks <= 8 && !(groups & 1u) && !(per_slice & 1u);
+  const bool packed16 = cfg_.hidden >= 4096 && pre == "qmm8snb16" && pl.cs * pl.ks <= 16;
+  bool packed = !x2 && !v8w_R_ && R > 0 && R <= 8 && (pre == "qmm8snb" || packed16) && bits == 4 &&
+                pl.nf == 2 && !(groups & 1u) && (packed16 || !(per_slice & 1u));
   if (packed) for (size_t i = 0; i < segs.size(); ++i) {
     images[i] = segs[i].packed;
     if (!images[i]) {
@@ -664,7 +657,7 @@ void Qwen35::enc_qmm8(Encoder& e, const std::vector<Seg8>& segs, int R, const Bu
     packed = packed && bool(images[i]);
   }
   if (packed) {
-    pre = "qmm8pc";
+    pre = packed16 ? "qmm8pc16" : "qmm8pc";
     // Large experimental targets retain the original 16-output grid. The established
     // 4B path retains its NF1 kernel and the original NF2 CS/KS partial sums.
     pl.nf = cfg_.hidden >= 4096 ? 2 : 1;
@@ -693,6 +686,7 @@ void Qwen35::enc_qmm8(Encoder& e, const std::vector<Seg8>& segs, int R, const Bu
     e.buf(int(i * 4 + 2), sg.L->b->buf);
     e.buf(int(i * 4 + 3), sg.y);
     if (packed) e.buf(21 + int(i), image.headers);
+    if (packed && packed16) e.buf(25 + int(i), sg.L->w->buf);
   }
   p.tg_begin[segs.size()] = tg;
   e.buf(16, table);

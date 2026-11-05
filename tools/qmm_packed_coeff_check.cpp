@@ -195,15 +195,16 @@ static void compute(Gpu& g, Encoder& e, const std::string& kernel, const Input& 
   // With an odd count, the next row's scale/bias pairs would not be four-byte aligned.
   const uint32_t groups = x.K / 64;
   const bool paired_slices = !(groups & 1u) && !(((groups + pl.ks - 1) / pl.ks) & 1u);
-  const bool packed_kernel = kernel == "qmm8pc_b4_nf1" || kernel == "qmm8pc_b4_nf2";
-  std::string selected = packed_kernel && (!paired_slices || pl.cs * pl.ks > 8) ? kBaseline : kernel;
+  const bool packed16_kernel = kernel == "qmm8pc16_b4_nf2";
+  const bool packed_kernel = kernel == "qmm8pc_b4_nf1" || kernel == "qmm8pc_b4_nf2" || packed16_kernel;
+  std::string selected = packed_kernel && (packed16_kernel ? (groups & 1u) != 0 : (!paired_slices || pl.cs * pl.ks > 8)) ? kBaseline : kernel;
   if (selected == kBaseline && pl.cs * pl.ks > 8) selected = "qmm8snb16_b4_nf2";
   const uint32_t selected_nf = selected.ends_with("_nf1") ? 1u : selected.ends_with("_nf4") ? 4u : 2u;
   const std::string actual = (x.K / 64) % 2 && selected.find("snb") != std::string::npos
       ? "qmm8sn_b4_nf" + std::to_string(selected_nf) : selected;
   const uint32_t nf = actual.ends_with("_nf1") ? 1u : actual.ends_with("_nf4") ? 4u : 2u;
   const uint32_t tile_n = 8 * nf;
-  if (actual.starts_with("qmm8pc_b4_nf")) ++candidate_dispatches;
+  if (actual.starts_with("qmm8pc")) ++candidate_dispatches;
   else ++original_dispatches;
   e.use(g.pipeline(actual));
   for (uint32_t i = 0; i < 4; ++i) {
@@ -213,8 +214,9 @@ static void compute(Gpu& g, Encoder& e, const std::string& kernel, const Input& 
       p.tg_begin[i + 1] = p.tg_begin[i] + (m[i].N + tile_n * pl.cs - 1) / (tile_n * pl.cs);
     }
     e.buf(i * 4, m[j].w); e.buf(i * 4 + 1, m[j].s); e.buf(i * 4 + 2, m[j].b); e.buf(i * 4 + 3, y[j].data);
-    if (actual.starts_with("qmm8pc_b4_nf")) {
+    if (actual.starts_with("qmm8pc")) {
       prepare_coeff(g, m[j]); e.buf(i * 4, m[j].coeff->buffer); e.buf(21 + i, m[j].coeff->headers);
+      if (actual == "qmm8pc16_b4_nf2") e.buf(25 + i, m[j].w);
     }
   }
   e.buf(16, x.table); e.buf(17, x.sums); e.val(18, p);
@@ -596,12 +598,21 @@ int main(int argc, char** argv) {
   const std::string mode = argv[1];
   const std::string kernel = argc > 2 ? argv[2] : "qmm8pc_b4_nf1";
   printf("device=%s cores=%d kernel=%s thermal=%s\n", g.name().c_str(), g.core_count(), kernel.c_str(), Gpu::thermal_state());
-  if (kernel != kBaseline && kernel != "qmm8pc_b4_nf1" && kernel != "qmm8pc_b4_nf2")
+  if (kernel != kBaseline && kernel != "qmm8pc_b4_nf1" && kernel != "qmm8pc_b4_nf2" && kernel != "qmm8pc16_b4_nf2")
     fatal("unsupported kernel: %s", kernel.c_str());
   if (mode == "check-real-coeff") {
     if (!getenv("NI_QMM_COEFF_FIXTURES")) fatal("real coefficient check requires the frozen manifest");
     real_fixture_check = true;
     checks(g, kernel, true, false, argc > 3 ? argv[3] : nullptr);
+  }
+  else if (mode == "check-small16") {
+    Checks count;
+    for (uint32_t K : {128u, 256u, 512u, 768u, 1024u, 1152u, 1536u, 3072u, 4096u, 5120u, 6144u, 17408u})
+      for (uint32_t N : {1u, 7u, 8u, 9u, 15u, 16u, 17u, 31u, 32u, 33u}) for (uint32_t R : {1u, 2u, 7u, 8u})
+        check_case(g, count, N, K, R, 16, count.cases % 3 == 0 ? 3 : 1,
+                   uint32_t(count.cases + 7), int((count.cases / 2) % 5), false, kernel);
+    printf("AKO_CHECK={\"passed\":true,\"cases\":%zu,\"outputs\":%zu,\"bitwise_outputs\":%zu,\"max_cpu_error\":%.9g}\n",
+           count.cases, count.outputs, count.bitwise_outputs, count.cpu_error);
   }
   else if (mode == "check-codec") codec_checks(g, kernel);
   else if (mode == "check-scales") scale_checks(g, kernel);
