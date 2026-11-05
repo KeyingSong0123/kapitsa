@@ -277,7 +277,7 @@ static void check_case(Gpu& g, Checks& count, uint32_t N, uint32_t K, uint32_t R
     base.emplace_back(arena, N + 3 * i, R, (seed + i) % 2 != 0);
     candidate.emplace_back(arena, N + 3 * i, R, (seed + i) % 2 != 0);
   }
-  const Plan pl{std::min(2u, 8u / ks), ks};
+  const Plan pl{std::max(1u, std::min(2u, 8u / ks)), ks};
   for (int replay = 0; replay < 2; ++replay) {
     if (replay) {
       for (uint32_t t = 0; t < R; ++t) for (uint32_t k = 0; k < K; ++k)
@@ -357,7 +357,7 @@ static void scale_checks(Gpu& g, const std::string& kernel) {
         }
         std::vector<Output> a, b;
         a.emplace_back(arena, N, R, cases % 2); b.emplace_back(arena, N, R, cases % 2);
-        const Plan pl{std::min(2u, 8u / ks), ks};
+        const Plan pl{std::max(1u, std::min(2u, 8u / ks)), ks};
         auto e = g.begin(); prep(g, *e, x);
         compute(g, *e, kBaseline, x, m, a, pl);
         compute(g, *e, kernel, x, m, b, pl);
