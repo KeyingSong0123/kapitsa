@@ -177,12 +177,12 @@ static Plan default_plan(Gpu& g, uint32_t N, uint32_t K) {
   const uint32_t G = K / 64;
   uint32_t ks = G >= 16 ? 4 : G >= 8 ? 2 : 1;
   if (ks == 4 && G >= 32 && ((N + 15) / 16) * 4 < uint32_t(64 * g.core_count())) ks = 8;
-  if (G >= 64) ks = 8;  // M4's default V8Knobs::kplan=2
-  return {8 / ks, ks};
+  if (G >= 64) ks = G >= 256 && !(G & 1u) ? 16 : 8;  // M4's default V8Knobs::kplan=2
+  return {std::max(1u, 8 / ks), ks};
 }
 static void compute(Gpu& g, Encoder& e, const std::string& kernel, const Input& x,
                     const std::vector<Matrix>& m, const std::vector<Output>& y, Plan pl) {
-  if (m.empty() || m.size() > 4 || pl.cs < 1 || pl.ks < 1 || pl.cs * pl.ks > 8) fatal("invalid QMM48H dispatch plan");
+  if (m.empty() || m.size() > 4 || pl.cs < 1 || pl.ks < 1 || pl.cs * pl.ks > 16) fatal("invalid QMM48H dispatch plan");
   if (real_fixture_check) for (const auto& matrix : m) {
     if (!matrix.fixture_loaded) {
       fixture_coefficients(matrix, real_fixture_index++);
@@ -195,7 +195,8 @@ static void compute(Gpu& g, Encoder& e, const std::string& kernel, const Input& 
   // With an odd count, the next row's scale/bias pairs would not be four-byte aligned.
   const uint32_t groups = x.K / 64;
   const bool paired_slices = !(groups & 1u) && !(((groups + pl.ks - 1) / pl.ks) & 1u);
-  const std::string selected = kernel == "qmm8pc_b4_nf1" && !paired_slices ? kBaseline : kernel;
+  std::string selected = kernel == "qmm8pc_b4_nf1" && (!paired_slices || pl.cs * pl.ks > 8) ? kBaseline : kernel;
+  if (selected == kBaseline && pl.cs * pl.ks > 8) selected = "qmm8snb16_b4_nf2";
   const uint32_t selected_nf = selected.ends_with("_nf1") ? 1u : selected.ends_with("_nf4") ? 4u : 2u;
   const std::string actual = (x.K / 64) % 2 && selected.find("snb") != std::string::npos
       ? "qmm8sn_b4_nf" + std::to_string(selected_nf) : selected;
@@ -299,7 +300,7 @@ static void check_case(Gpu& g, Checks& count, uint32_t N, uint32_t K, uint32_t R
     ++count.cases;
   }
 }
-static void checks(Gpu& g, const std::string& kernel, bool shapes, bool segments = false) {
+static void checks(Gpu& g, const std::string& kernel, bool shapes, bool segments = false, const char* shapes_file = nullptr) {
   Checks c;
   if (segments) {
     for (uint32_t K : {192u, 256u, 512u}) for (uint32_t N : {17u, 65u})
@@ -307,8 +308,20 @@ static void checks(Gpu& g, const std::string& kernel, bool shapes, bool segments
         for (uint32_t nseg : {2u, 3u})
           check_case(g, c, N, K, R, ks, nseg, uint32_t(c.cases + 7), int((c.cases / 2) % 5), false, kernel);
   } else if (shapes) {
-    for (auto [N, K] : std::vector<std::pair<uint32_t, uint32_t>>{{18432, 2560}, {12352, 2560}, {10240, 2560},
-                                                                  {2560, 4096}, {2560, 9216}, {248320, 2560}})
+    std::vector<std::pair<uint32_t, uint32_t>> dimensions{{18432, 2560}, {12352, 2560}, {10240, 2560},
+                                                         {2560, 4096}, {2560, 9216}, {248320, 2560}};
+    if (shapes_file) {
+      auto requested = json_file(shapes_file);
+      if (!requested || !requested->is_array() || requested->empty()) fatal("invalid shape file");
+      dimensions.clear();
+      for (const auto& shape : *requested) {
+        if (!shape.is_array() || shape.size() != 2) fatal("expected [N, K] shape");
+        const uint32_t N = shape.at(0).get<uint32_t>(), K = shape.at(1).get<uint32_t>();
+        if (!N || !K || K % 64) fatal("shape needs positive N and positive K divisible by 64");
+        dimensions.emplace_back(N, K);
+      }
+    }
+    for (auto [N, K] : dimensions)
       for (uint32_t seed : {7u, 19u, 42u}) {
         check_case(g, c, N, K, 8, default_plan(g, N, K).ks, 1, seed, 0, false, kernel);
         printf("check_shape N=%u K=%u seed=%u passed=1\n", N, K, seed); fflush(stdout);
@@ -570,7 +583,7 @@ static void codec_checks(Gpu& g, const std::string& kernel) {
 
 int main(int argc, char** argv) {
   if (argc < 2) {
-    fprintf(stderr, "usage: qmm_packed_coeff_check check-cpu-codec|check-cpu-fixtures|check-codec|check-scales|check-small|check-segments|check-shapes|check-real-coeff [kernel]\n");
+    fprintf(stderr, "usage: qmm_packed_coeff_check check-cpu-codec|check-cpu-fixtures|check-codec|check-scales|check-small|check-segments|check-shapes|check-real-coeff [kernel] [shapes.json]\n");
     return 2;
   }
   if (std::string(argv[1]) == "check-cpu-codec") { cpu_codec_checks(); return 0; }
@@ -587,12 +600,12 @@ int main(int argc, char** argv) {
   if (mode == "check-real-coeff") {
     if (!getenv("NI_QMM_COEFF_FIXTURES")) fatal("real coefficient check requires the frozen manifest");
     real_fixture_check = true;
-    checks(g, kernel, true);
+    checks(g, kernel, true, false, argc > 3 ? argv[3] : nullptr);
   }
   else if (mode == "check-codec") codec_checks(g, kernel);
   else if (mode == "check-scales") scale_checks(g, kernel);
   else if (mode == "check-small" || mode == "check-shapes" || mode == "check-segments")
-    checks(g, kernel, mode == "check-shapes", mode == "check-segments");
+    checks(g, kernel, mode == "check-shapes", mode == "check-segments", argc > 3 ? argv[3] : nullptr);
   else { fprintf(stderr, "unknown mode or missing arguments\n"); return 2; }
   printf("QMM_CD_DISPATCH={\"candidate\":%zu,\"original\":%zu}\n",
          candidate_dispatches, original_dispatches);

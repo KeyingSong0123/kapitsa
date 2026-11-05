@@ -48,7 +48,11 @@ static int env_int(const char* n, int def) {
 bool Qwen35::v8_packed_coeff_on(const Qwen35Config& c) {
   const char* flag = getenv("NI_V8_PACKED_COEFF_NF1");
   if (flag && *flag && !atoi(flag)) return false;
-  if (c.moe || c.hidden != 2560 || c.dense_I != 9216 || c.layers != 32 || c.group_size != 64) return false;
+  if (c.moe || c.group_size != 64) return false;
+  const bool established = c.hidden == 2560 && c.dense_I == 9216 && c.layers == 32;
+  const bool expanded = (c.hidden == 5120 && c.dense_I == 17408 && c.layers == 64) ||
+                        (c.hidden == 4096 && c.dense_I == 12288 && c.layers == 32);
+  if (!established && !(expanded && flag && *flag)) return false;
   const Gpu& gpu = Gpu::get();
   const bool m4 = gpu.name() == "Apple M4" && gpu.core_count() == 10;
   const bool m4_pro = gpu.name() == "Apple M4 Pro" && gpu.core_count() == 20;
