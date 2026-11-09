@@ -95,6 +95,14 @@ void Qwen35::ane_abort(const std::string& why) {
 }
 
 void Qwen35::init_ane() {
+  if (canonical_affine_) {
+    // The admitted 9B already fails FfnSplit's whole-2560-hidden-segment check. Never hand async ANE a reusable arena.
+    if (cfg_.hidden % 2560 != 0) {
+      logi("NI_ANE: hidden size is not whole 2560-channel segments; canonical affine keeps the existing GPU path");
+      return;
+    }
+    fatal("canonical affine: a usable Neural Engine path is outside this experiment");
+  }
   if (cfg_.moe) {
     logi("NI_ANE: the Neural Engine split is for dense FFNs; this MoE model runs its prefill on the GPU");
     return;

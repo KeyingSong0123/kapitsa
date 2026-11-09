@@ -7,7 +7,9 @@
 #include "model/qwen4_config.h"
 #include "splash/runtime.h"
 #include "util/json_file.h"
+#include "util/canonical_plan_memo.h"
 #include "util/log.h"
+#include "util/projection_trace.h"
 
 #include <minja/chat-template.hpp>
 #include <minja/minja.hpp>
@@ -277,6 +279,10 @@ Engine::Engine(const EngineOptions& o) : opts_(o) {
   // the switch's error); the callers that start a server let it out, so `kapitsa serve` exits on it as it did on the
   // message before. The same text, thrown, is what model_plan does for the folders it refuses.
   if (const std::string why = unsupported_model(opts_.model_dir); !why.empty()) throw std::runtime_error(why);
+  const char* canonical_flag = getenv("NI_KFLASH_CANONICAL_AFFINE");
+  const bool canonical_memo_enabled = canonical_flag && *canonical_flag && atoi(canonical_flag) != 0 &&
+      Qwen35::canonical_affine_probe(Qwen35::read_config(opts_.model_dir));
+  canonical_plan_memo::Scope canonical_memo(opts_.model_dir, canonical_memo_enabled);
   if (opts_.model_id.empty()) {
     std::string d = opts_.model_dir;
     while (!d.empty() && d.back() == '/') d.pop_back();
@@ -647,6 +653,12 @@ Engine::Engine(const EngineOptions& o) : opts_(o) {
                                          std::to_string(Dory::kMaxLoops) + "), " + loop_kv_name(dory_->kv_mode()) +
                                          " KV"
                                    : std::string();
+  canonical_memo.finish();  // revalidate and release the load-local counts before exposing a ready engine
+  if (canonical_memo_enabled) {
+    const auto& stats = canonical_memo.stats();
+    logi("KFlash: canonical plan load memo: scans %zu, hits %zu, failures %zu, identity %.1f ms, scan %.1f ms; cleared",
+         stats.misses, stats.hits, stats.failed_builds, stats.identity_ms, stats.compute_ms);
+  }
   logi("engine ready: %s, context %d, %d slots, %s%s%s%s", opts_.model_id.c_str(), opts_.context, std::max(1, opts_.slots),
        mode.c_str(), looped.c_str(), kf_src.empty() ? "" : (", KFlash (" + kf_src + ")").c_str(), vision_ ? ", images on" : "");
   disk_start();  // the SSD prefix cache (engine_disk.cpp): its files open in the background
@@ -793,6 +805,9 @@ std::string unsupported_model(const std::string& model_dir) {
 }
 
 MemPlan model_plan(const std::string& model_dir, int prefill_chunk) {
+  // The old full-plan cache assumes immutable headers. Canonical costs require validated file identities;
+  // recompute the cheap chunk-dependent fields and reuse only the exact counts in the current load scope.
+  const bool scoped_canonical = canonical_plan_memo::Scope::current_for(model_dir) != nullptr;
   // kept per process: a model's headers do not change while it is planned, and the largest take most of a second to
   // read (Super-VL's), which the picker, `kapitsa doctor` and default_context would otherwise pay on every plan.
   // The plan is the 8-row one: the key has no slot count, so a 16-row block's rows (a drafter's verify buffers, ~30 MB
@@ -802,7 +817,7 @@ MemPlan model_plan(const std::string& model_dir, int prefill_chunk) {
   static std::map<std::string, MemPlan> plans;
   const std::string key = model_dir + "\n" + std::to_string(prefill_chunk) + "\n" + std::to_string(Dory::serving_loops()) +
                           loop_kv_name(Dory::serving_kv());  // Dory's plan counts the loops and KV it serves with
-  {
+  if (!scoped_canonical) {
     std::lock_guard<std::mutex> lk(mu);
     if (const auto it = plans.find(key); it != plans.end()) return it->second;
   }
@@ -812,8 +827,10 @@ MemPlan model_plan(const std::string& model_dir, int prefill_chunk) {
                     : Qwen4Exp::is_model(model_dir) ? Qwen4Exp::plan(model_dir, prefill_chunk)
                     : NemotronH::is_model(model_dir) ? NemotronH::plan(model_dir, prefill_chunk)
                                                      : Qwen35::plan(model_dir, prefill_chunk);
-  std::lock_guard<std::mutex> lk(mu);
-  plans.emplace(key, p);
+  if (!scoped_canonical) {
+    std::lock_guard<std::mutex> lk(mu);
+    plans.emplace(key, p);
+  }
   return p;
 }
 static size_t model_ane_bytes(const std::string& model_dir, const MemPlan& p) {
@@ -2416,6 +2433,7 @@ ChatResult Engine::chat(const ChatRequest& r_in, const std::function<bool(const 
   if (splash_)  // the native path never serves Splash's requests: the caller chose wrongly (chat_splash)
     throw std::logic_error("Engine::chat: this engine runs Splash; use chat_splash()");
   const uint64_t arrival = ++requests_;
+  projection_trace::begin();
   // a model split across Macs whose other Macs stopped answering runs nothing more (the server needs a restart)
   if (std::string why = model_->lost(); !why.empty()) {
     ChatResult res;
@@ -3198,6 +3216,7 @@ ChatResult Engine::chat(const ChatRequest& r_in, const std::function<bool(const 
   slot.img_digests = mm.digests;
   const int yields_prefill = res.yields;
 
+  if (projection_trace::enabled()) projection_trace::state().stage = "decode";
   // ---- decode ----
   // Between two cycles (steps) the request gives its turn to the requests waiting for one (contended()): it parks
   // first, so that nothing of its own is in flight and nothing it needs next is left in the model's or drafter's
@@ -3743,6 +3762,9 @@ ChatResult Engine::chat(const ChatRequest& r_in, const std::function<bool(const 
             break;
           }
         }
+        if (projection_trace::enabled()) projection_trace::state().cycles.push_back({req_cycles, P, a, m,
+            dfl_->verified(K) + 1, draft->gpu_start_host_ms(), draft->gpu_end_host_ms(),
+            e2->gpu_start_host_ms(), e2->gpu_end_host_ms()});
         ++spec_cycles_;
         ++req_cycles;
         spec_accepted_ += m;
@@ -3796,6 +3818,10 @@ ChatResult Engine::chat(const ChatRequest& r_in, const std::function<bool(const 
       if (next_draft && m < a_last + 1) d.valid_lo = std::max(d.valid_lo, P - m + a_last + 1 - DFlash2::kWin);
       q35_->encode_flush(*e3, s);
       e3->commit_and_wait();
+      if (projection_trace::enabled()) {
+        projection_trace::state().final_flush_ms += e3->gpu_ms();
+        if (next_draft) projection_trace::state().terminal_extra_draft_ms += next_draft->gpu_ms();
+      }
       fed_until = P;
       if (dfl_->tree() && dfl_->budget() && req_cycles > 0) {
         logi("%s", dfl_->budget()->summary().c_str());
@@ -4221,6 +4247,23 @@ ChatResult Engine::chat(const ChatRequest& r_in, const std::function<bool(const 
   else if (depth > 0 && spec_cycles_ > 0)
     logd("spec: %.2f accepted/drafted over %ld cycles", double(spec_accepted_) / (spec_cycles_ * depth), spec_cycles_);
   res.decode_ms = now_ms() - t1;
+  // Both A/B timing arms may use this post-timer token record; no per-cycle vocabulary scan.
+  // The last emitted token is the pending anchor at n + gen - 1, retained by the final flush.
+  const char* request_record = getenv("NI_REQUEST_RECORD");
+  if ((request_record && *request_record) || projection_trace::enabled()) {
+    const double record_t0 = now_ms();
+    nlohmann::json record{{"prompt_ids", prompt}, {"generated_ids", std::vector<int>(s.tokens() + n, s.tokens() + n + gen)},
+        {"prompt_tokens", n}, {"completion_tokens", gen}, {"cached_tokens", start},
+        {"prefill_ms", res.prefill_ms}, {"decode_ms", res.decode_ms}, {"finish_reason", finish},
+        {"temperature", sp.temperature}, {"seed", sp.seed}, {"top_p", sp.top_p}, {"top_k", sp.top_k},
+        {"kflash_source", kfw.source}, {"kflash_cycles", kfw.cycles}, {"req_cycles", req_cycles},
+        {"drafter_loaded", bool(dfl_)}, {"whole_decode_tps", gen > 1 ? (gen - 1) * 1000.0 / res.decode_ms : 0.0}};
+    if (request_record && *request_record) {
+      projection_trace::append(request_record, record);
+      logi("request record: %.3f us to construct, serialize and append", (now_ms() - record_t0) * 1000.0);
+    }
+    projection_trace::finish(std::move(record));
+  }
   if (trace_path) {  // one line: the prompt (FNV-1a of its ids), the first token, then each cycle's tokens and margins
     uint64_t h = 1469598103934665603ull;
     for (int t : prompt) h = (h ^ uint64_t(uint32_t(t))) * 1099511628211ull;

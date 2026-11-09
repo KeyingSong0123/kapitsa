@@ -12,6 +12,7 @@
 #include "model/kparams.h"
 #include "util/bf16.h"
 #include "util/log.h"
+#include "util/projection_trace.h"
 
 #include <nlohmann/json.hpp>
 
@@ -1427,6 +1428,7 @@ void dfl_enc_qmm8(Encoder& e, const std::vector<DflSeg8>& segs, const Buffer& xh
     e.buf(int(i * 4 + 3), s.y);
   }
   p.tg_begin[segs.size()] = tg;
+  projection_trace::record(rf == 2 ? "dfl_qmm8_r2" : "dfl_qmm8", segs, K, 8, rf, 8 / ks, ks, tg, 256);
   e.use(dpipe(rf == 2 ? "dfl_qmm8_r2" : "dfl_qmm8"));
   e.buf(16, xh);
   e.buf(17, xs);
@@ -1456,6 +1458,12 @@ void dfl_enc_qmm8_gu(Encoder& e, const QLinear& g, const QLinear& u, const Buffe
   p.bits[0] = uint32_t(g.bits);
   p.y_ld[0] = g.N;
   p.oscale[0] = 1.0f;
+  if (projection_trace::enabled()) {
+    // One gate + one up fragment per SIMD group, eight column blocks, KS slices each.
+    const std::vector<DflSeg8> trace_segs{{&g, hh, g.N, 1.0f}, {&u, hh, u.N, 1.0f}};
+    projection_trace::record(ks == 1 ? "dfl_qmm8_gu" : ks == 2 ? "dfl_qmm8_gu_ks2" : "dfl_qmm8_gu_ks4",
+                             trace_segs, g.K, 8, 1, 8, ks, g.N / 64, 256 * ks);
+  }
   e.use(dpipe(ks == 1 ? "dfl_qmm8_gu" : ks == 2 ? "dfl_qmm8_gu_ks2" : "dfl_qmm8_gu_ks4"));
   e.buf(0, g.w->buf); e.buf(1, g.s->buf); e.buf(2, g.b->buf); e.buf(3, hh);
   e.buf(4, u.w->buf); e.buf(5, u.s->buf); e.buf(6, u.b->buf); e.buf(7, hs);
@@ -1492,6 +1500,19 @@ bool DFlash2::tw_for(const std::vector<DflSeg8>& segs, uint32_t K) const {
 // 98304x2048 216.7 vs ~254).
 void DFlash2::enc_qmm8(Encoder& e, const std::vector<DflSeg8>& segs, const Buffer& xh, const Buffer& xs, uint32_t K,
                        uint32_t x_ld, int tiles) {
+  if (projection_trace::enabled() && !projection_trace::state().names.count(&lrA_)) {
+    for (auto [q, name] : std::initializer_list<std::pair<const QLinear*, const char*>>{
+        {&fc_,"drafter.commit.fc"},{&kv_all_,"drafter.commit.kv_all"},
+        {&lrA_,"drafter.head.lowrank_A"},{&lrB_,"drafter.head.lowrank_B"},{&head_sub_,"drafter.head.reduced"}})
+      projection_trace::label(q, name);
+    for (size_t i = 0; i < layers_.size(); ++i) {
+      const DLayer& l = layers_[i];
+      const std::string p = "drafter.layers." + std::to_string(i) + ".";
+      for (auto [q, name] : std::initializer_list<std::pair<const QLinear*, const char*>>{
+          {&l.q,"attn.q"},{&l.kv,"attn.kv"},{&l.o,"attn.o"},
+          {&l.gate,"mlp.gate"},{&l.up,"mlp.up"},{&l.down,"mlp.down"}}) projection_trace::label(q, p + name);
+    }
+  }
   if (x_ld != K || !tw_for(segs, K)) {
     if (tiles > 1) fatal("DFlash2 block %d: a GEMM (K %u) needs the tensor path", tiles * 8, K);
     dfl_enc_qmm8(e, segs, xh, xs, K, x_ld);
@@ -1594,6 +1615,10 @@ void DFlash2::enc_qmm8_cp(Encoder& e, const QLinear& L, const Tensor* base, cons
 // simdgroup kernels at 12-13 TFLOP/s (the tile: 41-44). Only the drafter's context moves (the K reduction's order): the target's
 // outputs are the verify's, so its tokens do not change.
 void DFlash2::enc_qmm_rows(Encoder& e, const QLinear& L, const Buffer& xh, const Buffer& y, int M) {
+  if (projection_trace::enabled()) {
+    if (&L == &fc_) projection_trace::label(&L, "drafter.commit.fc");
+    if (&L == &kv_all_) projection_trace::label(&L, "drafter.commit.kv_all");
+  }
   const bool big = M >= 64;
   if (big && qmt_on() && L.bits == 4 && L.gs == 64 && L.K % 64 == 0) {
     const uint32_t bm = qmt128_for(M) ? 128 : 64;  // the 128-row tile: the same bits (NI_QMT128)
@@ -1610,6 +1635,11 @@ void DFlash2::enc_qmm_rows(Encoder& e, const QLinear& L, const Buffer& xh, const
   kp::Qmm p{uint32_t(M), L.N, L.K, L.K, L.N, 0u, uint32_t(L.gs), 0, 0};
   e.buf(0, xh); e.buf(1, L.w->buf); e.buf(2, L.s->buf); e.buf(3, L.b->buf); e.buf(4, y);
   e.val(5, p);
+  if (projection_trace::enabled()) {
+    const std::vector<DflSeg8> trace_segs{{&L, y, L.N, 1.0f}};
+    projection_trace::record(n, trace_segs, L.K, uint32_t(M), 0, 0, 0,
+                             ((L.N + BN - 1) / BN) * ((M + BM - 1) / BM), 128);
+  }
   e.dispatch((L.N + BN - 1) / BN, (M + BM - 1) / BM, 1, 128);
 }
 
@@ -1657,6 +1687,7 @@ void DFlash2::set_prompt_captures(const uint16_t* rows_bf16, int rows) {
 }
 
 void DFlash2::encode_prefill_commit(Encoder& e, DFlashSeq& d) {
+  projection_trace::Scope trace_scope("drafter", "prefill_commit");
   const uint32_t H = uint32_t(cfg_.H), nH = hook_pf_.ld;
   if (pf_rows_ == 0) {
     d.ctx = pf_n_;
@@ -1828,6 +1859,7 @@ void DFlash2::encode_commit_staged(Encoder& e, DFlashSeq& d) {
 }
 
 void DFlash2::enc_commit_from(Encoder& e, DFlashSeq& d, int m, const Buffer& src, bool gather) {
+  projection_trace::Scope trace_scope("drafter", "commit");
   // m < 0: GPU-driven (rows and positions from the drafter state; d.ctx is advanced by the caller)
   const bool gpu = m < 0;
   if (!gpu && (m < 1 || m > block())) fatal("DFlash2 commit: m=%d", m);
@@ -2168,6 +2200,11 @@ void DFlash2::encode_draft_impl(Encoder& e, Seq& s, DFlashSeq& d, int P, const S
       e.buf(0, n_, size_t(H) * 4); e.buf(1, head_sub_.w->buf); e.buf(2, head_sub_.s->buf); e.buf(3, head_sub_.b->buf);
       e.buf(4, head_ids_); e.buf(5, lr_perm_); e.buf(6, tk_v_); e.buf(7, tk_i_);
       e.val(8, pr);
+      if (projection_trace::enabled()) {
+        const std::vector<DflSeg8> trace_segs{{&head_sub_, tk_v_, ntg * 16, 1.0f}};
+        projection_trace::record("dfl_lr_rescore", trace_segs, H, D, 0, 0, 0,
+                                 ((ntg * 16 + 7) / 8) * D, 256, false, ntg * 16);
+      }
       e.dispatch((ntg * 16 + 7) / 8, D, 1, 256);
     }
     kp::DflTop p2{ntg * 16, ntg * 16, 1};
@@ -2370,7 +2407,11 @@ void DFlash2::gate_reset() {
 }
 
 void DFlash2::encode_cycle_draft_gpu(Encoder& e, Seq& s, DFlashSeq& d, int P_max, const SamplingParams& sp) {
-  encode_commit(e, d, -1);  // the rows the last acceptance kept (none after gpu_state_reset)
+  {
+    projection_trace::Scope trace_scope("drafter", "commit");
+    encode_commit(e, d, -1);  // the rows the last acceptance kept (none after gpu_state_reset)
+  }
+  projection_trace::Scope trace_scope("drafter", "draft");
   encode_draft_impl(e, s, d, P_max, sp, true, tree_);
 }
 

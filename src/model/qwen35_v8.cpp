@@ -12,6 +12,7 @@
 #include "model/qwen35.h"
 #include "engine/device_profile.h"
 #include "util/log.h"
+#include "util/projection_trace.h"
 
 #include <algorithm>
 #include <set>
@@ -21,6 +22,17 @@
 #include <sys/sysctl.h>
 
 namespace ni {
+
+namespace {
+struct CanonicalVerifyScope {
+  bool& value;
+  bool previous;
+  CanonicalVerifyScope(bool& state, bool next) : value(state), previous(state) { value = next; }
+  ~CanonicalVerifyScope() { value = previous; }
+  CanonicalVerifyScope(const CanonicalVerifyScope&) = delete;
+  CanonicalVerifyScope& operator=(const CanonicalVerifyScope&) = delete;
+};
+}
 
 extern const char* const kTensorKernelSource;
 
@@ -118,6 +130,10 @@ void Qwen35::flush_backlog(Encoder& e, Seq& s) {
   s.n_back = 0;
 }
 
+bool Qwen35::v8_nf2_target_probe(const Qwen35Config& c) {
+  return canonical_affine_probe(c);
+}
+
 bool Qwen35::v8_packed_coeff_on(const Qwen35Config& c) {
   const char* flag = getenv("NI_V8_PACKED_COEFF_NF1");
   if (flag && *flag && !atoi(flag)) return false;
@@ -135,15 +151,19 @@ bool Qwen35::v8_packed_coeff_on(const Qwen35Config& c) {
 }
 
 void Qwen35::load_v8_packed_coeff() {
-  if (!v8_packed_coeff_on(cfg_)) return;
-  g_pc_plan = env_int("NI_V8_PC_PLAN", 1) != 0;  // before any image's record order is chosen (v8_packed_ks)
+  v8_nf2_target_ = v8_nf2_target_probe(cfg_);
+  if (canonical_affine_) { load_canonical_affine(); return; }
+  if (!v8_nf2_target_ && !v8_packed_coeff_on(cfg_)) return;
+  if (!v8_nf2_target_) g_pc_plan = env_int("NI_V8_PC_PLAN", 1) != 0;
   const double start = now_ms();
   size_t bytes = 0, compressed = 0, blocks = 0;
   auto pack = [&](const QLinear& q) {
     if (!q || !q.q4() || q.exl3 || q.q20 || !q.N || !q.K || q.K % 64) return;
     auto image = pack_affine_packed_coeff(q.w->buf.as<uint32_t>(), q.s->buf.as<uint16_t>(),
                                           q.b->buf.as<uint16_t>(), q.N, q.K / 64);
-    const uint32_t ks = v8_packed_ks(q.K), rg = v8_packed_rg(q.N);
+    // The historical NF2 kernels consume pair order, with no current-main record interleave.
+    const uint32_t ks = v8_nf2_target_ ? 0u : v8_packed_ks(q.K);
+    const uint32_t rg = v8_nf2_target_ ? 1u : v8_packed_rg(q.N);
     if (ks) interleave_packed_slices(image, q.N, q.K / 64, ks, rg);
     Buffer payload = Gpu::get().alloc(image.words.size() * 4, "qmm8_packed_coeff_payload", false);
     owned_bufs_.push_back(payload);
@@ -157,12 +177,18 @@ void Qwen35::load_v8_packed_coeff() {
   };
   for (const Layer& l : layers_) {
     // The 9B only packs the long-K down projection to bound the extra resident memory.
-    if (cfg_.hidden == 4096) { pack(l.md); continue; }
+    if (cfg_.hidden == 4096 && !v8_nf2_target_) { pack(l.md); continue; }
     for (const QLinear* q : {&l.mg, &l.mu, &l.md}) pack(*q);
     if (l.linear) for (const QLinear* q : {&l.qkv, &l.z, &l.a, &l.b, &l.out}) pack(*q);
     else for (const QLinear* q : {&l.q, &l.k, &l.v, &l.o}) pack(*q);
   }
-  if (cfg_.hidden != 4096) pack(lm_head_);
+  if (cfg_.hidden != 4096 || v8_nf2_target_) pack(lm_head_);
+  if (v8_nf2_target_) {
+    logi("KFlash: NF2 target attribution probe packed %zu pair-order projections, %.1f MiB in %.0f ms; "
+         "compressed %zu/%zu blocks; historical kernels on current main, not a historical binary",
+         v8_packed_coeff_.size(), double(bytes) / (1024 * 1024), now_ms() - start, compressed, blocks);
+    return;
+  }
   logi("NI_V8_PACKED_COEFF_NF1: packed %zu static target projections, %.1f MiB in %.0f ms; compressed %zu/%zu blocks",
        v8_packed_coeff_.size(), double(bytes) / (1024 * 1024), now_ms() - start, compressed, blocks);
 }
@@ -627,8 +653,30 @@ static V8tPlan v8t_plan(uint32_t Ntot, uint32_t K) {
 
 void Qwen35::enc_qmm8(Encoder& e, const std::vector<Seg8>& segs, int R, const Buffer& table, const Buffer& sums,
                       bool x2, const Buffer* tt) {
+  if (projection_trace::enabled() && !projection_trace::state().names.count(&lm_head_)) {
+    projection_trace::label(&lm_head_, "target.lm_head");
+    for (size_t i = 0; i < layers_.size(); ++i) {
+      const Layer& l = layers_[i];
+      const std::string p = "target.layers." + std::to_string(i) + ".";
+      for (auto [q, name] : std::initializer_list<std::pair<const QLinear*, const char*>>{
+          {&l.mg,"mlp.gate"},{&l.mu,"mlp.up"},{&l.md,"mlp.down"},{&l.qkv,"gdn.qkv"},{&l.z,"gdn.z"},
+          {&l.a,"gdn.a"},{&l.b,"gdn.b"},{&l.out,"gdn.out"},{&l.q,"attn.q"},{&l.k,"attn.k"},
+          {&l.v,"attn.v"},{&l.o,"attn.o"}}) projection_trace::label(q, p + name);
+    }
+  }
   if (segs.empty() || segs.size() > 4) fatal("qmm8: %zu segments", segs.size());
   if (R < 1 || R > (v8w_R_ ? v8w_R_ : 8)) fatal("qmm8: R=%d", R);
+  auto materialize_fallback = [&] {
+    if (!canonical_affine_) return false;
+    std::vector<const QLinear*> inputs;
+    for (const auto& seg : segs) inputs.push_back(seg.L);
+    auto views = materialize_affine(e, inputs);
+    if (!views) return false;
+    auto rebound = segs;
+    for (auto& seg : rebound) seg.L = &views.get(*seg.L);
+    enc_qmm8(e, rebound, R, table, sums, x2, tt);
+    return true;
+  };
   const uint32_t K = segs[0].L->K;
   const int bits = segs[0].L->bits;
   // segments of different formats: one GEMM per format
@@ -646,6 +694,7 @@ void Qwen35::enc_qmm8(Encoder& e, const std::vector<Seg8>& segs, int R, const Bu
     Ntot += sg.L->N;
   }
   if (!segs[0].L->q4() && !segs[0].L->q8()) {  // wfmt.metal's qmm8g_<fmt>: bf16, 3/5/6-bit, group 32
+    if (materialize_fallback()) return;
     V8Plan pl = v8_plan(Ntot, K, 1);
     pl.nf = std::min(pl.nf, 2);
     if (pl.cs * pl.ks > 8) pl.ks = 8, pl.cs = 1;
@@ -675,12 +724,15 @@ void Qwen35::enc_qmm8(Encoder& e, const std::vector<Seg8>& segs, int R, const Bu
     e.buf(16, table);
     e.buf(17, sums);
     e.val(18, p);
+    projection_trace::record("qmm8g_" + segs[0].L->fmt() + "_nf" + std::to_string(pl.nf), segs, K, R,
+                             pl.nf, pl.cs, pl.ks, tg, 32 * pl.cs * pl.ks);
     if (v8w_R_) v8_disp(e, tg, 1, 1, kV8wX, 32 * pl.cs * pl.ks);  // a wide tree verify: x the live row tiles
     else e.dispatch(tg, 1, 1, 32 * pl.cs * pl.ks);
     return;
   }
   if (tt && !x2 && bits == 4 && segs[0].L->q4() && segs[0].L->gs == 64 && K % 64 == 0 && v8_tw() &&
       size_t(K) * 16 <= tt->size) {
+    if (materialize_fallback()) return;
     const V8tPlan pl = v8t_plan(Ntot, K);
     kp::Qmm8 p{};
     p.K = K;
@@ -734,8 +786,15 @@ void Qwen35::enc_qmm8(Encoder& e, const std::vector<Seg8>& segs, int R, const Bu
   }
   const uint32_t groups = K / 64, per_slice = (groups + pl.ks - 1) / pl.ks;
   PackedCoeffBuffers images[4] = {};
-  bool packed = !x2 && !v8w_R_ && R > 0 && R <= 8 && pre == "qmm8snb" && bits == 4 && pl.nf == 2 &&
-                pl.cs * pl.ks <= 8 && !(groups & 1u) && !(per_slice & 1u);
+  const bool target_nf2_plan = v8_nf2_target_ && v8_nf2_target_context_ &&
+      std::all_of(segs.begin(), segs.end(), [&](const Seg8& sg) {
+    return !bool(sg.packed) && v8_packed_coeff_.contains(sg.L);
+  });
+  const bool packed16 = !canonical_affine_ && target_nf2_plan && pre == "qmm8snb16" && pl.cs * pl.ks <= 16;
+  bool packed = (!canonical_affine_ || target_nf2_plan) && !x2 && !v8w_R_ && R > 0 && R <= 8 &&
+                (pre == "qmm8snb" || packed16) && bits == 4 &&
+                pl.nf == 2 && (pl.cs * pl.ks <= 8 || packed16) && !(groups & 1u) &&
+                (packed16 || !(per_slice & 1u));
   if (packed) for (size_t i = 0; i < segs.size(); ++i) {
     images[i] = segs[i].packed;
     if (!images[i]) {
@@ -744,9 +803,12 @@ void Qwen35::enc_qmm8(Encoder& e, const std::vector<Seg8>& segs, int R, const Bu
     }
     packed = packed && bool(images[i]) && (images[i].ks == 0 || images[i].ks == uint32_t(pl.ks));
   }
+  const bool historical_nf2 = packed && target_nf2_plan;
+  if (!packed && materialize_fallback()) return;
   if (packed) {
-    pre = "qmm8pc";
-    pl.nf = 1;  // Preserve the original NF2 CS/KS plan and its partial sums.
+    pre = packed16 ? "qmm8pc16" : "qmm8pc";
+    // Only the target's pair-order images use the recovered NF2 kernels. Supplied drafter images retain main.
+    pl.nf = historical_nf2 ? 2 : 1;
   }
   const std::string name = pre + "_b" + std::to_string(bits) + "_nf" + std::to_string(pl.nf);
   kp::Qmm8 p{};
@@ -768,12 +830,14 @@ void Qwen35::enc_qmm8(Encoder& e, const std::vector<Seg8>& segs, int R, const Bu
     }
     const PackedCoeffBuffers& image = images[std::min(i, segs.size() - 1)];
     e.buf(int(i * 4 + 0), packed ? image.payload : sg.L->w->buf);
-    e.buf(int(i * 4 + 1), sg.L->s->buf);
-    e.buf(int(i * 4 + 2), sg.L->b->buf);
+    // Ordinary historical NF2 reads its coefficients from the image. Bind a valid unused buffer for deferred S/B.
+    e.buf(int(i * 4 + 1), sg.L->s->buf ? sg.L->s->buf : image.headers);
+    e.buf(int(i * 4 + 2), sg.L->b->buf ? sg.L->b->buf : image.headers);
     e.buf(int(i * 4 + 3), sg.y);
     if (packed) e.buf(21 + int(i), image.headers);
+    if (historical_nf2 && packed16) e.buf(25 + int(i), sg.L->w->buf);
   }
-  if (packed) {  // the record order: all segments share K, so one image's tells (interleave_packed_slices)
+  if (packed && !historical_nf2) {  // current-main NF1 record interleave parameters, absent from historical NF2
     uint32_t ilv[4];
     for (size_t i = 0; i < 4; ++i) {
       const PackedCoeffBuffers& im = images[std::min(i, segs.size() - 1)];
@@ -787,6 +851,7 @@ void Qwen35::enc_qmm8(Encoder& e, const std::vector<Seg8>& segs, int R, const Bu
   e.val(18, p);
   e.buf(19, x2 ? v8tl_ : table);
   e.buf(20, x2 ? v8sl_ : sums);
+  projection_trace::record(name, segs, K, R, pl.nf, pl.cs, pl.ks, tg, 32 * pl.cs * pl.ks, packed);
   if (v8w_R_ && x2) fatal("qmm8: a wide tree verify has no two-term GEMM");
   if (v8w_R_) v8_disp(e, tg, 1, 1, kV8wX, 32 * pl.cs * pl.ks);
   else e.dispatch(tg, 1, 1, 32 * pl.cs * pl.ks);
@@ -954,6 +1019,12 @@ bool Qwen35::enc_gu8(Encoder& e, const QLinear& gate, const QLinear& up, const B
   }
   if (v8w_R_) fatal("gu8: a wide tree verify needs the split gate / up path");
   if (!q4) fatal("gu8: %s gate/up need the split path (an intermediate size multiple of 256)", gate.fmt().c_str());
+  if (canonical_affine_) {
+    auto materialized = materialize_affine(e, {&gate, &up});
+    if (materialized)
+      return enc_gu8(e, materialized.get(gate), materialized.get(up), table, sums,
+                     h, hs, tt, ht, R, gate_packed, up_packed);
+  }
   kp::Qmm8Gu p{K, I, 0, 0, 0, 0, 0};
   e.use(pipe8(gu_kernel(K)));
   e.buf(0, gate.w->buf); e.buf(1, gate.s->buf); e.buf(2, gate.b->buf);
@@ -1271,6 +1342,8 @@ void Qwen35::moe8_replay(Encoder& e, int li, int mask) {
 }
 
 void Qwen35::encode_verify8(Encoder& e, Seq& s, int pos, int R, const SamplingParams& sp, uint32_t step) {
+  CanonicalVerifyScope context(v8_nf2_target_context_, !v8_nf2_prefill_chain_);
+  projection_trace::Scope trace_scope("target", "verify");
   // a tree of more than 8 rows: a wide tree verify (16 or 32 rows: GPU-driven row tiles, v8_wide_begin)
   const bool wide = v8_tree_ != nullptr && R > 8;
   // R whole 8-row tiles of the capacity set_tree_rows sized (8, 16 or 32 rows): the tile-pair MLP reads two tiles per
@@ -1445,6 +1518,8 @@ bool Qwen35::verify_tree_ok() const { return v8_tree_ok_c(cfg_); }
 // pass may run (16, 24 or 32 rows of a straight chain), built once and never rewritten: the plan kernel copies
 // it into the verify's own descriptor region, and a pass still on the GPU may read it after the host moved on.
 void Qwen35::encode_verify_chain(Encoder& e, Seq& s, int pos, int R, const SamplingParams& sp) {
+  CanonicalVerifyScope prefill(v8_nf2_prefill_chain_, true);
+  CanonicalVerifyScope context(v8_nf2_target_context_, false);
   // The rows' draws: row r samples with step + depth(r), and the sampler of the plain prefill path draws the reply's
   // first token (the one after position n - 1) with step 0. So a pass's last row's draw is step 0, the same step the
   // plain path's first-token draw uses: a sampled request then draws from the same uniform (same seed) as the old
@@ -1499,6 +1574,7 @@ void Qwen35::encode_kv_tree_compact(Encoder& e, Seq& s, int pos, const Buffer& t
 // write and its attention over the cache (attn_prep, attn8m_partial, attn_rows_reduce), the sampler's second stage
 // (its parameters and RNG positions). Each group folds its sequence's pending rows first, as encode_verify8 does.
 void Qwen35::encode_verify_multi(Encoder& e, const std::vector<VerifyGroup>& groups, int split_after) {
+  CanonicalVerifyScope context(v8_nf2_target_context_, !v8_nf2_prefill_chain_);
   int R = 0;
   for (const VerifyGroup& gr : groups) {
     if (!gr.s || gr.R < 1) fatal("encode_verify_multi: an empty group");
